@@ -20,3 +20,26 @@ export async function createLead(lead) {
 
   return data;
 }
+export async function updateLead(id, updates) {
+  console.log("updateLead received id:", id);
+
+  const { data, error } = await supabase
+    .from("leads")
+    .update(updates)
+    .eq("id", id)
+    .select();
+
+  if (error) throw error;
+
+  return data;
+}
+export async function deleteLead(id){
+  const {data, error} = await supabase
+    .from("leads")
+    .delete()
+    .eq("id", id);
+
+    if (error) throw error;
+
+    return data;
+}
