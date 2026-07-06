@@ -30,10 +30,21 @@ async function handleDelete(lead){
       console.error(error);
     }
   }
-async function handleFollowUpChange(id, value){
+async function handleFollowUpDateChange(id, value) {
   try {
     await updateLead(id, {
       follow_up_date: value,
+    });
+
+    await onStatusChange();
+  } catch (error) {
+    console.error(error);
+  }
+}
+async function handleFollowUpTimeChange(id, value) {
+  try {
+    await updateLead(id, {
+      follow_up_time: value,
     });
 
     await onStatusChange();
@@ -70,7 +81,12 @@ async function handleFollowUpChange(id, value){
           <input 
           type="date"
           value={lead.follow_up_date || ""}
-          onChange={(e) => handleFollowUpChange(lead.id, e.target.value)} 
+          onChange={(e) => handleFollowUpDateChange(lead.id, e.target.value)} 
+           />
+          <input 
+          type="time"
+          value={lead.follow_up_time || ""}
+          onChange={(e) => handleFollowUpTimeChange(lead.id, e.target.value)} 
            />
           <button onClick={() => handleDelete(lead)}>
             Delete
