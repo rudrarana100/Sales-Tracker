@@ -5,6 +5,10 @@ function CallSessionPage() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [showCallbackForm, setShowCallbackForm] = useState(false);
+  const [callbackDate, setCallbackDate] = useState("");
+  const [callbackTime, setCallbackTime] = useState("");
+
   async function fetchLeads() {
     try {
       const data = await getLeads();
@@ -45,9 +49,8 @@ function CallSessionPage() {
     try {
       if (!currentLead) return;
 
-      // Callback Requested will be handled separately
-      if (outcome === "callback") {
-        alert("Callback workflow coming next 🚀");
+      if (outcome === "callback_requested") {
+        setShowCallbackForm(true);
         return;
       }
 
@@ -59,11 +62,31 @@ function CallSessionPage() {
         last_contact_date: new Date().toISOString().split("T")[0],
       });
 
-      console.log(`${currentLead.lead_name} → ${outcome}`);
+      await fetchLeads();
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
-      // Refresh the queue.
-      // Don't increase index because the current lead
-      // disappears from the cold list automatically.
+  async function saveCallback() {
+    try {
+      if (!callbackDate || !callbackTime) {
+        alert("Please select both date and time.");
+        return;
+      }
+
+      await updateLead(currentLead.id, {
+        status: "contacted",
+        last_outcome: "callback_requested",
+        last_contact_date: new Date().toISOString().split("T")[0],
+        follow_up_date: callbackDate,
+        follow_up_time: callbackTime,
+      });
+
+      setShowCallbackForm(false);
+      setCallbackDate("");
+      setCallbackTime("");
+
       await fetchLeads();
     } catch (error) {
       console.error(error);
@@ -87,9 +110,7 @@ function CallSessionPage() {
     <div>
       <h1>Cold Call Session</h1>
 
-      <p>
-        Lead 1 / {coldLeads.length}
-      </p>
+      <p>Lead 1 / {coldLeads.length}</p>
 
       <h2>{currentLead.lead_name}</h2>
 
@@ -109,7 +130,7 @@ function CallSessionPage() {
         👤 Gatekeeper
       </button>
 
-      <button onClick={() => handleOutcome("callback")}>
+      <button onClick={() => handleOutcome("callback_requested")}>
         📅 Callback Requested
       </button>
 
@@ -120,6 +141,28 @@ function CallSessionPage() {
       <button onClick={() => handleOutcome("interested")}>
         🟢 Interested
       </button>
+
+      {showCallbackForm && (
+        <div>
+          <h3>Schedule Callback</h3>
+
+          <input
+            type="date"
+            value={callbackDate}
+            onChange={(e) => setCallbackDate(e.target.value)}
+          />
+
+          <input
+            type="time"
+            value={callbackTime}
+            onChange={(e) => setCallbackTime(e.target.value)}
+          />
+
+          <button onClick={saveCallback}>
+            Save Callback
+          </button>
+        </div>
+      )}
     </div>
   );
 }
