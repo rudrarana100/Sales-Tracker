@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { getLeads } from "../api/leadsApi";
 import LeadForm from "../components/LeadForm";
 import LeadsList from "../components/LeadsList";
+import CallSessionPage from "./CallSessionPage";
+import { useNavigate } from "react-router-dom";
 
 function LeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -84,8 +86,11 @@ const upcomingFollowUps = leads
     });
   }
 
+  const navigate = useNavigate();
+
   return (
     <div>
+      <button onClick={() => navigate("/call-session")}>Start Calling</button>
       <select
         value={statusFilter}
         onChange={(e) => setStatusFilter(e.target.value)}
