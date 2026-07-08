@@ -163,6 +163,82 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
     );
   }
 
+ function createGoogleCalendarEvent() {
+  if (!meetingDate || !meetingTime) {
+    alert("Select date and time first.");
+    return;
+  }
+
+  const start = new Date(`${meetingDate}T${meetingTime}`);
+
+  // 30-minute meeting
+  const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+  function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${year}${month}${day}T${hours}${minutes}00`;
+}
+
+  const title = `BuiltStack x ${currentLead.lead_name}`;
+
+  const details = `Google Meet with ${currentLead.lead_name}`;
+
+  const url =
+    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+    `&text=${encodeURIComponent(title)}` +
+    `&details=${encodeURIComponent(details)}` +
+    `&dates=${formatDate(start)}/${formatDate(end)}`;
+
+  window.open(url, "_blank");
+}
+
+function formatDisplayDate(date) {
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function sendMeetingConfirmation() {
+  if (!currentLead.phone) {
+    alert("No phone number found.");
+    return;
+  }
+
+  let phone = currentLead.phone.replace(/\D/g, "");
+
+  if (phone.length === 10) {
+    phone = "91" + phone;
+  }
+
+  const message = `Hi ${currentLead.contact_person || currentLead.lead_name},
+
+Great speaking with you today!
+
+Our Google Meet has been scheduled.
+
+📅 Date: ${formatDisplayDate(meetingDate)}
+🕒 Time: ${meetingTime}
+
+Meeting Link:
+${meetingLink}
+
+Looking forward to speaking with you.
+
+- Rudra
+BuiltStack`;
+
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+  window.open(url, "_blank");
+}
 
   async function saveMeeting(){
     try {
@@ -179,7 +255,8 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
       follow_up_time: meetingTime,
       meeting_link: meetingLink,
       });
-
+      
+      sendMeetingConfirmation();
       setShowMeetingForm(false);
 
       setMeetingDate("");
@@ -271,8 +348,12 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
       onChange={(e) => setMeetingLink(e.target.value)}
     />
 
+    <button onClick={createGoogleCalendarEvent}>
+      Create Calendar Event
+    </button>
+
     <button onClick={saveMeeting}>
-      Save Meeting
+      Confirm Meeting
     </button>
         </div>
       )}
