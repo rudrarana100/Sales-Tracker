@@ -8,6 +8,7 @@ function CallSessionPage() {
   const [showCallbackForm, setShowCallbackForm] = useState(false);
   const [callbackDate, setCallbackDate] = useState("");
   const [callbackTime, setCallbackTime] = useState("");
+  const [showInterestedActions, setShowInterestedActions] = useState(false);
 
   async function fetchLeads() {
     try {
@@ -54,6 +55,11 @@ function CallSessionPage() {
         return;
       }
 
+      if(outcome === "interested"){
+        setShowInterestedActions(true);
+        return;
+      }
+
       const config = outcomeConfig[outcome];
 
       await updateLead(currentLead.id, {
@@ -63,6 +69,50 @@ function CallSessionPage() {
       });
 
       await fetchLeads();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function sendWhatsapp(){
+    console.log(currentLead);
+console.log(currentLead.phone);
+    if(!currentLead.phone){
+      alert("No phone number found.");
+      return;
+    }
+
+    let phone = currentLead.phone.replace(/\D/g,"");
+
+    if(phone.length === 10){
+      phone = "91" + phone;
+    }
+
+    const message = `Hi ${currentLead.contact_person || ""},
+    Great speaking with you today!
+
+As discussed, here's some information about BuiltStack.
+
+We help businesses build modern websites that increase trust and help generate more leads.
+
+Would love to show you a few examples on a quick Google Meet whenever you're free.`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+    window.open(url, "_blank");
+  }
+
+  async function markInterested(){
+    try {
+      await updateLead(currentLead.id,{
+        status: "warm",
+        last_outcome: "interested",
+        last_contact_date: new Date().toISOString().split("T")[0],
+      });
+
+      setShowInterestedActions(false);
+
+      await fetchLeads();
+
     } catch (error) {
       console.error(error);
     }
@@ -160,6 +210,28 @@ function CallSessionPage() {
 
           <button onClick={saveCallback}>
             Save Callback
+          </button>
+        </div>
+      )}
+      {showInterestedActions && (
+        <div>
+          <h3>Prospect Interested</h3>
+
+          <button 
+            onClick={async() => {
+              await markInterested();
+              sendWhatsapp();
+            }}
+          >
+            Send Whatsapp
+          </button>
+          
+          <button>
+            Book Google Meet
+          </button>
+
+          <button>
+            Skip
           </button>
         </div>
       )}
