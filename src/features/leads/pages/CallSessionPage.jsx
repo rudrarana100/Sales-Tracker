@@ -9,6 +9,13 @@ function CallSessionPage() {
   const [callbackDate, setCallbackDate] = useState("");
   const [callbackTime, setCallbackTime] = useState("");
   const [showInterestedActions, setShowInterestedActions] = useState(false);
+  const [showMeetingForm, setShowMeetingForm] = useState(false);
+
+const [meetingDate, setMeetingDate] = useState("");
+
+const [meetingTime, setMeetingTime] = useState("");
+
+const [meetingLink, setMeetingLink] = useState("");
 
   async function fetchLeads() {
     try {
@@ -156,6 +163,36 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
     );
   }
 
+
+  async function saveMeeting(){
+    try {
+      if(!meetingDate || !meetingTime){
+        alert("Please select both date and time");
+        return;
+      }
+
+      await updateLead(currentLead.id,{
+          status: "warm",
+      last_outcome: "google_meet_booked",
+      last_contact_date: new Date().toISOString().split("T")[0],
+      follow_up_date: meetingDate,
+      follow_up_time: meetingTime,
+      meeting_link: meetingLink,
+      });
+
+      setShowMeetingForm(false);
+
+      setMeetingDate("");
+      setMeetingTime("");
+      setMeetingLink("");
+
+      await fetchLeads();
+
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
     <div>
       <h1>Cold Call Session</h1>
@@ -213,6 +250,32 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
           </button>
         </div>
       )}
+      {showMeetingForm && (
+        <div>
+             <input
+      type="date"
+      value={meetingDate}
+      onChange={(e) => setMeetingDate(e.target.value)}
+    />
+
+    <input
+      type="time"
+      value={meetingTime}
+      onChange={(e) => setMeetingTime(e.target.value)}
+    />
+
+    <input
+      type="text"
+      placeholder="Meeting Link"
+      value={meetingLink}
+      onChange={(e) => setMeetingLink(e.target.value)}
+    />
+
+    <button onClick={saveMeeting}>
+      Save Meeting
+    </button>
+        </div>
+      )}
       {showInterestedActions && (
         <div>
           <h3>Prospect Interested</h3>
@@ -226,7 +289,11 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
             Send Whatsapp
           </button>
           
-          <button>
+          <button
+          onClick={() => {
+            setShowInterestedActions(false);
+            setShowMeetingForm(true);
+          }}>
             Book Google Meet
           </button>
 

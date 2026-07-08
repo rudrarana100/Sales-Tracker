@@ -7,8 +7,8 @@ function LeadForm({ onLeadAdded }) {
   const [contactPerson, setContactPerson] = useState("");
   const [businessType, setBusinessType] = useState("");
   const [website, setWebsite] = useState("");
-  const [instagram, setInstagram] = useState("");
   const [email, setEmail] = useState("");
+  
 
   const leadNameRef = useRef(null);
 
@@ -32,7 +32,6 @@ function LeadForm({ onLeadAdded }) {
         contact_person: contactPerson,
         business_type: businessType,
         website: website,
-        instagram: instagram,
         email: email,
         source: "cold_call",
         status: "cold",
@@ -43,7 +42,6 @@ function LeadForm({ onLeadAdded }) {
       setContactPerson("");
       setBusinessType("");
       setWebsite("");
-      setInstagram("");
       setEmail("");
 
       onLeadAdded();
@@ -92,13 +90,6 @@ function LeadForm({ onLeadAdded }) {
         placeholder="Website"
         value={website}
         onChange={(e) => setWebsite(e.target.value)}
-      />
-
-      <input
-        type="text"
-        placeholder="Instagram"
-        value={instagram}
-        onChange={(e) => setInstagram(e.target.value)}
       />
 
       <input
