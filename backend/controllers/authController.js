@@ -11,3 +11,19 @@ export function googleLogin(req, res) {
 
   res.redirect(url);
 }
+
+export async function googleCallback(req, res) {
+  try {
+    const { code } = req.query;
+
+    const { tokens } = await oauth2Client.getToken(code);
+
+    console.log(tokens);
+
+    res.send("Google connected successfully ✅");
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).send("Authentication failed.");
+  }
+}
