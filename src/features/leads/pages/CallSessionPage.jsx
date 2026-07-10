@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getLeads, updateLead } from "../api/leadsApi";
+import { addActivity } from "../api/activitiesApi";
 
 function CallSessionPage() {
   const [leads, setLeads] = useState([]);
@@ -11,11 +12,9 @@ function CallSessionPage() {
   const [showInterestedActions, setShowInterestedActions] = useState(false);
   const [showMeetingForm, setShowMeetingForm] = useState(false);
 
-const [meetingDate, setMeetingDate] = useState("");
+  const [meetingDate, setMeetingDate] = useState("");
 
-const [meetingTime, setMeetingTime] = useState("");
-
-const [meetingLink, setMeetingLink] = useState("");
+  const [meetingTime, setMeetingTime] = useState("");
 
   async function fetchLeads() {
     try {
@@ -62,7 +61,7 @@ const [meetingLink, setMeetingLink] = useState("");
         return;
       }
 
-      if(outcome === "interested"){
+      if (outcome === "interested") {
         setShowInterestedActions(true);
         return;
       }
@@ -74,24 +73,31 @@ const [meetingLink, setMeetingLink] = useState("");
         last_outcome: outcome,
         last_contact_date: new Date().toISOString().split("T")[0],
       });
+      await addActivity({
+        lead_id: currentLead.id,
+        activity_type: "call_outcome",
+        description: outcome,
+      });
 
       await fetchLeads();
+
+      setShowInterestedActions(false);
     } catch (error) {
       console.error(error);
     }
   }
 
-  function sendWhatsapp(){
+  function sendWhatsapp() {
     console.log(currentLead);
-console.log(currentLead.phone);
-    if(!currentLead.phone){
+    console.log(currentLead.phone);
+    if (!currentLead.phone) {
       alert("No phone number found.");
       return;
     }
 
-    let phone = currentLead.phone.replace(/\D/g,"");
+    let phone = currentLead.phone.replace(/\D/g, "");
 
-    if(phone.length === 10){
+    if (phone.length === 10) {
       phone = "91" + phone;
     }
 
@@ -108,18 +114,22 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
     window.open(url, "_blank");
   }
 
-  async function markInterested(){
+  async function markInterested() {
     try {
-      await updateLead(currentLead.id,{
+      await updateLead(currentLead.id, {
         status: "warm",
         last_outcome: "interested",
         last_contact_date: new Date().toISOString().split("T")[0],
+      });
+      await addActivity({
+        lead_id: currentLead.id,
+        activity_type: "status_change",
+        description: "Lead marked as Interested",
       });
 
       setShowInterestedActions(false);
 
       await fetchLeads();
-
     } catch (error) {
       console.error(error);
     }
@@ -138,6 +148,12 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
         last_contact_date: new Date().toISOString().split("T")[0],
         follow_up_date: callbackDate,
         follow_up_time: callbackTime,
+      });
+
+      await addActivity({
+        lead_id: currentLead.id,
+        activity_type: "callback",
+        description: `Callback scheduled for ${callbackDate} at ${callbackTime}`,
       });
 
       setShowCallbackForm(false);
@@ -163,62 +179,59 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
     );
   }
 
- function createGoogleCalendarEvent() {
-  if (!meetingDate || !meetingTime) {
-    alert("Select date and time first.");
-    return;
+  async function createGoogleMeet() {
+    try {
+      const start = new Date(`${meetingDate}T${meetingTime}`);
+
+      const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+      const response = await fetch("http://localhost:5000/calendar/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: `BuiltStack x ${currentLead.lead_name}`,
+          description: `Google Meet with ${currentLead.lead_name}`,
+          startDateTime: start.toISOString(),
+          endDateTime: end.toISOString(),
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create meeting");
+      }
+
+      return data.hangoutLink;
+    } catch (error) {
+      console.error(error);
+
+      alert("Failed to create Google Meet.");
+    }
   }
 
-  const start = new Date(`${meetingDate}T${meetingTime}`);
-
-  // 30-minute meeting
-  const end = new Date(start.getTime() + 30 * 60 * 1000);
-
-  function formatDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}${month}${day}T${hours}${minutes}00`;
-}
-
-  const title = `BuiltStack x ${currentLead.lead_name}`;
-
-  const details = `Google Meet with ${currentLead.lead_name}`;
-
-  const url =
-    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
-    `&text=${encodeURIComponent(title)}` +
-    `&details=${encodeURIComponent(details)}` +
-    `&dates=${formatDate(start)}/${formatDate(end)}`;
-
-  window.open(url, "_blank");
-}
-
-function formatDisplayDate(date) {
-  return new Date(date).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
-
-function sendMeetingConfirmation() {
-  if (!currentLead.phone) {
-    alert("No phone number found.");
-    return;
+  function formatDisplayDate(date) {
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
   }
 
-  let phone = currentLead.phone.replace(/\D/g, "");
+  function sendMeetingConfirmation(meetLink) {
+    if (!currentLead.phone) {
+      alert("No phone number found.");
+      return;
+    }
 
-  if (phone.length === 10) {
-    phone = "91" + phone;
-  }
+    let phone = currentLead.phone.replace(/\D/g, "");
 
-  const message = `Hi ${currentLead.contact_person || currentLead.lead_name},
+    if (phone.length === 10) {
+      phone = "91" + phone;
+    }
+
+    const message = `Hi ${currentLead.contact_person || currentLead.lead_name},
 
 Great speaking with you today!
 
@@ -228,43 +241,51 @@ Our Google Meet has been scheduled.
 🕒 Time: ${meetingTime}
 
 Meeting Link:
-${meetingLink}
+${meetLink}
 
 Looking forward to speaking with you.
 
 - Rudra
 BuiltStack`;
 
-  const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-  window.open(url, "_blank");
-}
+    window.open(url, "_blank");
+  }
 
-  async function saveMeeting(){
+  async function saveMeeting() {
     try {
-      if(!meetingDate || !meetingTime){
-        alert("Please select both date and time");
+      if (!meetingDate || !meetingTime) {
+        alert("Please select both date and time.");
         return;
       }
 
-      await updateLead(currentLead.id,{
-          status: "warm",
-      last_outcome: "google_meet_booked",
-      last_contact_date: new Date().toISOString().split("T")[0],
-      follow_up_date: meetingDate,
-      follow_up_time: meetingTime,
-      meeting_link: meetingLink,
+      const meetLink = await createGoogleMeet();
+
+      if (!meetLink) return;
+
+      await updateLead(currentLead.id, {
+        status: "meeting_booked",
+        last_outcome: "google_meet_booked",
+        last_contact_date: new Date().toISOString().split("T")[0],
+        follow_up_date: meetingDate,
+        follow_up_time: meetingTime,
+        meeting_link: meetLink,
       });
-      
-      sendMeetingConfirmation();
+      await addActivity({
+        lead_id: currentLead.id,
+        activity_type: "meeting",
+        description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
+      });
+
+      sendMeetingConfirmation(meetLink);
+
       setShowMeetingForm(false);
 
       setMeetingDate("");
       setMeetingTime("");
-      setMeetingLink("");
 
       await fetchLeads();
-
     } catch (error) {
       console.error(error);
     }
@@ -282,17 +303,13 @@ BuiltStack`;
 
       <p>{currentLead.phone || "No Phone Number"}</p>
 
-      <button onClick={() => handleOutcome("no_answer")}>
-        📵 No Answer
-      </button>
+      <button onClick={() => handleOutcome("no_answer")}>📵 No Answer</button>
 
       <button onClick={() => handleOutcome("invalid_number")}>
         🚫 Invalid Number
       </button>
 
-      <button onClick={() => handleOutcome("gatekeeper")}>
-        👤 Gatekeeper
-      </button>
+      <button onClick={() => handleOutcome("gatekeeper")}>👤 Gatekeeper</button>
 
       <button onClick={() => handleOutcome("callback_requested")}>
         📅 Callback Requested
@@ -302,9 +319,7 @@ BuiltStack`;
         🙅 Not Interested
       </button>
 
-      <button onClick={() => handleOutcome("interested")}>
-        🟢 Interested
-      </button>
+      <button onClick={() => handleOutcome("interested")}>🟢 Interested</button>
 
       {showCallbackForm && (
         <div>
@@ -322,65 +337,49 @@ BuiltStack`;
             onChange={(e) => setCallbackTime(e.target.value)}
           />
 
-          <button onClick={saveCallback}>
-            Save Callback
-          </button>
+          <button onClick={saveCallback}>Save Callback</button>
         </div>
       )}
       {showMeetingForm && (
         <div>
-             <input
-      type="date"
-      value={meetingDate}
-      onChange={(e) => setMeetingDate(e.target.value)}
-    />
+          <input
+            type="date"
+            value={meetingDate}
+            onChange={(e) => setMeetingDate(e.target.value)}
+          />
 
-    <input
-      type="time"
-      value={meetingTime}
-      onChange={(e) => setMeetingTime(e.target.value)}
-    />
+          <input
+            type="time"
+            value={meetingTime}
+            onChange={(e) => setMeetingTime(e.target.value)}
+          />
 
-    <input
-      type="text"
-      placeholder="Meeting Link"
-      value={meetingLink}
-      onChange={(e) => setMeetingLink(e.target.value)}
-    />
-
-    <button onClick={createGoogleCalendarEvent}>
-      Create Calendar Event
-    </button>
-
-    <button onClick={saveMeeting}>
-      Confirm Meeting
-    </button>
+          <button onClick={saveMeeting}>Confirm Meeting</button>
         </div>
       )}
       {showInterestedActions && (
         <div>
           <h3>Prospect Interested</h3>
 
-          <button 
-            onClick={async() => {
+          <button
+            onClick={async () => {
               await markInterested();
               sendWhatsapp();
             }}
           >
             Send Whatsapp
           </button>
-          
+
           <button
-          onClick={() => {
-            setShowInterestedActions(false);
-            setShowMeetingForm(true);
-          }}>
+            onClick={() => {
+              setShowInterestedActions(false);
+              setShowMeetingForm(true);
+            }}
+          >
             Book Google Meet
           </button>
 
-          <button>
-            Skip
-          </button>
+          <button>Skip</button>
         </div>
       )}
     </div>

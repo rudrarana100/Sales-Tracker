@@ -5,6 +5,19 @@ import LeadsList from "../components/LeadsList";
 import CallSessionPage from "./CallSessionPage";
 import { useNavigate } from "react-router-dom";
 
+
+import { addActivity } from "../api/activitiesApi";
+
+async function testActivity() {
+  await addActivity({
+    lead_id: currentLead.id,
+    activity_type: "note",
+    description: "Testing Activity Timeline 🚀",
+  });
+
+  alert("Activity Added");
+}
+
 function LeadsPage() {
   const [leads, setLeads] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -187,7 +200,19 @@ const upcomingFollowUps = leads
       <h1>Sales Tracker</h1>
 
       <LeadForm onLeadAdded={fetchLeads} />
+        <button
+  onClick={async () => {
+    await addActivity({
+      lead_id: leads[0].id,
+      activity_type: "note",
+      description: "Testing Activity Timeline 🚀",
+    });
 
+    alert("Activity Added");
+  }}
+>
+  Test Activity
+</button>
       <LeadsList leads={filteredLeads} onStatusChange={fetchLeads} />
     </div>
   );
