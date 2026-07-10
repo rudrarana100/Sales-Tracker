@@ -1,57 +1,58 @@
 import { updateLead, deleteLead } from "../api/leadsApi";
+import ActivityTimeline from "./ActivityTimeline";
+import { useState } from "react";
 
 function LeadsList({ leads, onStatusChange }) {
+  const [expandedLead, setExpandedLead] = useState(null);
   async function handleStatusChange(id, value) {
+    try {
+      await updateLead(id, {
+        status: value,
+      });
 
-  try {
-    await updateLead(id, {
-      status: value,
-    });
-
-    await onStatusChange();
-  } catch (error) {
-    console.error(error);
+      await onStatusChange();
+    } catch (error) {
+      console.error(error);
+    }
   }
 
-}
-
-async function handleDelete(lead){
+  async function handleDelete(lead) {
     try {
-
-      if (!window.confirm(`Are you sure you want to delete "${lead.lead_name}"`)) {
+      if (
+        !window.confirm(`Are you sure you want to delete "${lead.lead_name}"`)
+      ) {
         return;
       }
 
       await deleteLead(lead.id);
 
       await onStatusChange();
-
     } catch (error) {
       console.error(error);
     }
   }
-async function handleFollowUpDateChange(id, value) {
-  try {
-    await updateLead(id, {
-      follow_up_date: value,
-    });
+  async function handleFollowUpDateChange(id, value) {
+    try {
+      await updateLead(id, {
+        follow_up_date: value,
+      });
 
-    await onStatusChange();
-  } catch (error) {
-    console.error(error);
+      await onStatusChange();
+    } catch (error) {
+      console.error(error);
+    }
   }
-}
-async function handleFollowUpTimeChange(id, value) {
-  try {
-    await updateLead(id, {
-      follow_up_time: value,
-    });
+  async function handleFollowUpTimeChange(id, value) {
+    try {
+      await updateLead(id, {
+        follow_up_time: value,
+      });
 
-    await onStatusChange();
-  } catch (error) {
-    console.error(error);
+      await onStatusChange();
+    } catch (error) {
+      console.error(error);
+    }
   }
-}
   return (
     <div>
       <h2>All Leads</h2>
@@ -78,19 +79,25 @@ async function handleFollowUpTimeChange(id, value) {
             <option value="closed_won">Closed Won</option>
             <option value="closed_lost">Closed Lost</option>
           </select>
-          <input 
-          type="date"
-          value={lead.follow_up_date || ""}
-          onChange={(e) => handleFollowUpDateChange(lead.id, e.target.value)} 
-           />
-          <input 
-          type="time"
-          value={lead.follow_up_time || ""}
-          onChange={(e) => handleFollowUpTimeChange(lead.id, e.target.value)} 
-           />
-          <button onClick={() => handleDelete(lead)}>
-            Delete
+          <input
+            type="date"
+            value={lead.follow_up_date || ""}
+            onChange={(e) => handleFollowUpDateChange(lead.id, e.target.value)}
+          />
+          <input
+            type="time"
+            value={lead.follow_up_time || ""}
+            onChange={(e) => handleFollowUpTimeChange(lead.id, e.target.value)}
+          />
+          <button
+            onClick={() =>
+              setExpandedLead(expandedLead === lead.id ? null : lead.id)
+            }
+          >
+            {expandedLead === lead.id ? "Hide Timeline" : "Show Timeline"}
           </button>
+          {expandedLead === lead.id && <ActivityTimeline leadId={lead.id} />}
+          <button onClick={() => handleDelete(lead)}>Delete</button>
         </div>
       ))}
     </div>
