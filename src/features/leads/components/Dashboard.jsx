@@ -1,6 +1,9 @@
+import { useState } from "react";
 import RecentActivity from "./RecentActivity";
 
 function Dashboard({ leads, onStartCalling }) {
+  const [showRecentActivity, setShowRecentActivity] = useState(false);
+
   const today = new Date().toISOString().split("T")[0];
 
   const coldCallsRemaining = leads.filter(
@@ -37,6 +40,28 @@ function Dashboard({ leads, onStartCalling }) {
       )
     );
 
+  function getTaskLabel(status) {
+    switch (status) {
+      case "meeting_booked":
+        return "Google Meet";
+
+      case "contacted":
+        return "Follow-up Call";
+
+      case "warm":
+        return "Warm Lead";
+
+      case "proposal_sent":
+        return "Proposal Follow-up";
+
+      case "cold":
+        return "Cold Call";
+
+      default:
+        return status;
+    }
+  }
+
   return (
     <div
       style={{
@@ -56,8 +81,6 @@ function Dashboard({ leads, onStartCalling }) {
       </button>
 
       <hr />
-
-      {/* Needs Attention */}
 
       <h3>Needs Attention</h3>
 
@@ -88,8 +111,6 @@ function Dashboard({ leads, onStartCalling }) {
 
       <hr />
 
-      {/* My Day */}
-
       <h3>My Day</h3>
 
       {todayTasks.length === 0 ? (
@@ -104,9 +125,7 @@ function Dashboard({ leads, onStartCalling }) {
               marginBottom: "10px",
             }}
           >
-            <strong>
-              {lead.follow_up_time || "--:--"}
-            </strong>
+            <strong>{lead.follow_up_time || "--:--"}</strong>
 
             <br />
 
@@ -114,16 +133,42 @@ function Dashboard({ leads, onStartCalling }) {
 
             <br />
 
-            <small>{lead.status}</small>
+            <small>{getTaskLabel(lead.status)}</small>
           </div>
         ))
       )}
 
       <hr />
 
-      {/* Recent Activity */}
+      <div
+        onClick={() =>
+          setShowRecentActivity(!showRecentActivity)
+        }
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+      >
+        <h3>Recent Activity</h3>
 
-      <RecentActivity />
+        <span
+          style={{
+            fontSize: "18px",
+            fontWeight: "bold",
+          }}
+        >
+          {showRecentActivity ? "▲" : "▼"}
+        </span>
+      </div>
+
+      {showRecentActivity && (
+        <div style={{ marginTop: "15px" }}>
+          <RecentActivity />
+        </div>
+      )}
     </div>
   );
 }
