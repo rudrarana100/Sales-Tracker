@@ -22,3 +22,19 @@ export async function getActivities(leadId) {
 
   return data;
 }
+export async function getRecentActivities() {
+  const { data, error } = await supabase
+    .from("activities")
+    .select(`
+      *,
+      leads (
+        lead_name
+      )
+    `)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) throw error;
+
+  return data;
+}
