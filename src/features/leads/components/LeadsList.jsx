@@ -1,9 +1,11 @@
 import { updateLead, deleteLead } from "../api/leadsApi";
 import ActivityTimeline from "./ActivityTimeline";
+import NotesPanel from "./NotesPanel";
 import { useState } from "react";
 
 function LeadsList({ leads, onStatusChange }) {
   const [expandedLead, setExpandedLead] = useState(null);
+  const [notesLead, setNotesLead] = useState(null);
   async function handleStatusChange(id, value) {
     try {
       await updateLead(id, {
@@ -96,7 +98,17 @@ function LeadsList({ leads, onStatusChange }) {
           >
             {expandedLead === lead.id ? "Hide Timeline" : "Show Timeline"}
           </button>
+
           {expandedLead === lead.id && <ActivityTimeline leadId={lead.id} />}
+
+          <button
+            onClick={() => setNotesLead(notesLead === lead.id ? null : lead.id)}
+          >
+            {notesLead === lead.id ? "Hide Notes" : "Show Notes"}
+          </button>
+
+          {notesLead === lead.id && <NotesPanel leadId={lead.id} />}
+
           <button onClick={() => handleDelete(lead)}>Delete</button>
         </div>
       ))}
