@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Papa from "papaparse";
 import { importLeads } from "../api/leadsApi";
+import { getExistingPhones } from "../api/leadsApi";
 
 function CsvImport( {onImport} ) {
     
@@ -22,20 +23,40 @@ function CsvImport( {onImport} ) {
       },
     });
   }
-  async function handleImport() {
+ async function handleImport() {
   try {
-    await importLeads(rows);
+    const existing = await getExistingPhones();
 
-    await onImport();
+    const existingPhones = new Set(
+      existing.map((lead) => lead.phone)
+    );
 
-    alert(`${rows.length} leads imported successfully!`);
+    const uniqueLeads = rows.filter(
+      (row) => !existingPhones.has(row.phone)
+    );
+
+    const skipped = rows.length - uniqueLeads.length;
+
+    if (uniqueLeads.length === 0) {
+      alert("All leads already exist.");
+      return;
+    }
+
+    await importLeads(uniqueLeads);
+
+    if (onImport) {
+      await onImport();
+    }
+
+    alert(
+      `Imported ${uniqueLeads.length} leads.\nSkipped ${skipped} duplicates.`
+    );
 
     setRows([]);
   } catch (error) {
-  console.error(error);
-
-  alert(JSON.stringify(error, null, 2));
-}
+    console.error(error);
+    alert(error.message);
+  }
 }
 
   return (

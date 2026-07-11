@@ -54,3 +54,12 @@ export async function importLeads(leads) {
 
     return data;
 }
+export async function getExistingPhones() {
+  const { data, error } = await supabase
+    .from("leads")
+    .select("phone");
+
+  if (error) throw error;
+
+  return data;
+}
