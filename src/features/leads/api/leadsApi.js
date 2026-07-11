@@ -63,3 +63,14 @@ export async function getExistingPhones() {
 
   return data;
 }
+export async function getLeadById(id) {
+  const { data, error } = await supabase
+    .from("leads")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
