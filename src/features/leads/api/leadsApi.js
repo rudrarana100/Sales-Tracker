@@ -44,3 +44,13 @@ export async function deleteLead(id){
 
     return data;
 }
+export async function importLeads(leads) {
+  const {data, error} = await supabase
+    .from("leads")
+    .insert(leads)
+    .select();
+
+    if (error) throw error;
+
+    return data;
+}

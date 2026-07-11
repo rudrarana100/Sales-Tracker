@@ -1,7 +1,9 @@
 import { useState } from "react";
 import Papa from "papaparse";
+import { importLeads } from "../api/leadsApi";
 
-function CsvImport() {
+function CsvImport( {onImport} ) {
+    
   const [rows, setRows] = useState([]);
 
   function handleFile(e) {
@@ -20,6 +22,21 @@ function CsvImport() {
       },
     });
   }
+  async function handleImport() {
+  try {
+    await importLeads(rows);
+
+    await onImport();
+
+    alert(`${rows.length} leads imported successfully!`);
+
+    setRows([]);
+  } catch (error) {
+  console.error(error);
+
+  alert(JSON.stringify(error, null, 2));
+}
+}
 
   return (
     <div style={{ marginBottom: "20px" }}>
@@ -69,12 +86,7 @@ function CsvImport() {
             </p>
           )}
 
-          <button
-            style={{
-              marginTop: "20px",
-              padding: "10px 18px",
-            }}
-          >
+          <button onClick={handleImport}>
             Import {rows.length} Leads
           </button>
         </>

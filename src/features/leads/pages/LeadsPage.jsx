@@ -64,7 +64,7 @@ function LeadsPage() {
       <h1>Sales Tracker</h1>
 
 
-      <CsvImport />
+      <CsvImport onImport={fetchLeads} />
 
       <LeadForm onLeadAdded={fetchLeads} />
 
