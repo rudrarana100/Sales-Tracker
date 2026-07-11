@@ -64,7 +64,6 @@ function LeadDetailPage() {
 
         <div style={{ marginTop: "10px" }}>
           <strong>Status</strong>
-
           <br />
 
           <select
@@ -86,7 +85,7 @@ function LeadDetailPage() {
         </div>
       </div>
 
-      {/* Contact */}
+      {/* Contact Information */}
 
       <div
         style={{
@@ -136,7 +135,6 @@ function LeadDetailPage() {
 
         <div style={{ marginBottom: "15px" }}>
           <strong>Date</strong>
-
           <br />
 
           <input
@@ -152,7 +150,6 @@ function LeadDetailPage() {
 
         <div>
           <strong>Time</strong>
-
           <br />
 
           <input
@@ -167,22 +164,6 @@ function LeadDetailPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-
-      <div
-        style={{
-          border: "1px solid #ddd",
-          padding: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <h2>Quick Actions</h2>
-
-        <button>Call</button>{" "}
-        <button>WhatsApp</button>{" "}
-        <button>Email</button>{" "}
-        <button>Book Google Meet</button>
-      </div>
 
       {/* Meeting */}
 
@@ -220,7 +201,7 @@ function LeadDetailPage() {
         <NotesPanel leadId={lead.id} />
       </div>
 
-      {/* Timeline */}
+      {/* Activity Timeline */}
 
       <div
         style={{
