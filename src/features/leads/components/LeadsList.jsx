@@ -1,26 +1,8 @@
 import { updateLead, deleteLead } from "../api/leadsApi";
-import ActivityTimeline from "./ActivityTimeline";
-import NotesPanel from "./NotesPanel";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function LeadsList({ leads, onStatusChange }) {
   const navigate = useNavigate();
-
-  const [expandedLead, setExpandedLead] = useState(null);
-  const [notesLead, setNotesLead] = useState(null);
-
-  async function handleStatusChange(id, value) {
-    try {
-      await updateLead(id, {
-        status: value,
-      });
-
-      await onStatusChange();
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
   async function handleDelete(lead) {
     try {
@@ -38,30 +20,6 @@ function LeadsList({ leads, onStatusChange }) {
     }
   }
 
-  async function handleFollowUpDateChange(id, value) {
-    try {
-      await updateLead(id, {
-        follow_up_date: value,
-      });
-
-      await onStatusChange();
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async function handleFollowUpTimeChange(id, value) {
-    try {
-      await updateLead(id, {
-        follow_up_time: value,
-      });
-
-      await onStatusChange();
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   return (
     <div>
       <h2>All Leads</h2>
@@ -71,8 +29,8 @@ function LeadsList({ leads, onStatusChange }) {
           key={lead.id}
           style={{
             border: "1px solid #ccc",
-            padding: "10px",
-            marginBottom: "10px",
+            padding: "15px",
+            marginBottom: "12px",
           }}
         >
           <h3
@@ -80,68 +38,48 @@ function LeadsList({ leads, onStatusChange }) {
             style={{
               cursor: "pointer",
               color: "royalblue",
+              marginBottom: "8px",
             }}
           >
             {lead.lead_name}
           </h3>
 
-          <p>{lead.contact_person || "No Contact Person"}</p>
+          <p>
+            <strong>Contact:</strong>{" "}
+            {lead.contact_person || "--"}
+          </p>
 
-          <select
-            value={lead.status}
-            onChange={(e) => handleStatusChange(lead.id, e.target.value)}
+          <p>
+            <strong>Status:</strong>{" "}
+            {lead.status}
+          </p>
+
+          <p>
+            <strong>Follow-up:</strong>{" "}
+            {lead.follow_up_date || "--"}
+            {" "}
+            {lead.follow_up_time || ""}
+          </p>
+
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              gap: "10px",
+            }}
           >
-            <option value="cold">Cold</option>
-            <option value="contacted">Contacted</option>
-            <option value="warm">Warm</option>
-            <option value="proposal_sent">Proposal Sent</option>
-            <option value="closed_won">Closed Won</option>
-            <option value="closed_lost">Closed Lost</option>
-          </select>
+            <button
+              onClick={() => navigate(`/leads/${lead.id}`)}
+            >
+              Open
+            </button>
 
-          <input
-            type="date"
-            value={lead.follow_up_date || ""}
-            onChange={(e) =>
-              handleFollowUpDateChange(lead.id, e.target.value)
-            }
-          />
-
-          <input
-            type="time"
-            value={lead.follow_up_time || ""}
-            onChange={(e) =>
-              handleFollowUpTimeChange(lead.id, e.target.value)
-            }
-          />
-
-          <button
-            onClick={() =>
-              setExpandedLead(expandedLead === lead.id ? null : lead.id)
-            }
-          >
-            {expandedLead === lead.id ? "Hide Timeline" : "Show Timeline"}
-          </button>
-
-          {expandedLead === lead.id && (
-            <ActivityTimeline leadId={lead.id} />
-          )}
-
-          <button
-            onClick={() =>
-              setNotesLead(notesLead === lead.id ? null : lead.id)
-            }
-          >
-            {notesLead === lead.id ? "Hide Notes" : "Show Notes"}
-          </button>
-
-          {notesLead === lead.id && (
-            <NotesPanel leadId={lead.id} />
-          )}
-
-          <button onClick={() => handleDelete(lead)}>
-            Delete
-          </button>
+            <button
+              onClick={() => handleDelete(lead)}
+            >
+              Delete
+            </button>
+          </div>
         </div>
       ))}
     </div>
