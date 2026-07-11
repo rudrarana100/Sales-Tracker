@@ -4,6 +4,7 @@ import LeadForm from "../components/LeadForm";
 import LeadsList from "../components/LeadsList";
 import Dashboard from "../components/Dashboard";
 import { useNavigate } from "react-router-dom";
+import CsvImport from "../components/CsvImport";
 
 function LeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -62,12 +63,12 @@ function LeadsPage() {
 
       <h1>Sales Tracker</h1>
 
+
+      <CsvImport />
+
       <LeadForm onLeadAdded={fetchLeads} />
 
-      <LeadsList
-        leads={filteredLeads}
-        onStatusChange={fetchLeads}
-      />
+      <LeadsList leads={filteredLeads} onStatusChange={fetchLeads} />
     </div>
   );
 }
