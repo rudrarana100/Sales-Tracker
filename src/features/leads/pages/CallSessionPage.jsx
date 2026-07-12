@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getLeads, updateLead } from "../api/leadsApi";
 import { addActivity } from "../api/activitiesApi";
+import { createGoogleMeet } from "../../../utils/meetingUtils";
 
 function CallSessionPage() {
   const [leads, setLeads] = useState([]);
@@ -179,37 +180,6 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
     );
   }
 
-  async function createGoogleMeet() {
-    try {
-      const start = new Date(`${meetingDate}T${meetingTime}`);
-
-      const end = new Date(start.getTime() + 30 * 60 * 1000);
-
-      const response = await fetch("http://localhost:5000/calendar/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: `BuiltStack x ${currentLead.lead_name}`,
-          description: `Google Meet with ${currentLead.lead_name}`,
-          startDateTime: start.toISOString(),
-          endDateTime: end.toISOString(),
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create meeting");
-      }
-
-      return data.hangoutLink;
-    } catch (error) {
-      console.error(error);
-
-      alert("Failed to create Google Meet.");
-    }
-  }
 
   function formatDisplayDate(date) {
     return new Date(date).toLocaleDateString("en-IN", {
@@ -253,43 +223,50 @@ BuiltStack`;
     window.open(url, "_blank");
   }
 
-  async function saveMeeting() {
-    try {
-      if (!meetingDate || !meetingTime) {
-        alert("Please select both date and time.");
-        return;
-      }
-
-      const meetLink = await createGoogleMeet();
-
-      if (!meetLink) return;
-
-      await updateLead(currentLead.id, {
-        status: "meeting_booked",
-        last_outcome: "google_meet_booked",
-        last_contact_date: new Date().toISOString().split("T")[0],
-        follow_up_date: meetingDate,
-        follow_up_time: meetingTime,
-        meeting_link: meetLink,
-      });
-      await addActivity({
-        lead_id: currentLead.id,
-        activity_type: "meeting",
-        description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
-      });
-
-      sendMeetingConfirmation(meetLink);
-
-      setShowMeetingForm(false);
-
-      setMeetingDate("");
-      setMeetingTime("");
-
-      await fetchLeads();
-    } catch (error) {
-      console.error(error);
+async function saveMeeting() {
+  try {
+    if (!meetingDate || !meetingTime) {
+      alert("Please select both date and time.");
+      return;
     }
+
+    const start = new Date(`${meetingDate}T${meetingTime}`);
+
+    const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+    const meetLink = await createGoogleMeet(
+      `Meeting with ${currentLead.lead_name}`,
+      "BuiltStack Discovery Call",
+      start.toISOString(),
+      end.toISOString()
+    );
+
+    await updateLead(currentLead.id, {
+      status: "meeting_booked",
+      last_outcome: "google_meet_booked",
+      last_contact_date: new Date().toISOString().split("T")[0],
+      follow_up_date: meetingDate,
+      follow_up_time: meetingTime,
+      meeting_link: meetLink,
+    });
+
+    await addActivity({
+      lead_id: currentLead.id,
+      activity_type: "meeting",
+      description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
+    });
+
+    sendMeetingConfirmation(meetLink);
+
+    setShowMeetingForm(false);
+    setMeetingDate("");
+    setMeetingTime("");
+
+    await fetchLeads();
+  } catch (error) {
+    console.error(error);
   }
+}
 
   return (
     <div>

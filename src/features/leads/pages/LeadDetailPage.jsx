@@ -4,6 +4,7 @@ import { getLeadById, updateLead } from "../api/leadsApi";
 import ActivityTimeline from "../components/ActivityTimeline";
 import NotesPanel from "../components/NotesPanel";
 import { addActivity } from "../api/activitiesApi";
+import { createGoogleMeet } from "../../../utils/meetingUtils";
 
 function LeadDetailPage() {
   const { id } = useParams();
@@ -15,6 +16,11 @@ function LeadDetailPage() {
   const [followUpTime, setFollowUpTime] = useState("");
   const [lead, setLead] = useState(null);
   const [timelineRefresh, setTimelineRefresh] = useState(0);
+  const [showMeetingForm, setShowMeetingForm] = useState(false);
+
+  const [meetingDate, setMeetingDate] = useState("");
+
+  const [meetingTime, setMeetingTime] = useState("");
 
   useEffect(() => {
     fetchLead();
@@ -98,6 +104,114 @@ function LeadDetailPage() {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  async function saveMeeting() {
+    try {
+      if (!meetingDate || !meetingTime) {
+        alert("Please select both date and time.");
+        return;
+      }
+
+      const start = new Date(`${meetingDate}T${meetingTime}`);
+      const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+      const meetLink = await createGoogleMeet(
+        `BuiltStack x ${lead.lead_name}`,
+        `Google Meet with ${lead.lead_name}`,
+        start.toISOString(),
+        end.toISOString(),
+      );
+
+      await updateLead(lead.id, {
+        status: "meeting_booked",
+        meeting_link: meetLink,
+        follow_up_date: meetingDate,
+        follow_up_time: meetingTime,
+      });
+      await addActivity({
+        lead_id: lead.id,
+        activity_type: "status_change",
+        description: "Status changed to Meeting Booked",
+      });
+
+      const formattedDate = new Date(meetingDate).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+
+      const formattedTime = new Date(
+        `2000-01-01T${meetingTime}`,
+      ).toLocaleTimeString("en-IN", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      await addActivity({
+        lead_id: lead.id,
+        activity_type: "meeting",
+        description: `Google Meet booked for ${formattedDate} at ${formattedTime}`,
+      });
+
+      await fetchLead();
+
+      setTimelineRefresh((prev) => prev + 1);
+
+      setMeetingDate("");
+      setMeetingTime("");
+
+      setShowMeetingForm(false);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create meeting.");
+    }
+  }
+
+  function copyPhone() {
+    if (!lead.phone) return;
+
+    navigator.clipboard.writeText(lead.phone);
+
+    alert("Phone copied!");
+  }
+
+  function copyWebsite() {
+    if (!lead.website) return;
+
+    navigator.clipboard.writeText(lead.website);
+
+    alert("Website copied!");
+  }
+
+  function sendEmail() {
+    if (!lead.email) return;
+
+    window.location.href = `mailto:${lead.email}`;
+  }
+
+  function sendWhatsapp() {
+    if (!lead.phone) return;
+
+    let phone = lead.phone.replace(/\D/g, "");
+
+    if (phone.length === 10) {
+      phone = "91" + phone;
+    }
+
+    const message = `Hi ${lead.contact_person || lead.lead_name},
+
+Great speaking with you!
+
+I'd love to show you how BuiltStack can help your business grow.
+
+Let me know a suitable time for a quick Google Meet.`;
+
+    window.open(
+      `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+      "_blank",
+    );
   }
 
   if (!lead) {
@@ -184,7 +298,76 @@ function LeadDetailPage() {
           <strong>Business Type:</strong> {lead.business_type || "--"}
         </p>
       </div>
+      {/* Quick Actions */}
 
+      <div
+        style={{
+          border: "1px solid #ddd",
+          padding: "20px",
+          marginBottom: "20px",
+        }}
+      >
+        <h2>Quick Actions</h2>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button onClick={copyPhone}>📞 Copy Phone</button>
+
+          <button onClick={sendWhatsapp}>💬 WhatsApp</button>
+
+          <button onClick={sendEmail}>✉️ Email</button>
+
+          <button onClick={copyWebsite}>🌐 Copy Website</button>
+
+          <button onClick={() => setShowMeetingForm(true)}>
+            📅 Book Google Meet
+          </button>
+        </div>
+      </div>
+
+      {showMeetingForm && (
+        <div
+          style={{
+            border: "1px solid #ddd",
+            padding: "20px",
+            marginBottom: "20px",
+          }}
+        >
+          <h3>Book Google Meet</h3>
+
+          <input
+            type="date"
+            value={meetingDate}
+            onChange={(e) => setMeetingDate(e.target.value)}
+          />
+
+          <br />
+          <br />
+
+          <input
+            type="time"
+            value={meetingTime}
+            onChange={(e) => setMeetingTime(e.target.value)}
+          />
+
+          <br />
+          <br />
+
+          <button onClick={saveMeeting}>Create Meeting</button>
+
+          <button
+            onClick={() => setShowMeetingForm(false)}
+            style={{ marginLeft: "10px" }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
       {/* Follow-up */}
 
       <div
