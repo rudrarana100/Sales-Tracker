@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { createLead } from "../api/leadsApi";
+import { createLead, leadExists } from "../api/leadsApi";
 
 function LeadForm({ onLeadAdded }) {
   const [leadName, setLeadName] = useState("");
@@ -8,7 +8,6 @@ function LeadForm({ onLeadAdded }) {
   const [businessType, setBusinessType] = useState("");
   const [website, setWebsite] = useState("");
   const [email, setEmail] = useState("");
-  
 
   const leadNameRef = useRef(null);
 
@@ -20,8 +19,34 @@ function LeadForm({ onLeadAdded }) {
       return;
     }
 
+    if (leadName.trim().length < 2) {
+      alert("Lead name must be at least 2 characters.");
+      return;
+    }
+
     if (!phone.trim()) {
       alert("Phone number is required.");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      alert("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    if (website && !/^(https?:\/\/|www\.)\S+\.\S+$/.test(website)) {
+      alert("Please enter a valid website.");
+      return;
+    }
+    const exists = await leadExists(phone);
+
+    if (exists) {
+      alert("A lead with this phone number already exists.");
       return;
     }
 
@@ -29,10 +54,10 @@ function LeadForm({ onLeadAdded }) {
       await createLead({
         lead_name: leadName,
         phone: phone,
-        contact_person: contactPerson,
-        business_type: businessType,
-        website: website,
-        email: email,
+        contact_person: contactPerson.trim(),
+        business_type: businessType.trim(),
+        website: website.trim(),
+        email: email.trim(),
         source: "cold_call",
         status: "cold",
       });
@@ -50,7 +75,12 @@ function LeadForm({ onLeadAdded }) {
 
       console.log("Lead Added!");
     } catch (error) {
-      console.error(error);
+      if (error.code === "23505") {
+        alert("A lead with this phone number already exists.");
+      } else {
+        console.error(error);
+        alert("Something went wrong.");
+      }
     }
   }
 
@@ -65,10 +95,14 @@ function LeadForm({ onLeadAdded }) {
       />
 
       <input
-        type="text"
+        type="tel"
         placeholder="Phone Number *"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value.replace(/\D/g, "");
+          setPhone(value);
+        }}
+        maxLength={10}
       />
 
       <input
@@ -99,9 +133,7 @@ function LeadForm({ onLeadAdded }) {
         onChange={(e) => setEmail(e.target.value)}
       />
 
-      <button type="submit">
-        Add Lead
-      </button>
+      <button type="submit">Add Lead</button>
     </form>
   );
 }

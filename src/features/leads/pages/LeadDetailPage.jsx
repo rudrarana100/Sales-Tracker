@@ -9,6 +9,7 @@ function LeadDetailPage() {
   const navigate = useNavigate();
 
   const [lead, setLead] = useState(null);
+  const [timelineRefresh, setTimelineRefresh] = useState(0);
 
   useEffect(() => {
     fetchLead();
@@ -97,28 +98,23 @@ function LeadDetailPage() {
         <h2>Contact Information</h2>
 
         <p>
-          <strong>Contact Person:</strong>{" "}
-          {lead.contact_person || "--"}
+          <strong>Contact Person:</strong> {lead.contact_person || "--"}
         </p>
 
         <p>
-          <strong>Phone:</strong>{" "}
-          {lead.phone || "--"}
+          <strong>Phone:</strong> {lead.phone || "--"}
         </p>
 
         <p>
-          <strong>Email:</strong>{" "}
-          {lead.email || "--"}
+          <strong>Email:</strong> {lead.email || "--"}
         </p>
 
         <p>
-          <strong>Website:</strong>{" "}
-          {lead.website || "--"}
+          <strong>Website:</strong> {lead.website || "--"}
         </p>
 
         <p>
-          <strong>Business Type:</strong>{" "}
-          {lead.business_type || "--"}
+          <strong>Business Type:</strong> {lead.business_type || "--"}
         </p>
       </div>
 
@@ -164,7 +160,6 @@ function LeadDetailPage() {
         </div>
       </div>
 
-
       {/* Meeting */}
 
       <div
@@ -177,11 +172,7 @@ function LeadDetailPage() {
         <h2>Meeting</h2>
 
         {lead.meeting_link ? (
-          <a
-            href={lead.meeting_link}
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a href={lead.meeting_link} target="_blank" rel="noreferrer">
             Join Google Meet
           </a>
         ) : (
@@ -198,7 +189,10 @@ function LeadDetailPage() {
           marginBottom: "20px",
         }}
       >
-        <NotesPanel leadId={lead.id} />
+        <NotesPanel
+          leadId={lead.id}
+          onNoteAdded={() => setTimelineRefresh((prev) => prev + 1)}
+        />
       </div>
 
       {/* Activity Timeline */}
@@ -209,7 +203,7 @@ function LeadDetailPage() {
           padding: "20px",
         }}
       >
-        <ActivityTimeline leadId={lead.id} />
+        <ActivityTimeline leadId={lead.id} refreshTrigger={timelineRefresh} />
       </div>
     </div>
   );

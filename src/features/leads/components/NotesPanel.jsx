@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { addNote, getNotes, deleteNote } from "../api/notesApi";
 import { addActivity } from "../api/activitiesApi";
 
-function NotesPanel({ leadId }) {
+function NotesPanel({ leadId,onNoteAdded }) {
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
 
@@ -36,6 +36,8 @@ function NotesPanel({ leadId }) {
         activity_type: "note",
         description: newNote,
       });
+
+      onNoteAdded?.();
 
       setNewNote("");
 

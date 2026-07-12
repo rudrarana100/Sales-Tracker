@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getActivities } from "../api/activitiesApi";
 
-function ActivityTimeline({ leadId }) {
+function ActivityTimeline({ leadId, refreshTrigger }) {
   const [activities, setActivities] = useState([]);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ function ActivityTimeline({ leadId }) {
     }
 
     fetchActivities();
-  }, [leadId]);
+  }, [leadId, refreshTrigger]);
 
   function formatActivity(activity) {
     switch (activity.activity_type) {

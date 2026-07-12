@@ -74,3 +74,15 @@ export async function getLeadById(id) {
 
   return data;
 }
+
+export async function leadExists(phone) {
+  const { data, error } = await supabase
+    .from("leads")
+    .select("id")
+    .eq("phone", phone)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return !!data;
+}
