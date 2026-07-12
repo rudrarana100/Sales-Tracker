@@ -135,6 +135,8 @@ function LeadDetailPage() {
         description: "Status changed to Meeting Booked",
       });
 
+      sendMeetingConfirmation(meetLink);
+
       const formattedDate = new Date(meetingDate).toLocaleDateString("en-IN", {
         day: "numeric",
         month: "short",
@@ -167,6 +169,54 @@ function LeadDetailPage() {
       console.error(error);
       alert("Failed to create meeting.");
     }
+  }
+  function sendMeetingConfirmation(meetLink) {
+    if (!lead.phone) {
+      alert("No phone number found.");
+      return;
+    }
+
+    let phone = lead.phone.replace(/\D/g, "");
+
+    if (phone.length === 10) {
+      phone = "91" + phone;
+    }
+
+    const formattedDate = new Date(meetingDate).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    const formattedTime = new Date(
+      `2000-01-01T${meetingTime}`,
+    ).toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    const message = `Hi ${lead.contact_person || lead.lead_name},
+
+Great speaking with you!
+
+Our Google Meet has been scheduled.
+
+📅 Date: ${formattedDate}
+🕒 Time: ${formattedTime}
+
+Meeting Link:
+${meetLink}
+
+Looking forward to speaking with you.
+
+- Rudra
+BuiltStack`;
+
+    window.open(
+      `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+      "_blank",
+    );
   }
 
   function copyPhone() {

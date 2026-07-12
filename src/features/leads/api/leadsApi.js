@@ -10,12 +10,14 @@ export async function getLeads() {
 
   return data;
 }
-
 export async function createLead(lead) {
   const { data, error } = await supabase
     .from("leads")
     .insert([lead])
     .select();
+
+  console.log("Insert data:", data);
+  console.log("Insert error:", error);
 
   if (error) throw error;
 
@@ -78,11 +80,13 @@ export async function getLeadById(id) {
 export async function leadExists(phone) {
   const { data, error } = await supabase
     .from("leads")
-    .select("id")
-    .eq("phone", phone)
-    .maybeSingle();
+    .select("id, phone")
+    .eq("phone", phone);
 
   if (error) throw error;
 
-  return !!data;
+  console.log("Checking:", phone);
+  console.log("Matched rows:", data);
+
+  return data.length > 0;
 }

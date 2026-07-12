@@ -10,86 +10,87 @@ function LeadForm({ onLeadAdded }) {
   const [email, setEmail] = useState("");
 
   const leadNameRef = useRef(null);
+async function handleSubmit(e) {
+  e.preventDefault();
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  if (!leadName.trim()) {
+    alert("Lead name is required.");
+    return;
+  }
 
-    if (!leadName.trim()) {
-      alert("Lead name is required.");
-      return;
-    }
+  if (leadName.trim().length < 2) {
+    alert("Lead name must be at least 2 characters.");
+    return;
+  }
 
-    if (leadName.trim().length < 2) {
-      alert("Lead name must be at least 2 characters.");
-      return;
-    }
+  if (!phone.trim()) {
+    alert("Phone number is required.");
+    return;
+  }
 
-    if (!phone.trim()) {
-      alert("Phone number is required.");
-      return;
-    }
+  if (!/^\d{10}$/.test(phone)) {
+    alert("Please enter a valid 10-digit phone number.");
+    return;
+  }
 
-    if (!/^\d{10}$/.test(phone)) {
-      alert("Please enter a valid 10-digit phone number.");
-      return;
-    }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    alert("Please enter a valid email address.");
+    return;
+  }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert("Please enter a valid email address.");
-      return;
-    }
+  if (website && !/^(https?:\/\/|www\.)\S+\.\S+$/.test(website)) {
+    alert("Please enter a valid website.");
+    return;
+  }
 
-    if (website && !/^(https?:\/\/|www\.)\S+\.\S+$/.test(website)) {
-      alert("Please enter a valid website.");
-      return;
-    }
-    const exists = await leadExists(phone);
+  try {
+    const exists = await leadExists(phone.trim());
 
     if (exists) {
       alert("A lead with this phone number already exists.");
       return;
     }
 
-    try {
-      await createLead({
-        lead_name: leadName,
-        phone: phone,
-        contact_person: contactPerson.trim(),
-        business_type: businessType.trim(),
-        website: website.trim(),
-        email: email.trim(),
-        source: "cold_call",
-        status: "cold",
-      });
+    const newLead = await createLead({
+      lead_name: leadName.trim(),
+      phone: phone.trim(),
+      contact_person: contactPerson.trim(),
+      business_type: businessType.trim(),
+      website: website.trim() || null,
+      email: email.trim() || null,
+      source: "cold_call",
+      status: "cold",
+    });
 
-      await addActivity({
-        lead_id: newLead.id,
-        activity_type: "lead_created",
-        description: "Lead created",
-      });
+    // Uncomment this after importing addActivity
+    /*
+    await addActivity({
+      lead_id: newLead[0].id,
+      activity_type: "lead_created",
+      description: "Lead created",
+    });
+    */
 
-      setLeadName("");
-      setPhone("");
-      setContactPerson("");
-      setBusinessType("");
-      setWebsite("");
-      setEmail("");
+    setLeadName("");
+    setPhone("");
+    setContactPerson("");
+    setBusinessType("");
+    setWebsite("");
+    setEmail("");
 
-      onLeadAdded();
+    onLeadAdded();
+    leadNameRef.current.focus();
 
-      leadNameRef.current.focus();
-
-      console.log("Lead Added!");
-    } catch (error) {
-      if (error.code === "23505") {
-        alert("A lead with this phone number already exists.");
-      } else {
-        console.error(error);
-        alert("Something went wrong.");
-      }
+    console.log("Lead Added!");
+  } catch (error) {
+    if (error.code === "23505") {
+      alert("A lead with this phone number already exists.");
+    } else {
+      console.error(error);
+      alert("Something went wrong.");
     }
   }
-
+}
   return (
     <form onSubmit={handleSubmit}>
       <input
