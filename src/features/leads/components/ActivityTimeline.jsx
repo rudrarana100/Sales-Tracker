@@ -36,6 +36,9 @@ function ActivityTimeline({ leadId, refreshTrigger }) {
       case "note":
         return "📝 Note";
 
+      case "note_deleted":
+        return "Note Deleted";
+
       default:
         return activity.activity_type;
     }

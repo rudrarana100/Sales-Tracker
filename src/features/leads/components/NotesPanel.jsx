@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { addNote, getNotes, deleteNote } from "../api/notesApi";
 import { addActivity } from "../api/activitiesApi";
 
-function NotesPanel({ leadId,onNoteAdded }) {
+function NotesPanel({ leadId, onNoteAdded }) {
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
 
@@ -47,11 +47,19 @@ function NotesPanel({ leadId,onNoteAdded }) {
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(note) {
     try {
-      await deleteNote(id);
+      await deleteNote(note.id);
+
+      await addActivity({
+        lead_id: leadId,
+        activity_type: "note_deleted",
+        description: `Deleted note: "${note.content}"`,
+      });
 
       fetchNotes();
+
+      onNoteAdded?.();
     } catch (error) {
       console.error(error);
     }
@@ -93,7 +101,7 @@ function NotesPanel({ leadId,onNoteAdded }) {
 
             <br />
 
-            <button onClick={() => handleDelete(note.id)}>Delete</button>
+            <button onClick={() => handleDelete(note)}>Delete</button>
           </div>
         ))
       )}

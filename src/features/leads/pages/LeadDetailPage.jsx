@@ -3,11 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getLeadById, updateLead } from "../api/leadsApi";
 import ActivityTimeline from "../components/ActivityTimeline";
 import NotesPanel from "../components/NotesPanel";
+import { addActivity } from "../api/activitiesApi";
 
 function LeadDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [showFollowUpForm, setShowFollowUpForm] = useState(false);
 
+  const [followUpDate, setFollowUpDate] = useState("");
+
+  const [followUpTime, setFollowUpTime] = useState("");
   const [lead, setLead] = useState(null);
   const [timelineRefresh, setTimelineRefresh] = useState(0);
 
@@ -27,7 +32,69 @@ function LeadDetailPage() {
   async function handleLeadUpdate(values) {
     try {
       await updateLead(lead.id, values);
+
+      if (values.status) {
+        const statusLabels = {
+          cold: "Cold",
+          contacted: "Contacted",
+          warm: "Warm",
+          meeting_booked: "Meeting Booked",
+          proposal_sent: "Proposal Sent",
+          closed_won: "Closed Won",
+          closed_lost: "Closed Lost",
+        };
+
+        await addActivity({
+          lead_id: lead.id,
+          activity_type: "status_change",
+          description: `Status changed to ${statusLabels[values.status]}`,
+        });
+      }
+
+      // Refresh lead details
       await fetchLead();
+
+      // Refresh Activity Timeline
+      setTimelineRefresh((prev) => prev + 1);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async function saveFollowUp() {
+    try {
+      await updateLead(lead.id, {
+        follow_up_date: followUpDate,
+        follow_up_time: followUpTime,
+      });
+
+      const formattedDate = new Date(followUpDate).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+
+      const formattedTime = new Date(
+        `2000-01-01T${followUpTime}`,
+      ).toLocaleTimeString("en-IN", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      await addActivity({
+        lead_id: lead.id,
+        activity_type: "follow_up",
+        description: `Follow-up scheduled for ${formattedDate} at ${formattedTime}`,
+      });
+
+      await fetchLead();
+
+      setTimelineRefresh((prev) => prev + 1);
+
+      setFollowUpDate("");
+      setFollowUpTime("");
+
+      setShowFollowUpForm(false);
     } catch (error) {
       console.error(error);
     }
@@ -129,35 +196,54 @@ function LeadDetailPage() {
       >
         <h2>Next Follow-up</h2>
 
-        <div style={{ marginBottom: "15px" }}>
-          <strong>Date</strong>
-          <br />
+        <p>
+          <strong>Date:</strong> {lead.follow_up_date || "--"}
+        </p>
 
-          <input
-            type="date"
-            value={lead.follow_up_date || ""}
-            onChange={(e) =>
-              handleLeadUpdate({
-                follow_up_date: e.target.value,
-              })
-            }
-          />
-        </div>
+        <p>
+          <strong>Time:</strong> {lead.follow_up_time || "--"}
+        </p>
 
-        <div>
-          <strong>Time</strong>
-          <br />
+        <button
+          onClick={() => {
+            setFollowUpDate(lead.follow_up_date || "");
+            setFollowUpTime(lead.follow_up_time || "");
+            setShowFollowUpForm(true);
+          }}
+        >
+          {lead.follow_up_date ? "Reschedule Follow-up" : "Schedule Follow-up"}
+        </button>
 
-          <input
-            type="time"
-            value={lead.follow_up_time || ""}
-            onChange={(e) =>
-              handleLeadUpdate({
-                follow_up_time: e.target.value,
-              })
-            }
-          />
-        </div>
+        {showFollowUpForm && (
+          <div style={{ marginTop: "20px" }}>
+            <input
+              type="date"
+              value={followUpDate}
+              onChange={(e) => setFollowUpDate(e.target.value)}
+            />
+
+            <br />
+            <br />
+
+            <input
+              type="time"
+              value={followUpTime}
+              onChange={(e) => setFollowUpTime(e.target.value)}
+            />
+
+            <br />
+            <br />
+
+            <button onClick={saveFollowUp}>Save</button>
+
+            <button
+              onClick={() => setShowFollowUpForm(false)}
+              style={{ marginLeft: "10px" }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Meeting */}

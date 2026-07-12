@@ -62,6 +62,12 @@ function LeadForm({ onLeadAdded }) {
         status: "cold",
       });
 
+      await addActivity({
+        lead_id: newLead.id,
+        activity_type: "lead_created",
+        description: "Lead created",
+      });
+
       setLeadName("");
       setPhone("");
       setContactPerson("");
