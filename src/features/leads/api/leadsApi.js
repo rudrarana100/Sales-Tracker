@@ -90,3 +90,16 @@ export async function leadExists(phone) {
 
   return data.length > 0;
 }
+
+export async function getFollowUps() {
+  const { data, error } = await supabase
+    .from("leads")
+    .select("*")
+    .not("follow_up_date", "is", null)
+    .order("follow_up_date", { ascending: true })
+    .order("follow_up_time", { ascending: true });
+
+  if (error) throw error;
+
+  return data;
+}
