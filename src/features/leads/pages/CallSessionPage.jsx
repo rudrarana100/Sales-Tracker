@@ -355,18 +355,45 @@ BuiltStack`;
         <button onClick={sendWhatsapp}>💬 WhatsApp</button>
       </div>
 
+      <hr />
+
       <h3>Previous Interaction</h3>
+
+      <p>
+        <strong>Status:</strong> {currentLead.status || "--"}
+      </p>
 
       <p>
         <strong>Last Outcome:</strong> {currentLead.last_outcome || "--"}
       </p>
 
       <p>
-        <strong>Next Follow-up:</strong> {currentLead.follow_up_date || "--"}
+        <strong>Last Contact:</strong>{" "}
+        {currentLead.last_contact_date
+          ? new Date(currentLead.last_contact_date).toLocaleDateString(
+              "en-IN",
+              {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              },
+            )
+          : "--"}
       </p>
 
       <p>
-        <strong>Time:</strong> {currentLead.follow_up_time || "--"}
+        <strong>Next Follow-up:</strong>{" "}
+        {currentLead.follow_up_date
+          ? new Date(currentLead.follow_up_date).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })
+          : "--"}
+      </p>
+
+      <p>
+        <strong>Follow-up Time:</strong> {currentLead.follow_up_time || "--"}
       </p>
 
       <button onClick={() => handleOutcome("no_answer")}>📵 No Answer</button>
