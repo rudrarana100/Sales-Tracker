@@ -5,6 +5,27 @@ import { createGoogleMeet } from "../../../utils/meetingUtils";
 import { getNotes } from "../api/notesApi";
 import { getActivities } from "../api/activitiesApi";
 
+const statusLabels = {
+  cold: "❄️ Cold",
+  contacted: "📞 Contacted",
+  warm: "🔥 Warm",
+  meeting_booked: "🎥 Meeting Booked",
+  proposal_sent: "📄 Proposal Sent",
+  closed_won: "✅ Closed Won",
+  closed_lost: "❌ Closed Lost",
+};
+
+const outcomeLabels = {
+  no_answer: "📵 No Answer",
+  callback_requested: "📅 Callback Requested",
+  interested: "🟢 Interested",
+  invalid_number: "🚫 Invalid Number",
+  gatekeeper: "👤 Gatekeeper",
+  not_interested: "🙅 Not Interested",
+  google_meet_booked: "🎥 Google Meet Booked",
+};
+
+
 function CallSessionPage() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -296,268 +317,305 @@ BuiltStack`;
       console.error(error);
     }
   }
+return (
+  <div>
+    <h1>Cold Call Session</h1>
 
-  return (
-    <div>
-      <h1>Cold Call Session</h1>
+    <p>Lead 1 / {coldLeads.length}</p>
 
-      <p>Lead 1 / {coldLeads.length}</p>
+    <h2>{currentLead.lead_name}</h2>
 
-      <h2>{currentLead.lead_name}</h2>
+    <p>👤 {currentLead.contact_person || "No Contact Person"}</p>
 
-      <p>👤 {currentLead.contact_person || "No Contact Person"}</p>
+    <p>📞 {currentLead.phone || "--"}</p>
 
-      <p>📞 {currentLead.phone || "--"}</p>
+    <p>✉️ {currentLead.email || "--"}</p>
 
-      <p>✉️ {currentLead.email || "--"}</p>
+    <p>🌐 {currentLead.website || "--"}</p>
 
-      <p>🌐 {currentLead.website || "--"}</p>
+    <p>🏢 {currentLead.business_type || "--"}</p>
 
-      <p>🏢 {currentLead.business_type || "--"}</p>
+    <p>
+      📌 Status:{" "}
+      {statusLabels[currentLead.status] || currentLead.status}
+    </p>
 
-      <p>📌 Status: {currentLead.status}</p>
+    <p>
+      📅 Last Contact:{" "}
+      {currentLead.last_contact_date
+        ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "--"}
+    </p>
 
-      <p>📅 Last Contact: {currentLead.last_contact_date || "--"}</p>
+    <h3>Quick Actions</h3>
 
-      <h3>Quick Actions</h3>
+    <div
+      style={{
+        display: "flex",
+        gap: "10px",
+        flexWrap: "wrap",
+        marginBottom: "20px",
+      }}
+    >
+      <button
+        onClick={() => {
+          if (!currentLead.website) {
+            alert("No website available.");
+            return;
+          }
 
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          flexWrap: "wrap",
-          marginBottom: "20px",
+          let url = currentLead.website;
+
+          if (!url.startsWith("http")) {
+            url = "https://" + url;
+          }
+
+          window.open(url, "_blank");
         }}
       >
-        <button
-          onClick={() => {
-            if (!currentLead.website) {
-              alert("No website available.");
-              return;
-            }
-
-            let url = currentLead.website;
-
-            if (!url.startsWith("http")) {
-              url = "https://" + url;
-            }
-
-            window.open(url, "_blank");
-          }}
-        >
-          🌐 Website
-        </button>
-
-        <button
-          onClick={() => {
-            if (!currentLead.google_maps_link) {
-              alert("Google Maps link not available.");
-              return;
-            }
-
-            window.open(currentLead.google_maps_link, "_blank");
-          }}
-        >
-          📍 Maps
-        </button>
-        <button
-          onClick={() => {
-            if (!currentLead.email) {
-              alert("No email available.");
-              return;
-            }
-
-            window.location.href = `mailto:${currentLead.email}`;
-          }}
-        >
-          📧 Email
-        </button>
-
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(currentLead.phone);
-            alert("Phone copied!");
-          }}
-        >
-          📋 Copy Phone
-        </button>
-
-        <button onClick={sendWhatsapp}>💬 WhatsApp</button>
-      </div>
-
-      <hr />
-
-      <h3>Previous Interaction</h3>
-
-      <p>
-        <strong>Status:</strong> {currentLead.status || "--"}
-      </p>
-
-      <p>
-        <strong>Last Outcome:</strong> {currentLead.last_outcome || "--"}
-      </p>
-
-      <p>
-        <strong>Last Contact:</strong>{" "}
-        {currentLead.last_contact_date
-          ? new Date(currentLead.last_contact_date).toLocaleDateString(
-              "en-IN",
-              {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              },
-            )
-          : "--"}
-      </p>
-
-      <p>
-        <strong>Next Follow-up:</strong>{" "}
-        {currentLead.follow_up_date
-          ? new Date(currentLead.follow_up_date).toLocaleDateString("en-IN", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })
-          : "--"}
-      </p>
-
-      <p>
-        <strong>Follow-up Time:</strong> {currentLead.follow_up_time || "--"}
-      </p>
-
-      <hr />
-
-      <h3>Recent Notes</h3>
-
-      {notes.length === 0 ? (
-        <p>No notes available.</p>
-      ) : (
-        notes.map((note) => (
-          <div
-            key={note.id}
-            style={{
-              border: "1px solid #ddd",
-              padding: "8px",
-              marginBottom: "10px",
-            }}
-          >
-            <p>{note.content}</p>
-
-            <small>
-              {new Date(note.created_at).toLocaleDateString("en-IN")}
-            </small>
-          </div>
-        ))
-      )}
-
-      <hr />
-
-      <h3>Recent Activity</h3>
-
-      {activities.length === 0 ? (
-        <p>No activity found.</p>
-      ) : (
-        activities.map((activity) => (
-          <div
-            key={activity.id}
-            style={{
-              border: "1px solid #ddd",
-              padding: "10px",
-              marginBottom: "10px",
-              borderRadius: "6px",
-            }}
-          >
-            <p>{activity.description}</p>
-
-            <small>
-              {new Date(activity.created_at).toLocaleString("en-IN")}
-            </small>
-          </div>
-        ))
-      )}
-
-      <button onClick={() => handleOutcome("no_answer")}>📵 No Answer</button>
-
-      <button onClick={() => handleOutcome("invalid_number")}>
-        🚫 Invalid Number
+        🌐 Website
       </button>
 
-      <button onClick={() => handleOutcome("gatekeeper")}>👤 Gatekeeper</button>
+      <button
+        onClick={() => {
+          if (!currentLead.google_maps_link) {
+            alert("Google Maps link not available.");
+            return;
+          }
 
-      <button onClick={() => handleOutcome("callback_requested")}>
-        📅 Callback Requested
+          window.open(currentLead.google_maps_link, "_blank");
+        }}
+      >
+        📍 Maps
       </button>
 
-      <button onClick={() => handleOutcome("not_interested")}>
-        🙅 Not Interested
+      <button
+        onClick={() => {
+          if (!currentLead.email) {
+            alert("No email available.");
+            return;
+          }
+
+          window.location.href = `mailto:${currentLead.email}`;
+        }}
+      >
+        📧 Email
       </button>
 
-      <button onClick={() => handleOutcome("interested")}>🟢 Interested</button>
+      <button
+        onClick={() => {
+          navigator.clipboard.writeText(currentLead.phone);
+          alert("Phone copied!");
+        }}
+      >
+        📋 Copy Phone
+      </button>
 
-      {showCallbackForm && (
-        <div>
-          <h3>Schedule Callback</h3>
-
-          <input
-            type="date"
-            value={callbackDate}
-            onChange={(e) => setCallbackDate(e.target.value)}
-          />
-
-          <input
-            type="time"
-            value={callbackTime}
-            onChange={(e) => setCallbackTime(e.target.value)}
-          />
-
-          <button onClick={saveCallback}>Save Callback</button>
-        </div>
-      )}
-      {showMeetingForm && (
-        <div>
-          <input
-            type="date"
-            value={meetingDate}
-            onChange={(e) => setMeetingDate(e.target.value)}
-          />
-
-          <input
-            type="time"
-            value={meetingTime}
-            onChange={(e) => setMeetingTime(e.target.value)}
-          />
-
-          <button onClick={saveMeeting}>Confirm Meeting</button>
-        </div>
-      )}
-      {showInterestedActions && (
-        <div>
-          <h3>Prospect Interested</h3>
-
-          <button
-            onClick={async () => {
-              await markInterested();
-              sendWhatsapp();
-            }}
-          >
-            Send Whatsapp
-          </button>
-
-          <button
-            onClick={() => {
-              setShowInterestedActions(false);
-              setShowMeetingForm(true);
-            }}
-          >
-            Book Google Meet
-          </button>
-
-          <button>Skip</button>
-        </div>
-      )}
+      <button onClick={sendWhatsapp}>
+        💬 WhatsApp
+      </button>
     </div>
-  );
+
+    <hr />
+
+    <h3>Previous Interaction</h3>
+
+    <p>
+      <strong>Status:</strong>{" "}
+      {statusLabels[currentLead.status] || currentLead.status}
+    </p>
+
+    <p>
+      <strong>Last Outcome:</strong>{" "}
+      {outcomeLabels[currentLead.last_outcome] ||
+        currentLead.last_outcome ||
+        "--"}
+    </p>
+
+    <p>
+      <strong>Last Contact:</strong>{" "}
+      {currentLead.last_contact_date
+        ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "--"}
+    </p>
+
+    <p>
+      <strong>Next Follow-up:</strong>{" "}
+      {currentLead.follow_up_date
+        ? new Date(currentLead.follow_up_date).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "--"}
+    </p>
+
+    <p>
+      <strong>Follow-up Time:</strong>{" "}
+      {currentLead.follow_up_time || "--"}
+    </p>
+
+    <hr />
+
+    <h3>Recent Notes</h3>
+
+    {notes.length === 0 ? (
+      <p>No notes available.</p>
+    ) : (
+      notes.map((note) => (
+        <div
+          key={note.id}
+          style={{
+            border: "1px solid #ddd",
+            padding: "8px",
+            marginBottom: "10px",
+            borderRadius: "6px",
+          }}
+        >
+          <p>{note.content}</p>
+
+          <small>
+            {new Date(note.created_at).toLocaleDateString("en-IN")}
+          </small>
+        </div>
+      ))
+    )}
+
+    <hr />
+
+    <h3>Recent Activity</h3>
+
+    {activities.length === 0 ? (
+      <p>No activity found.</p>
+    ) : (
+      activities.map((activity) => (
+        <div
+          key={activity.id}
+          style={{
+            border: "1px solid #ddd",
+            padding: "10px",
+            marginBottom: "10px",
+            borderRadius: "6px",
+          }}
+        >
+          <p>{activity.description}</p>
+
+          <small>
+            {new Date(activity.created_at).toLocaleString("en-IN")}
+          </small>
+        </div>
+      ))
+    )}
+
+    <hr />
+
+    <h3>Call Outcome</h3>
+
+    <button onClick={() => handleOutcome("no_answer")}>
+      📵 No Answer
+    </button>
+
+    <button onClick={() => handleOutcome("invalid_number")}>
+      🚫 Invalid Number
+    </button>
+
+    <button onClick={() => handleOutcome("gatekeeper")}>
+      👤 Gatekeeper
+    </button>
+
+    <button onClick={() => handleOutcome("callback_requested")}>
+      📅 Callback Requested
+    </button>
+
+    <button onClick={() => handleOutcome("not_interested")}>
+      🙅 Not Interested
+    </button>
+
+    <button onClick={() => handleOutcome("interested")}>
+      🟢 Interested
+    </button>
+
+    {showCallbackForm && (
+      <div>
+        <h3>Schedule Callback</h3>
+
+        <input
+          type="date"
+          value={callbackDate}
+          onChange={(e) => setCallbackDate(e.target.value)}
+        />
+
+        <input
+          type="time"
+          value={callbackTime}
+          onChange={(e) => setCallbackTime(e.target.value)}
+        />
+
+        <button onClick={saveCallback}>
+          Save Callback
+        </button>
+      </div>
+    )}
+
+    {showMeetingForm && (
+      <div>
+        <input
+          type="date"
+          value={meetingDate}
+          onChange={(e) => setMeetingDate(e.target.value)}
+        />
+
+        <input
+          type="time"
+          value={meetingTime}
+          onChange={(e) => setMeetingTime(e.target.value)}
+        />
+
+        <button onClick={saveMeeting}>
+          Confirm Meeting
+        </button>
+      </div>
+    )}
+
+    {showInterestedActions && (
+      <div>
+        <h3>Prospect Interested</h3>
+
+        <button
+          onClick={async () => {
+            await markInterested();
+            sendWhatsapp();
+          }}
+        >
+          Send WhatsApp
+        </button>
+
+        <button
+          onClick={() => {
+            setShowInterestedActions(false);
+            setShowMeetingForm(true);
+          }}
+        >
+          Book Google Meet
+        </button>
+
+        <button
+          onClick={() => setShowInterestedActions(false)}
+        >
+          Skip
+        </button>
+      </div>
+    )}
+  </div>
+);
 }
 
 export default CallSessionPage;
