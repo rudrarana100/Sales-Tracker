@@ -320,19 +320,16 @@ BuiltStack`;
 
         <button
           onClick={() => {
-            const query = encodeURIComponent(
-              `${currentLead.lead_name} ${currentLead.business_type || ""}`,
-            );
+            if (!currentLead.google_maps_link) {
+              alert("Google Maps link not available.");
+              return;
+            }
 
-            window.open(
-              `https://www.google.com/maps/search/${query}`,
-              "_blank",
-            );
+            window.open(currentLead.google_maps_link, "_blank");
           }}
         >
           📍 Maps
         </button>
-
         <button
           onClick={() => {
             if (!currentLead.email) {

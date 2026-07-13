@@ -341,7 +341,14 @@ Let me know a suitable time for a quick Google Meet.`;
         </p>
 
         <p>
-          <strong>Website:</strong> {lead.website || "--"}
+          <strong>Google Maps:</strong>{" "}
+          {lead.google_maps_link ? (
+            <a href={lead.google_maps_link} target="_blank" rel="noreferrer">
+              Open Maps
+            </a>
+          ) : (
+            "--"
+          )}
         </p>
 
         <p>

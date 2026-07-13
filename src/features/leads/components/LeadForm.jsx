@@ -8,62 +8,63 @@ function LeadForm({ onLeadAdded }) {
   const [businessType, setBusinessType] = useState("");
   const [website, setWebsite] = useState("");
   const [email, setEmail] = useState("");
+  const [googleMapsLink, setGoogleMapsLink] = useState("");
 
   const leadNameRef = useRef(null);
-async function handleSubmit(e) {
-  e.preventDefault();
+  async function handleSubmit(e) {
+    e.preventDefault();
 
-  if (!leadName.trim()) {
-    alert("Lead name is required.");
-    return;
-  }
-
-  if (leadName.trim().length < 2) {
-    alert("Lead name must be at least 2 characters.");
-    return;
-  }
-
-  if (!phone.trim()) {
-    alert("Phone number is required.");
-    return;
-  }
-
-  if (!/^\d{10}$/.test(phone)) {
-    alert("Please enter a valid 10-digit phone number.");
-    return;
-  }
-
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    alert("Please enter a valid email address.");
-    return;
-  }
-
-  if (website && !/^(https?:\/\/|www\.)\S+\.\S+$/.test(website)) {
-    alert("Please enter a valid website.");
-    return;
-  }
-
-  try {
-    const exists = await leadExists(phone.trim());
-
-    if (exists) {
-      alert("A lead with this phone number already exists.");
+    if (!leadName.trim()) {
+      alert("Lead name is required.");
       return;
     }
 
-    const newLead = await createLead({
-      lead_name: leadName.trim(),
-      phone: phone.trim(),
-      contact_person: contactPerson.trim(),
-      business_type: businessType.trim(),
-      website: website.trim() || null,
-      email: email.trim() || null,
-      source: "cold_call",
-      status: "cold",
-    });
+    if (leadName.trim().length < 2) {
+      alert("Lead name must be at least 2 characters.");
+      return;
+    }
 
-    // Uncomment this after importing addActivity
-    /*
+    if (!phone.trim()) {
+      alert("Phone number is required.");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      alert("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    if (website && !/^(https?:\/\/|www\.)\S+\.\S+$/.test(website)) {
+      alert("Please enter a valid website.");
+      return;
+    }
+
+    try {
+      const exists = await leadExists(phone.trim());
+
+      if (exists) {
+        alert("A lead with this phone number already exists.");
+        return;
+      }
+      const newLead = await createLead({
+        lead_name: leadName.trim(),
+        phone: phone.trim(),
+        contact_person: contactPerson.trim(),
+        business_type: businessType.trim(),
+        website: website.trim() || null,
+        google_maps_link: googleMapsLink.trim() || null,
+        email: email.trim() || null,
+        source: "cold_call",
+        status: "cold",
+      });
+
+      // Uncomment this after importing addActivity
+      /*
     await addActivity({
       lead_id: newLead[0].id,
       activity_type: "lead_created",
@@ -71,26 +72,27 @@ async function handleSubmit(e) {
     });
     */
 
-    setLeadName("");
-    setPhone("");
-    setContactPerson("");
-    setBusinessType("");
-    setWebsite("");
-    setEmail("");
+      setLeadName("");
+      setPhone("");
+      setContactPerson("");
+      setBusinessType("");
+      setWebsite("");
+      setGoogleMapsLink("");
+      setEmail("");
 
-    onLeadAdded();
-    leadNameRef.current.focus();
+      onLeadAdded();
+      leadNameRef.current.focus();
 
-    console.log("Lead Added!");
-  } catch (error) {
-    if (error.code === "23505") {
-      alert("A lead with this phone number already exists.");
-    } else {
-      console.error(error);
-      alert("Something went wrong.");
+      console.log("Lead Added!");
+    } catch (error) {
+      if (error.code === "23505") {
+        alert("A lead with this phone number already exists.");
+      } else {
+        console.error(error);
+        alert("Something went wrong.");
+      }
     }
   }
-}
   return (
     <form onSubmit={handleSubmit}>
       <input
@@ -131,6 +133,13 @@ async function handleSubmit(e) {
         placeholder="Website"
         value={website}
         onChange={(e) => setWebsite(e.target.value)}
+      />
+
+      <input
+        type="text"
+        placeholder="Google Maps Link"
+        value={googleMapsLink}
+        onChange={(e) => setGoogleMapsLink(e.target.value)}
       />
 
       <input
