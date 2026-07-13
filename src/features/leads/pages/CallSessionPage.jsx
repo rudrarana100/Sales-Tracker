@@ -180,7 +180,6 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
     );
   }
 
-
   function formatDisplayDate(date) {
     return new Date(date).toLocaleDateString("en-IN", {
       day: "numeric",
@@ -223,50 +222,50 @@ BuiltStack`;
     window.open(url, "_blank");
   }
 
-async function saveMeeting() {
-  try {
-    if (!meetingDate || !meetingTime) {
-      alert("Please select both date and time.");
-      return;
+  async function saveMeeting() {
+    try {
+      if (!meetingDate || !meetingTime) {
+        alert("Please select both date and time.");
+        return;
+      }
+
+      const start = new Date(`${meetingDate}T${meetingTime}`);
+
+      const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+      const meetLink = await createGoogleMeet(
+        `Meeting with ${currentLead.lead_name}`,
+        "BuiltStack Discovery Call",
+        start.toISOString(),
+        end.toISOString(),
+      );
+
+      await updateLead(currentLead.id, {
+        status: "meeting_booked",
+        last_outcome: "google_meet_booked",
+        last_contact_date: new Date().toISOString().split("T")[0],
+        follow_up_date: meetingDate,
+        follow_up_time: meetingTime,
+        meeting_link: meetLink,
+      });
+
+      await addActivity({
+        lead_id: currentLead.id,
+        activity_type: "meeting",
+        description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
+      });
+
+      sendMeetingConfirmation(meetLink);
+
+      setShowMeetingForm(false);
+      setMeetingDate("");
+      setMeetingTime("");
+
+      await fetchLeads();
+    } catch (error) {
+      console.error(error);
     }
-
-    const start = new Date(`${meetingDate}T${meetingTime}`);
-
-    const end = new Date(start.getTime() + 30 * 60 * 1000);
-
-    const meetLink = await createGoogleMeet(
-      `Meeting with ${currentLead.lead_name}`,
-      "BuiltStack Discovery Call",
-      start.toISOString(),
-      end.toISOString()
-    );
-
-    await updateLead(currentLead.id, {
-      status: "meeting_booked",
-      last_outcome: "google_meet_booked",
-      last_contact_date: new Date().toISOString().split("T")[0],
-      follow_up_date: meetingDate,
-      follow_up_time: meetingTime,
-      meeting_link: meetLink,
-    });
-
-    await addActivity({
-      lead_id: currentLead.id,
-      activity_type: "meeting",
-      description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
-    });
-
-    sendMeetingConfirmation(meetLink);
-
-    setShowMeetingForm(false);
-    setMeetingDate("");
-    setMeetingTime("");
-
-    await fetchLeads();
-  } catch (error) {
-    console.error(error);
   }
-}
 
   return (
     <div>
@@ -276,9 +275,102 @@ async function saveMeeting() {
 
       <h2>{currentLead.lead_name}</h2>
 
-      <p>{currentLead.contact_person || "No Contact Person"}</p>
+      <p>👤 {currentLead.contact_person || "No Contact Person"}</p>
 
-      <p>{currentLead.phone || "No Phone Number"}</p>
+      <p>📞 {currentLead.phone || "--"}</p>
+
+      <p>✉️ {currentLead.email || "--"}</p>
+
+      <p>🌐 {currentLead.website || "--"}</p>
+
+      <p>🏢 {currentLead.business_type || "--"}</p>
+
+      <p>📌 Status: {currentLead.status}</p>
+
+      <p>📅 Last Contact: {currentLead.last_contact_date || "--"}</p>
+
+      <h3>Quick Actions</h3>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          flexWrap: "wrap",
+          marginBottom: "20px",
+        }}
+      >
+        <button
+          onClick={() => {
+            if (!currentLead.website) {
+              alert("No website available.");
+              return;
+            }
+
+            let url = currentLead.website;
+
+            if (!url.startsWith("http")) {
+              url = "https://" + url;
+            }
+
+            window.open(url, "_blank");
+          }}
+        >
+          🌐 Website
+        </button>
+
+        <button
+          onClick={() => {
+            const query = encodeURIComponent(
+              `${currentLead.lead_name} ${currentLead.business_type || ""}`,
+            );
+
+            window.open(
+              `https://www.google.com/maps/search/${query}`,
+              "_blank",
+            );
+          }}
+        >
+          📍 Maps
+        </button>
+
+        <button
+          onClick={() => {
+            if (!currentLead.email) {
+              alert("No email available.");
+              return;
+            }
+
+            window.location.href = `mailto:${currentLead.email}`;
+          }}
+        >
+          📧 Email
+        </button>
+
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(currentLead.phone);
+            alert("Phone copied!");
+          }}
+        >
+          📋 Copy Phone
+        </button>
+
+        <button onClick={sendWhatsapp}>💬 WhatsApp</button>
+      </div>
+
+      <h3>Previous Interaction</h3>
+
+      <p>
+        <strong>Last Outcome:</strong> {currentLead.last_outcome || "--"}
+      </p>
+
+      <p>
+        <strong>Next Follow-up:</strong> {currentLead.follow_up_date || "--"}
+      </p>
+
+      <p>
+        <strong>Time:</strong> {currentLead.follow_up_time || "--"}
+      </p>
 
       <button onClick={() => handleOutcome("no_answer")}>📵 No Answer</button>
 
