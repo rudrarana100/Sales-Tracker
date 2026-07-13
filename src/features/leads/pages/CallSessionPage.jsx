@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getLeads, updateLead } from "../api/leadsApi";
 import { addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
+import { getNotes } from "../api/notesApi";
 
 function CallSessionPage() {
   const [leads, setLeads] = useState([]);
@@ -12,6 +13,7 @@ function CallSessionPage() {
   const [callbackTime, setCallbackTime] = useState("");
   const [showInterestedActions, setShowInterestedActions] = useState(false);
   const [showMeetingForm, setShowMeetingForm] = useState(false);
+  const [notes, setNotes] = useState([]);
 
   const [meetingDate, setMeetingDate] = useState("");
 
@@ -31,6 +33,22 @@ function CallSessionPage() {
   useEffect(() => {
     fetchLeads();
   }, []);
+
+  async function fetchNotes(leadId) {
+    try {
+      const data = await getNotes(leadId);
+
+      setNotes(data.slice(0, 3));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    if (currentLead) {
+      fetchNotes(currentLead.id);
+    }
+  }, [currentLead]);
 
   const coldLeads = leads.filter((lead) => lead.status === "cold");
   const currentLead = coldLeads[0];
@@ -395,6 +413,31 @@ BuiltStack`;
       <p>
         <strong>Follow-up Time:</strong> {currentLead.follow_up_time || "--"}
       </p>
+
+      <hr />
+
+      <h3>Recent Notes</h3>
+
+      {notes.length === 0 ? (
+        <p>No notes available.</p>
+      ) : (
+        notes.map((note) => (
+          <div
+            key={note.id}
+            style={{
+              border: "1px solid #ddd",
+              padding: "8px",
+              marginBottom: "10px",
+            }}
+          >
+            <p>{note.content}</p>
+
+            <small>
+              {new Date(note.created_at).toLocaleDateString("en-IN")}
+            </small>
+          </div>
+        ))
+      )}
 
       <button onClick={() => handleOutcome("no_answer")}>📵 No Answer</button>
 
