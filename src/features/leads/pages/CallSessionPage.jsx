@@ -3,6 +3,7 @@ import { getLeads, updateLead } from "../api/leadsApi";
 import { addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
 import { getNotes } from "../api/notesApi";
+import { getActivities } from "../api/activitiesApi";
 
 function CallSessionPage() {
   const [leads, setLeads] = useState([]);
@@ -14,6 +15,7 @@ function CallSessionPage() {
   const [showInterestedActions, setShowInterestedActions] = useState(false);
   const [showMeetingForm, setShowMeetingForm] = useState(false);
   const [notes, setNotes] = useState([]);
+  const [activities, setActivities] = useState([]);
 
   const [meetingDate, setMeetingDate] = useState("");
 
@@ -44,9 +46,19 @@ function CallSessionPage() {
     }
   }
 
+  async function fetchActivities(leadId) {
+    try {
+      const data = await getActivities(leadId);
+
+      setActivities(data.slice(0, 5));
+    } catch (error) {
+      console.error(error);
+    }
+  }
   useEffect(() => {
     if (currentLead) {
       fetchNotes(currentLead.id);
+      fetchActivities(currentLead.id);
     }
   }, [currentLead]);
 
@@ -434,6 +446,32 @@ BuiltStack`;
 
             <small>
               {new Date(note.created_at).toLocaleDateString("en-IN")}
+            </small>
+          </div>
+        ))
+      )}
+
+      <hr />
+
+      <h3>Recent Activity</h3>
+
+      {activities.length === 0 ? (
+        <p>No activity found.</p>
+      ) : (
+        activities.map((activity) => (
+          <div
+            key={activity.id}
+            style={{
+              border: "1px solid #ddd",
+              padding: "10px",
+              marginBottom: "10px",
+              borderRadius: "6px",
+            }}
+          >
+            <p>{activity.description}</p>
+
+            <small>
+              {new Date(activity.created_at).toLocaleString("en-IN")}
             </small>
           </div>
         ))
