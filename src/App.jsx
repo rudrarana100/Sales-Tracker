@@ -6,6 +6,7 @@ import FollowUpsPage from "./features/leads/pages/FollowUpsPage";
 import { Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { testBackend } from "./features/leads/api/backendApi";
+import PipelinePage from "./features/leads/pages/PipelinePage";
 
 function App() {
    useEffect(() => {
@@ -23,6 +24,7 @@ function App() {
       <Route path="/leads" element={<AllLeadsPage />} />
       <Route path="/leads/:id" element={<LeadDetailPage />} />
       <Route path="/follow-ups" element={<FollowUpsPage />} />
+      <Route path="/pipeline" element={<PipelinePage />} />
     </Routes>
   );
 }

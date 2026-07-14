@@ -147,7 +147,62 @@ function FollowUpsPage() {
     <div style={{ padding: "20px" }}>
       <h1>Follow-up Dashboard</h1>
 
-      <p>Total Follow-ups: {followUps.length}</p>
+      <div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: "15px",
+    marginBottom: "30px",
+  }}
+>
+  <div
+    style={{
+      border: "1px solid #ff4d4f",
+      borderRadius: "8px",
+      padding: "15px",
+      textAlign: "center",
+    }}
+  >
+    <h3>🔴 Overdue</h3>
+    <h1>{overdue.length}</h1>
+  </div>
+
+  <div
+    style={{
+      border: "1px solid #faad14",
+      borderRadius: "8px",
+      padding: "15px",
+      textAlign: "center",
+    }}
+  >
+    <h3>🟡 Today</h3>
+    <h1>{todayFollowUps.length}</h1>
+  </div>
+
+  <div
+    style={{
+      border: "1px solid #52c41a",
+      borderRadius: "8px",
+      padding: "15px",
+      textAlign: "center",
+    }}
+  >
+    <h3>🟢 Tomorrow</h3>
+    <h1>{tomorrowFollowUps.length}</h1>
+  </div>
+
+  <div
+    style={{
+      border: "1px solid #1677ff",
+      borderRadius: "8px",
+      padding: "15px",
+      textAlign: "center",
+    }}
+  >
+    <h3>📅 Upcoming</h3>
+    <h1>{upcoming.length}</h1>
+  </div>
+</div>
 
       {followUps.length === 0 ? (
         <p>No follow-ups scheduled.</p>
