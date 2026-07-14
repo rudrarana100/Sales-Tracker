@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { getFollowUps } from "../api/leadsApi";
+import { useNavigate } from "react-router-dom";
 
 function FollowUpsPage() {
+  const navigate = useNavigate();
   const [followUps, setFollowUps] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,91 +55,94 @@ function FollowUpsPage() {
     date.setHours(0, 0, 0, 0);
     return date > tomorrow;
   });
-function renderLeadCard(lead) {
-  return (
-    <div
-      key={lead.id}
-      style={{
-        border: "1px solid #ddd",
-        padding: "15px",
-        marginBottom: "15px",
-        borderRadius: "8px",
-      }}
-    >
-      <h3>{lead.lead_name}</h3>
-
-      <p>👤 {lead.contact_person || "--"}</p>
-
-      <p>📞 {lead.phone}</p>
-
-      <p>🕒 {lead.follow_up_time || "--"}</p>
-
-      <p>📅 {lead.follow_up_date}</p>
-
-      <p>📌 {lead.status}</p>
-
+  function renderLeadCard(lead) {
+    return (
       <div
+        key={lead.id}
         style={{
-          display: "flex",
-          gap: "10px",
-          flexWrap: "wrap",
-          marginTop: "10px",
+          border: "1px solid #ddd",
+          padding: "15px",
+          marginBottom: "15px",
+          borderRadius: "8px",
         }}
       >
-        <button
-          onClick={() => {
-            if (!lead.website) {
-              alert("No website available.");
-              return;
-            }
+        <h3>{lead.lead_name}</h3>
 
-            let url = lead.website;
+        <p>👤 {lead.contact_person || "--"}</p>
 
-            if (!url.startsWith("http")) {
-              url = "https://" + url;
-            }
+        <p>📞 {lead.phone}</p>
 
-            window.open(url, "_blank");
+        <p>🕒 {lead.follow_up_time || "--"}</p>
+
+        <p>📅 {lead.follow_up_date}</p>
+
+        <p>📌 {lead.status}</p>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            marginTop: "10px",
           }}
         >
-          🌐 Website
-        </button>
+          <button
+            onClick={() => {
+              if (!lead.website) {
+                alert("No website available.");
+                return;
+              }
 
-        <button
-          onClick={() => {
-            if (!lead.google_maps_link) {
-              alert("No Google Maps link.");
-              return;
-            }
+              let url = lead.website;
 
-            window.open(lead.google_maps_link, "_blank");
-          }}
-        >
-          📍 Maps
-        </button>
+              if (!url.startsWith("http")) {
+                url = "https://" + url;
+              }
 
-        <button
-          onClick={() => {
-            if (!lead.phone) {
-              alert("No phone number.");
-              return;
-            }
+              window.open(url, "_blank");
+            }}
+          >
+            🌐 Website
+          </button>
 
-            let phone = lead.phone.replace(/\D/g, "");
+          <button
+            onClick={() => {
+              if (!lead.google_maps_link) {
+                alert("No Google Maps link.");
+                return;
+              }
 
-            if (phone.length === 10) {
-              phone = "91" + phone;
-            }
+              window.open(lead.google_maps_link, "_blank");
+            }}
+          >
+            📍 Maps
+          </button>
 
-            window.open(`https://wa.me/${phone}`, "_blank");
-          }}
-        >
-          💬 WhatsApp
-        </button>
+          <button
+            onClick={() => {
+              if (!lead.phone) {
+                alert("No phone number.");
+                return;
+              }
+
+              let phone = lead.phone.replace(/\D/g, "");
+
+              if (phone.length === 10) {
+                phone = "91" + phone;
+              }
+
+              window.open(`https://wa.me/${phone}`, "_blank");
+            }}
+          >
+            💬 WhatsApp
+          </button>
+          <button onClick={() => navigate(`/leads/${lead.id}`)}>
+            👀 Open Lead
+          </button>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
   return (
     <div style={{ padding: "20px" }}>
       <h1>Follow-up Dashboard</h1>
