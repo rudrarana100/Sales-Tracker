@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
 import { getLeads } from "../api/leadsApi";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+} from "@hello-pangea/dnd";
+import { getLeads, updateLead } from "../api/leadsApi";
+import { addActivity } from "../api/activitiesApi";
 
 function PipelinePage() {
   const [leads, setLeads] = useState([]);
@@ -19,6 +26,30 @@ function PipelinePage() {
       setLoading(false);
     }
   }
+
+  async function handleDragEnd(result) {
+  const { source, destination, draggableId } = result;
+
+  if (!destination) return;
+
+  if (source.droppableId === destination.droppableId) return;
+
+  try {
+    await updateLead(draggableId, {
+      status: destination.droppableId,
+    });
+
+    await addActivity({
+      lead_id: draggableId,
+      activity_type: "status_change",
+      description: `Moved to ${destination.droppableId.replace("_", " ")}`,
+    });
+
+    fetchLeads();
+  } catch (error) {
+    console.error(error);
+  }
+}
 
   function renderLeadCard(lead) {
     return (
@@ -58,8 +89,8 @@ function PipelinePage() {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Sales Pipeline</h1>
-
-      <div
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div
         style={{
           display: "flex",
           gap: "20px",
@@ -93,6 +124,7 @@ function PipelinePage() {
           </div>
         ))}
       </div>
+      </DragDropContext>
     </div>
   );
 }
