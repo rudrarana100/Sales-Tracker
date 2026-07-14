@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { getLeads } from "../api/leadsApi";
 import {
   DragDropContext,
   Droppable,
@@ -27,12 +26,22 @@ function PipelinePage() {
     }
   }
 
-  async function handleDragEnd(result) {
+async function handleDragEnd(result) {
   const { source, destination, draggableId } = result;
 
   if (!destination) return;
 
   if (source.droppableId === destination.droppableId) return;
+
+  const labels = {
+    cold: "Cold",
+    contacted: "Contacted",
+    warm: "Warm",
+    meeting_booked: "Meeting Booked",
+    proposal_sent: "Proposal Sent",
+    closed_won: "Closed Won",
+    closed_lost: "Closed Lost",
+  };
 
   try {
     await updateLead(draggableId, {
@@ -42,35 +51,46 @@ function PipelinePage() {
     await addActivity({
       lead_id: draggableId,
       activity_type: "status_change",
-      description: `Moved to ${destination.droppableId.replace("_", " ")}`,
+      description: `Moved to ${labels[destination.droppableId]}`,
     });
 
-    fetchLeads();
+    await fetchLeads();
   } catch (error) {
     console.error(error);
   }
 }
 
-  function renderLeadCard(lead) {
-    return (
-      <div
-        key={lead.id}
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: "8px",
-          padding: "10px",
-          marginBottom: "10px",
-          background: "#fff",
-        }}
-      >
-        <strong>{lead.lead_name}</strong>
+function renderLeadCard(lead, index) {
+  return (
+    <Draggable
+      draggableId={String(lead.id)}
+      index={index}
+      key={lead.id}
+    >
+      {(provided) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          style={{
+            border: "1px solid #ddd",
+            borderRadius: "8px",
+            padding: "10px",
+            marginBottom: "10px",
+            background: "#fff",
+            ...provided.draggableProps.style,
+          }}
+        >
+          <strong>{lead.lead_name}</strong>
 
-        <p>{lead.contact_person || "--"}</p>
+          <p>{lead.contact_person || "--"}</p>
 
-        <p>{lead.phone}</p>
-      </div>
-    );
-  }
+          <p>{lead.phone}</p>
+        </div>
+      )}
+    </Draggable>
+  );
+}
 
   const columns = {
     cold: leads.filter((lead) => lead.status === "cold"),
@@ -98,31 +118,41 @@ function PipelinePage() {
           alignItems: "flex-start",
         }}
       >
-        {[
-          ["Cold", "cold"],
-          ["Contacted", "contacted"],
-          ["Warm", "warm"],
-          ["Meeting", "meeting_booked"],
-          ["Proposal", "proposal_sent"],
-          ["Won", "closed_won"],
-          ["Lost", "closed_lost"],
-        ].map(([title, key]) => (
-          <div
-            key={key}
-            style={{
-              minWidth: "250px",
-              background: "#f5f5f5",
-              padding: "15px",
-              borderRadius: "10px",
-            }}
-          >
-            <h3>
-              {title} ({columns[key].length})
-            </h3>
+{[
+  ["Cold", "cold"],
+  ["Contacted", "contacted"],
+  ["Warm", "warm"],
+  ["Meeting", "meeting_booked"],
+  ["Proposal", "proposal_sent"],
+  ["Won", "closed_won"],
+  ["Lost", "closed_lost"],
+].map(([title, key]) => (
+  <Droppable droppableId={key} key={key}>
+    {(provided) => (
+      <div
+        ref={provided.innerRef}
+        {...provided.droppableProps}
+        style={{
+          minWidth: "250px",
+          background: "#f5f5f5",
+          padding: "15px",
+          borderRadius: "10px",
+          minHeight: "500px",
+        }}
+      >
+        <h3>
+          {title} ({columns[key].length})
+        </h3>
 
-            {columns[key].map(renderLeadCard)}
-          </div>
-        ))}
+        {columns[key].map((lead, index) =>
+          renderLeadCard(lead, index)
+        )}
+
+        {provided.placeholder}
+      </div>
+    )}
+  </Droppable>
+))}
       </div>
       </DragDropContext>
     </div>
