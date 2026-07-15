@@ -4,20 +4,24 @@ export default function PageHeader({
   action,
 }) {
   return (
-    <div className="mb-8 flex items-center justify-between">
+    <div className="mb-6 flex items-end justify-between">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-[30px] font-semibold tracking-[-0.03em] text-zinc-900">
           {title}
         </h1>
 
         {description && (
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-zinc-500">
             {description}
           </p>
         )}
       </div>
 
-      {action}
+      {action && (
+        <div className="flex items-center gap-3">
+          {action}
+        </div>
+      )}
     </div>
   );
 }
