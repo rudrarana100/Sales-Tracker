@@ -1,5 +1,16 @@
 import { useState } from "react";
 import RecentActivity from "./RecentActivity";
+import { Button } from "@/components/ui/button";
+import PageHeader from "@/components/common/PageHeader";
+import StatCard from "@/components/common/StatCard";
+import SectionCard from "@/components/common/SectionCard";
+
+import {
+  Phone,
+  Calendar,
+  Users,
+  Video,
+} from "lucide-react";
 
 function Dashboard({ leads, onStartCalling }) {
   const [showRecentActivity, setShowRecentActivity] = useState(false);
@@ -62,115 +73,93 @@ function Dashboard({ leads, onStartCalling }) {
     }
   }
 
-  return (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        padding: "20px",
-        marginBottom: "25px",
-      }}
-    >
-      <h2>Today's Work</h2>
+return (
+  <div className="space-y-8">
+    <PageHeader
+      title="Dashboard"
+      description="Overview of today's sales activity."
+      action={
+        <Button onClick={onStartCalling}>
+          Resume Calling
+        </Button>
+      }
+    />
 
-      <p>Cold Calls Remaining: {coldCallsRemaining}</p>
-      <p>Follow-ups Today: {followUpsToday}</p>
-      <p>Meetings Today: {meetingsToday}</p>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <StatCard
+        title="Cold Calls"
+        value={coldCallsRemaining}
+        icon={<Phone className="h-6 w-6 text-slate-500" />}
+      />
 
-      <button onClick={onStartCalling}>
-        Resume Calling
-      </button>
+      <StatCard
+        title="Follow-ups"
+        value={followUpsToday}
+        icon={<Calendar className="h-6 w-6 text-slate-500" />}
+      />
 
-      <hr />
-
-      <h3>Needs Attention</h3>
-
-      {overdueFollowUps.length === 0 ? (
-        <p>No overdue follow-ups.</p>
-      ) : (
-        overdueFollowUps.map((lead) => (
-          <div
-            key={lead.id}
-            style={{
-              border: "1px solid #ddd",
-              padding: "10px",
-              marginBottom: "10px",
-            }}
-          >
-            <strong>{lead.lead_name}</strong>
-
-            <br />
-
-            Due: {lead.follow_up_date}
-
-            <br />
-
-            {lead.follow_up_time || "--:--"}
-          </div>
-        ))
-      )}
-
-      <hr />
-
-      <h3>My Day</h3>
-
-      {todayTasks.length === 0 ? (
-        <p>No tasks scheduled for today.</p>
-      ) : (
-        todayTasks.map((lead) => (
-          <div
-            key={lead.id}
-            style={{
-              border: "1px solid #ddd",
-              padding: "10px",
-              marginBottom: "10px",
-            }}
-          >
-            <strong>{lead.follow_up_time || "--:--"}</strong>
-
-            <br />
-
-            {lead.lead_name}
-
-            <br />
-
-            <small>{getTaskLabel(lead.status)}</small>
-          </div>
-        ))
-      )}
-
-      <hr />
-
-      <div
-        onClick={() =>
-          setShowRecentActivity(!showRecentActivity)
-        }
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          cursor: "pointer",
-          userSelect: "none",
-        }}
-      >
-        <h3>Recent Activity</h3>
-
-        <span
-          style={{
-            fontSize: "18px",
-            fontWeight: "bold",
-          }}
-        >
-          {showRecentActivity ? "▲" : "▼"}
-        </span>
-      </div>
-
-      {showRecentActivity && (
-        <div style={{ marginTop: "15px" }}>
-          <RecentActivity />
-        </div>
-      )}
+      <StatCard
+        title="Meetings"
+        value={meetingsToday}
+        icon={<Video className="h-6 w-6 text-slate-500" />}
+      />
     </div>
-  );
+
+    <div className="grid gap-6 lg:grid-cols-2">
+      <SectionCard title="Needs Attention">
+        {overdueFollowUps.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No overdue follow-ups.
+          </p>
+        ) : (
+          overdueFollowUps.map((lead) => (
+            <div
+              key={lead.id}
+              className="mb-3 rounded-lg border p-4"
+            >
+              <h4 className="font-medium">
+                {lead.lead_name}
+              </h4>
+
+              <p className="text-sm text-slate-500">
+                {lead.follow_up_date}
+              </p>
+            </div>
+          ))
+        )}
+      </SectionCard>
+
+      <SectionCard title="Today's Schedule">
+        {todayTasks.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Nothing scheduled today.
+          </p>
+        ) : (
+          todayTasks.map((lead) => (
+            <div
+              key={lead.id}
+              className="mb-3 rounded-lg border p-4"
+            >
+              <h4 className="font-medium">
+                {lead.follow_up_time || "--:--"}
+              </h4>
+
+              <p>{lead.lead_name}</p>
+
+              <small className="text-slate-500">
+                {getTaskLabel(lead.status)}
+              </small>
+            </div>
+          ))
+        )}
+      </SectionCard>
+    </div>
+
+    <SectionCard title="Recent Activity">
+      <RecentActivity />
+    </SectionCard>
+  </div>
+);
 }
 
 export default Dashboard;
