@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import { createLead, leadExists } from "../api/leadsApi";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 function LeadForm({ onLeadAdded }) {
   const [leadName, setLeadName] = useState("");
@@ -93,65 +95,76 @@ function LeadForm({ onLeadAdded }) {
       }
     }
   }
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        ref={leadNameRef}
-        type="text"
-        placeholder="Lead Name *"
-        value={leadName}
-        onChange={(e) => setLeadName(e.target.value)}
-      />
+return (
+  <form
+    onSubmit={handleSubmit}
+    className="grid grid-cols-1 gap-5 md:grid-cols-2"
+  >
+    <Input
+      ref={leadNameRef}
+      type="text"
+      placeholder="Lead Name *"
+      value={leadName}
+      onChange={(e) => setLeadName(e.target.value)}
+    />
 
-      <input
-        type="tel"
-        placeholder="Phone Number *"
-        value={phone}
-        onChange={(e) => {
-          const value = e.target.value.replace(/\D/g, "");
-          setPhone(value);
-        }}
-        maxLength={10}
-      />
+    <Input
+      type="tel"
+      placeholder="Phone Number *"
+      value={phone}
+      onChange={(e) => {
+        const value = e.target.value.replace(/\D/g, "");
+        setPhone(value);
+      }}
+      maxLength={10}
+    />
 
-      <input
-        type="text"
-        placeholder="Contact Person"
-        value={contactPerson}
-        onChange={(e) => setContactPerson(e.target.value)}
-      />
+    <Input
+      type="text"
+      placeholder="Contact Person"
+      value={contactPerson}
+      onChange={(e) => setContactPerson(e.target.value)}
+    />
 
-      <input
-        type="text"
-        placeholder="Business Type"
-        value={businessType}
-        onChange={(e) => setBusinessType(e.target.value)}
-      />
+    <Input
+      type="text"
+      placeholder="Business Type"
+      value={businessType}
+      onChange={(e) => setBusinessType(e.target.value)}
+    />
 
-      <input
-        type="text"
-        placeholder="Website"
-        value={website}
-        onChange={(e) => setWebsite(e.target.value)}
-      />
+    <Input
+      type="text"
+      placeholder="Website"
+      value={website}
+      onChange={(e) => setWebsite(e.target.value)}
+    />
 
-      <input
-        type="text"
-        placeholder="Google Maps Link"
-        value={googleMapsLink}
-        onChange={(e) => setGoogleMapsLink(e.target.value)}
-      />
+    <Input
+      type="text"
+      placeholder="Google Maps Link"
+      value={googleMapsLink}
+      onChange={(e) => setGoogleMapsLink(e.target.value)}
+    />
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+    <Input
+      type="email"
+      placeholder="Email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      className="md:col-span-2"
+    />
 
-      <button type="submit">Add Lead</button>
-    </form>
-  );
+    <div className="md:col-span-2 flex justify-end pt-2">
+      <Button
+        type="submit"
+        className="rounded-xl px-8"
+      >
+        Add Lead
+      </Button>
+    </div>
+  </form>
+);
 }
 
 export default LeadForm;

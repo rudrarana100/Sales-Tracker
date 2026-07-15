@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 
 export default function Topbar() {
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-white px-8">
+    <header className="flex h-16 items-center justify-between border-b border-zinc-200 bg-[#faf6f1] px-8">
       <div className="relative w-96">
         <Search
           className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"

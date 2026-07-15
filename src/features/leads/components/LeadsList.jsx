@@ -20,79 +20,75 @@ function LeadsList({ leads, onStatusChange }) {
     }
   }
 
-  return (
-    <div>
-      <h2>All Leads</h2>
+return (
+  <div>
+    {leads.length === 0 ? (
+      <div className="rounded-2xl border border-dashed border-zinc-300 py-16 text-center">
+        <h3 className="text-xl font-semibold">
+          No Leads Found
+        </h3>
 
-      {leads.length === 0 ? (
-        <div
-          style={{
-            border: "1px solid #ddd",
-            padding: "20px",
-            marginTop: "20px",
-            textAlign: "center",
-          }}
-        >
-          <h3>No leads found</h3>
-
-          <p>Try changing your search or filter.</p>
-        </div>
-      ) : (
-        leads.map((lead) => (
+        <p className="mt-2 text-zinc-500">
+          Try changing your search or filter.
+        </p>
+      </div>
+    ) : (
+      <div className="space-y-4">
+        {leads.map((lead) => (
           <div
             key={lead.id}
-            style={{
-              border: "1px solid #ccc",
-              padding: "15px",
-              marginBottom: "12px",
-            }}
+            className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-6 transition-all hover:border-zinc-400 hover:shadow-sm"
           >
-            <h3
-              onClick={() => navigate(`/leads/${lead.id}`)}
-              style={{
-                cursor: "pointer",
-                color: "royalblue",
-                marginBottom: "8px",
-              }}
-            >
-              {lead.lead_name}
-            </h3>
+            {/* Left */}
+            <div className="space-y-2">
+              <h3
+                onClick={() => navigate(`/leads/${lead.id}`)}
+                className="cursor-pointer text-lg font-semibold transition hover:text-orange-600"
+              >
+                {lead.lead_name}
+              </h3>
 
-            <p>
-              <strong>Contact:</strong>{" "}
-              {lead.contact_person || "--"}
-            </p>
+              <div className="flex gap-6 text-sm text-zinc-500">
+                <span>
+                  {lead.contact_person || "No Contact"}
+                </span>
 
-            <p>
-              <strong>Status:</strong>{" "}
-              {lead.status}
-            </p>
+                <span>{lead.phone || "--"}</span>
+              </div>
 
-            <p>
-              <strong>Follow-up:</strong>{" "}
-              {lead.follow_up_date || "--"}{" "}
-              {lead.follow_up_time || ""}
-            </p>
+              <div className="flex gap-3">
+                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium capitalize">
+                  {lead.status.replace("_", " ")}
+                </span>
 
-            <div
-              style={{
-                marginTop: "10px",
-                display: "flex",
-                gap: "10px",
-              }}
-            >
+                <span className="text-xs text-zinc-400">
+                  {lead.follow_up_date || "No Follow-up"}
+                </span>
+              </div>
+            </div>
+
+            {/* Right */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate(`/leads/${lead.id}`)}
+                className="rounded-xl border border-zinc-200 px-4 py-2 text-sm transition hover:bg-zinc-100"
+              >
+                View
+              </button>
 
               <button
                 onClick={() => handleDelete(lead)}
+                className="rounded-xl bg-red-500 px-4 py-2 text-sm text-white transition hover:bg-red-600"
               >
                 Delete
               </button>
             </div>
           </div>
-        ))
-      )}
-    </div>
-  );
+        ))}
+      </div>
+    )}
+  </div>
+);
 }
 
 export default LeadsList;

@@ -3,7 +3,7 @@ import Topbar from "./Topbar";
 
 export default function AppLayout({ children }) {
   return (
-    <div className="flex h-screen bg-slate-100">
+    <div className="flex h-screen bg-[#faf6f1]">
       <Sidebar />
 
       <div className="flex flex-1 flex-col">

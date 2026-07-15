@@ -3,53 +3,54 @@ import {
   LayoutDashboard,
   Users,
   Phone,
- CalendarDays,
+  CalendarDays,
   KanbanSquare,
   Settings,
 } from "lucide-react";
 
-const menuItems = [
+const menu = [
   {
-    name: "Dashboard",
+    title: "Dashboard",
     icon: LayoutDashboard,
     path: "/",
   },
   {
-    name: "Leads",
+    title: "Leads",
     icon: Users,
     path: "/leads",
   },
   {
-    name: "Call Session",
+    title: "Call Session",
     icon: Phone,
     path: "/call-session",
   },
   {
-    name: "Follow-ups",
+    title: "Follow-ups",
     icon: CalendarDays,
     path: "/follow-ups",
   },
   {
-    name: "Pipeline",
+    title: "Pipeline",
     icon: KanbanSquare,
     path: "/pipeline",
-  },
-  {
-    name: "Settings",
-    icon: Settings,
-    path: "/settings",
   },
 ];
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 h-screen border-r bg-white px-4 py-6 flex flex-col">
-      <h1 className="text-2xl font-bold mb-10">
-        BuiltStack CRM
-      </h1>
+    <aside className="w-72 border-r border-zinc-200 bg-[#faf6f1] p-6 flex flex-col">
+      <div className="mb-12">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          BuiltStack
+        </h1>
+
+        <p className="mt-1 text-sm text-zinc-500">
+          Outbound CRM
+        </p>
+      </div>
 
       <nav className="space-y-2">
-        {menuItems.map((item) => {
+        {menu.map((item) => {
           const Icon = item.icon;
 
           return (
@@ -57,20 +58,38 @@ export default function Sidebar() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-4 py-3 transition ${
+                `flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200 ${
                   isActive
-                    ? "bg-black text-white"
-                    : "text-slate-600 hover:bg-slate-100"
+                    ? "bg-white border border-zinc-200 text-black"
+                    : "text-zinc-500 hover:bg-white hover:text-black"
                 }`
               }
             >
-              <Icon size={20} />
+              <Icon size={18} />
 
-              <span>{item.name}</span>
+              <span className="font-medium">
+                {item.title}
+              </span>
             </NavLink>
           );
         })}
       </nav>
+
+      <div className="mt-auto pt-10">
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `flex items-center gap-3 rounded-2xl px-4 py-3 transition ${
+              isActive
+                ? "bg-white border border-zinc-200"
+                : "hover:bg-white"
+            }`
+          }
+        >
+          <Settings size={18} />
+          <span>Settings</span>
+        </NavLink>
+      </div>
     </aside>
   );
 }
