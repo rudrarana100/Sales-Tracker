@@ -36,8 +36,8 @@ export default function ContactCard({ lead }) {
   );
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6">
-      <h2 className="mb-6 text-xl font-semibold">
+    <div className="rounded-3xl border border-zinc-100 bg-white p-8 transition-all duration-300 hover:shadow-lg">
+      <h2 className="mb-6 text-2xl font-semibold tracking-tight">
         Contact Information
       </h2>
 

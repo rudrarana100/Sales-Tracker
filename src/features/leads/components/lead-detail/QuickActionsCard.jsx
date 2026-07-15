@@ -34,66 +34,64 @@ export default function QuickActionsCard({
   };
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6">
-      <h2 className="mb-6 text-xl font-semibold">
+    <div className="rounded-3xl border border-zinc-100 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <h2 className="mb-8 text-2xl font-semibold tracking-tight">
         Quick Actions
       </h2>
 
       <div className="grid grid-cols-2 gap-4">
-
         <Button
           variant="outline"
-          className="h-14 justify-start gap-3"
+          className="h-12 justify-start gap-3 rounded-xl"
           onClick={copyPhone}
         >
-          <Phone size={18} />
+          <Phone className="h-4 w-4" />
           Copy Phone
         </Button>
 
         <Button
           variant="outline"
-          className="h-14 justify-start gap-3"
+          className="h-12 justify-start gap-3 rounded-xl"
           onClick={sendWhatsapp}
         >
-          <MessageCircle size={18} />
+          <MessageCircle className="h-4 w-4" />
           WhatsApp
         </Button>
 
         <Button
           variant="outline"
-          className="h-14 justify-start gap-3"
+          className="h-12 justify-start gap-3 rounded-xl"
           onClick={sendEmail}
         >
-          <Mail size={18} />
+          <Mail className="h-4 w-4" />
           Email
         </Button>
 
         <Button
           variant="outline"
-          className="h-14 justify-start gap-3"
+          className="h-12 justify-start gap-3 rounded-xl"
           onClick={copyWebsite}
         >
-          <Globe size={18} />
+          <Globe className="h-4 w-4" />
           Copy Website
         </Button>
 
         <Button
           variant="outline"
-          className="h-14 justify-start gap-3"
+          className="h-12 justify-start gap-3 rounded-xl"
           onClick={openMaps}
         >
-          <MapPin size={18} />
+          <MapPin className="h-4 w-4" />
           Google Maps
         </Button>
 
         <Button
-          className="h-14 justify-start gap-3"
+          className="h-12 justify-start gap-3 rounded-xl"
           onClick={() => setShowMeetingForm(true)}
         >
-          <Video size={18} />
+          <Video className="h-4 w-4" />
           Book Meeting
         </Button>
-
       </div>
     </div>
   );

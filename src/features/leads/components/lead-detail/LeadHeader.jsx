@@ -21,7 +21,7 @@ const statusColors = {
 
 export default function LeadHeader({ lead, navigate, handleLeadUpdate }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-8">
+    <div className="rounded-3xl border border-zinc-100 bg-white p-8 transition-all duration-300 hover:shadow-lg ">
       <div className="flex items-start justify-between">
         <div>
           <Button
@@ -56,11 +56,12 @@ export default function LeadHeader({ lead, navigate, handleLeadUpdate }) {
 
         <Select
           value={lead.status}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+
             handleLeadUpdate({
               status: value,
-            })
-          }
+            });
+          }}
         >
           <SelectTrigger className="w-64">
             <SelectValue />

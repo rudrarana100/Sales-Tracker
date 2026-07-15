@@ -38,18 +38,20 @@ const menu = [
 
 export default function Sidebar() {
   return (
-    <aside className="w-72 border-r border-zinc-200 bg-[#faf6f1] p-6 flex flex-col">
-      <div className="mb-12">
-        <h1 className="text-2xl font-semibold tracking-tight">
+    <aside className="flex w-56 flex-col border-r border-zinc-200 bg-white">
+      {/* Logo */}
+      <div className="border-b border-zinc-100 px-6 py-6">
+        <h1 className="text-xl font-semibold tracking-tight">
           BuiltStack
         </h1>
 
-        <p className="mt-1 text-sm text-zinc-500">
+        <p className="mt-1 text-xs text-zinc-500">
           Outbound CRM
         </p>
       </div>
 
-      <nav className="space-y-2">
+      {/* Navigation */}
+      <nav className="flex-1 space-y-1 px-3 py-5">
         {menu.map((item) => {
           const Icon = item.icon;
 
@@ -58,35 +60,40 @@ export default function Sidebar() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200 ${
+                [
+                  "group flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-200",
                   isActive
-                    ? "bg-white border border-zinc-200 text-black"
-                    : "text-zinc-500 hover:bg-white hover:text-black"
-                }`
+                    ? "bg-zinc-900 text-white shadow-sm"
+                    : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900",
+                ].join(" ")
               }
             >
-              <Icon size={18} />
+              <Icon
+                size={17}
+                className="transition-colors"
+              />
 
-              <span className="font-medium">
-                {item.title}
-              </span>
+              <span>{item.title}</span>
             </NavLink>
           );
         })}
       </nav>
 
-      <div className="mt-auto pt-10">
+      {/* Footer */}
+      <div className="border-t border-zinc-100 p-3">
         <NavLink
           to="/settings"
           className={({ isActive }) =>
-            `flex items-center gap-3 rounded-2xl px-4 py-3 transition ${
+            [
+              "flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all",
               isActive
-                ? "bg-white border border-zinc-200"
-                : "hover:bg-white"
-            }`
+                ? "bg-zinc-900 text-white"
+                : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900",
+            ].join(" ")
           }
         >
-          <Settings size={18} />
+          <Settings size={17} />
+
           <span>Settings</span>
         </NavLink>
       </div>
