@@ -6,6 +6,9 @@ import NotesPanel from "../components/NotesPanel";
 import { addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
 import LeadHeader from "../components/lead-detail/LeadHeader";
+import ContactCard from "../components/lead-detail/ContactCard";
+import QuickActionsCard from "../components/lead-detail/QuickActionsCard";
+
 
 function LeadDetailPage() {
   const { id } = useParams();
@@ -286,81 +289,26 @@ Let me know a suitable time for a quick Google Meet.`;
 
       {/* Header */}
 
-<LeadHeader
-  lead={lead}
-  navigate={navigate}
-  handleLeadUpdate={handleLeadUpdate}
-/>
+      <LeadHeader
+        lead={lead}
+        navigate={navigate}
+        handleLeadUpdate={handleLeadUpdate}
+      />
 
       {/* Contact Information */}
 
-      <div
-        style={{
-          border: "1px solid #ddd",
-          padding: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <h2>Contact Information</h2>
+      <ContactCard lead={lead} />
 
-        <p>
-          <strong>Contact Person:</strong> {lead.contact_person || "--"}
-        </p>
-
-        <p>
-          <strong>Phone:</strong> {lead.phone || "--"}
-        </p>
-
-        <p>
-          <strong>Email:</strong> {lead.email || "--"}
-        </p>
-
-        <p>
-          <strong>Google Maps:</strong>{" "}
-          {lead.google_maps_link ? (
-            <a href={lead.google_maps_link} target="_blank" rel="noreferrer">
-              Open Maps
-            </a>
-          ) : (
-            "--"
-          )}
-        </p>
-
-        <p>
-          <strong>Business Type:</strong> {lead.business_type || "--"}
-        </p>
-      </div>
       {/* Quick Actions */}
 
-      <div
-        style={{
-          border: "1px solid #ddd",
-          padding: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <h2>Quick Actions</h2>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-          }}
-        >
-          <button onClick={copyPhone}>📞 Copy Phone</button>
-
-          <button onClick={sendWhatsapp}>💬 WhatsApp</button>
-
-          <button onClick={sendEmail}>✉️ Email</button>
-
-          <button onClick={copyWebsite}>🌐 Copy Website</button>
-
-          <button onClick={() => setShowMeetingForm(true)}>
-            📅 Book Google Meet
-          </button>
-        </div>
-      </div>
+<QuickActionsCard
+  lead={lead}
+  copyPhone={copyPhone}
+  copyWebsite={copyWebsite}
+  sendEmail={sendEmail}
+  sendWhatsapp={sendWhatsapp}
+  setShowMeetingForm={setShowMeetingForm}
+/>
 
       {showMeetingForm && (
         <div
