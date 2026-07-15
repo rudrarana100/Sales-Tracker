@@ -8,6 +8,9 @@ import { createGoogleMeet } from "../../../utils/meetingUtils";
 import LeadHeader from "../components/lead-detail/LeadHeader";
 import ContactCard from "../components/lead-detail/ContactCard";
 import QuickActionsCard from "../components/lead-detail/QuickActionsCard";
+import ScheduleCard from "../components/lead-detail/ScheduleCard";
+import NotesCard from "../components/lead-detail/NotesCard";
+import TimelineCard from "../components/lead-detail/TimelineCard";
 
 
 function LeadDetailPage() {
@@ -301,14 +304,14 @@ Let me know a suitable time for a quick Google Meet.`;
 
       {/* Quick Actions */}
 
-<QuickActionsCard
-  lead={lead}
-  copyPhone={copyPhone}
-  copyWebsite={copyWebsite}
-  sendEmail={sendEmail}
-  sendWhatsapp={sendWhatsapp}
-  setShowMeetingForm={setShowMeetingForm}
-/>
+      <QuickActionsCard
+        lead={lead}
+        copyPhone={copyPhone}
+        copyWebsite={copyWebsite}
+        sendEmail={sendEmail}
+        sendWhatsapp={sendWhatsapp}
+        setShowMeetingForm={setShowMeetingForm}
+      />
 
       {showMeetingForm && (
         <div
@@ -348,103 +351,27 @@ Let me know a suitable time for a quick Google Meet.`;
           </button>
         </div>
       )}
-      {/* Follow-up */}
+      <ScheduleCard
+        lead={lead}
+        setShowFollowUpForm={setShowFollowUpForm}
+        setFollowUpDate={setFollowUpDate}
+        setFollowUpTime={setFollowUpTime}
+        setShowMeetingForm={setShowMeetingForm}
+      />
 
-      <div
-        style={{
-          border: "1px solid #ddd",
-          padding: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <h2>Next Follow-up</h2>
+    <div className="grid gap-6 lg:grid-cols-2">
+  <NotesCard
+    leadId={lead.id}
+    setTimelineRefresh={setTimelineRefresh}
+    NotesPanel={NotesPanel}
+  />
 
-        <p>
-          <strong>Date:</strong> {lead.follow_up_date || "--"}
-        </p>
-
-        <p>
-          <strong>Time:</strong> {lead.follow_up_time || "--"}
-        </p>
-
-        <button
-          onClick={() => {
-            setFollowUpDate(lead.follow_up_date || "");
-            setFollowUpTime(lead.follow_up_time || "");
-            setShowFollowUpForm(true);
-          }}
-        >
-          {lead.follow_up_date ? "Reschedule Follow-up" : "Schedule Follow-up"}
-        </button>
-
-        {showFollowUpForm && (
-          <div style={{ marginTop: "20px" }}>
-            <input
-              type="date"
-              value={followUpDate}
-              onChange={(e) => setFollowUpDate(e.target.value)}
-            />
-
-            <br />
-            <br />
-
-            <input
-              type="time"
-              value={followUpTime}
-              onChange={(e) => setFollowUpTime(e.target.value)}
-            />
-
-            <br />
-            <br />
-
-            <button onClick={saveFollowUp}>Save</button>
-
-            <button
-              onClick={() => setShowFollowUpForm(false)}
-              style={{ marginLeft: "10px" }}
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Meeting */}
-
-      <div
-        style={{
-          border: "1px solid #ddd",
-          padding: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <h2>Meeting</h2>
-
-        {lead.meeting_link ? (
-          <a href={lead.meeting_link} target="_blank" rel="noreferrer">
-            Join Google Meet
-          </a>
-        ) : (
-          <p>No meeting scheduled.</p>
-        )}
-      </div>
-
-      {/* Notes */}
-
-      <div
-        style={{
-          border: "1px solid #ddd",
-          padding: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <NotesPanel
-          leadId={lead.id}
-          onNoteAdded={() => setTimelineRefresh((prev) => prev + 1)}
-        />
-      </div>
-
-      {/* Activity Timeline */}
+  <TimelineCard
+    leadId={lead.id}
+    refreshTrigger={timelineRefresh}
+    ActivityTimeline={ActivityTimeline}
+  />
+</div>
 
       <div
         style={{

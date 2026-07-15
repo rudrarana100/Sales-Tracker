@@ -1,6 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const statusColors = {
   cold: "bg-slate-200 text-slate-800",
@@ -12,11 +19,7 @@ const statusColors = {
   closed_lost: "bg-red-100 text-red-700",
 };
 
-export default function LeadHeader({
-  lead,
-  navigate,
-  handleLeadUpdate,
-}) {
+export default function LeadHeader({ lead, navigate, handleLeadUpdate }) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-8">
       <div className="flex items-start justify-between">
@@ -51,23 +54,28 @@ export default function LeadHeader({
           Lead Status
         </label>
 
-        <select
-          className="h-11 w-64 rounded-xl border border-zinc-200 bg-white px-4"
+        <Select
           value={lead.status}
-          onChange={(e) =>
+          onValueChange={(value) =>
             handleLeadUpdate({
-              status: e.target.value,
+              status: value,
             })
           }
         >
-          <option value="cold">Cold</option>
-          <option value="contacted">Contacted</option>
-          <option value="warm">Warm</option>
-          <option value="meeting_booked">Meeting Booked</option>
-          <option value="proposal_sent">Proposal Sent</option>
-          <option value="closed_won">Closed Won</option>
-          <option value="closed_lost">Closed Lost</option>
-        </select>
+          <SelectTrigger className="w-64">
+            <SelectValue />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="cold">Cold</SelectItem>
+            <SelectItem value="contacted">Contacted</SelectItem>
+            <SelectItem value="warm">Warm</SelectItem>
+            <SelectItem value="meeting_booked">Meeting Booked</SelectItem>
+            <SelectItem value="proposal_sent">Proposal Sent</SelectItem>
+            <SelectItem value="closed_won">Closed Won</SelectItem>
+            <SelectItem value="closed_lost">Closed Lost</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
