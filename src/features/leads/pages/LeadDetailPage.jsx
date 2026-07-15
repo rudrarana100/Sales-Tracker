@@ -5,6 +5,7 @@ import ActivityTimeline from "../components/ActivityTimeline";
 import NotesPanel from "../components/NotesPanel";
 import { addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
+import LeadHeader from "../components/lead-detail/LeadHeader";
 
 function LeadDetailPage() {
   const { id } = useParams();
@@ -285,37 +286,11 @@ Let me know a suitable time for a quick Google Meet.`;
 
       {/* Header */}
 
-      <div
-        style={{
-          borderBottom: "1px solid #ddd",
-          paddingBottom: "20px",
-          marginBottom: "25px",
-        }}
-      >
-        <h1>{lead.lead_name}</h1>
-
-        <div style={{ marginTop: "10px" }}>
-          <strong>Status</strong>
-          <br />
-
-          <select
-            value={lead.status}
-            onChange={(e) =>
-              handleLeadUpdate({
-                status: e.target.value,
-              })
-            }
-          >
-            <option value="cold">Cold</option>
-            <option value="contacted">Contacted</option>
-            <option value="warm">Warm</option>
-            <option value="meeting_booked">Meeting Booked</option>
-            <option value="proposal_sent">Proposal Sent</option>
-            <option value="closed_won">Closed Won</option>
-            <option value="closed_lost">Closed Lost</option>
-          </select>
-        </div>
-      </div>
+<LeadHeader
+  lead={lead}
+  navigate={navigate}
+  handleLeadUpdate={handleLeadUpdate}
+/>
 
       {/* Contact Information */}
 
