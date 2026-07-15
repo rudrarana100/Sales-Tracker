@@ -8,7 +8,6 @@ import SectionCard from "@/components/common/SectionCard";
 import {
   Phone,
   Calendar,
-  Users,
   Video,
 } from "lucide-react";
 
@@ -74,87 +73,104 @@ function Dashboard({ leads, onStartCalling }) {
   }
 
 return (
-  <div className="space-y-8">
+  <div className="space-y-6">
     <PageHeader
       title="Dashboard"
-      description="Overview of today's sales activity."
+      description="Manage today's sales activity."
       action={
-        <Button onClick={onStartCalling}>
+        <Button className="rounded-lg px-5" onClick={onStartCalling}>
           Resume Calling
         </Button>
       }
     />
 
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+    {/* Stats */}
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <StatCard
         title="Cold Calls"
         value={coldCallsRemaining}
-        icon={<Phone className="h-6 w-6 text-slate-500" />}
+        icon={<Phone className="h-5 w-5" />}
       />
 
       <StatCard
         title="Follow-ups"
         value={followUpsToday}
-        icon={<Calendar className="h-6 w-6 text-slate-500" />}
+        icon={<Calendar className="h-5 w-5" />}
       />
 
       <StatCard
         title="Meetings"
         value={meetingsToday}
-        icon={<Video className="h-6 w-6 text-slate-500" />}
+        icon={<Video className="h-5 w-5" />}
       />
     </div>
 
-    <div className="grid gap-6 lg:grid-cols-2">
-      <SectionCard title="Needs Attention">
-        {overdueFollowUps.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No overdue follow-ups.
-          </p>
-        ) : (
-          overdueFollowUps.map((lead) => (
-            <div
-              key={lead.id}
-              className="mb-3 rounded-lg border p-4"
-            >
-              <h4 className="font-medium">
-                {lead.lead_name}
-              </h4>
-
-              <p className="text-sm text-slate-500">
-                {lead.follow_up_date}
-              </p>
+    {/* Agenda + Attention */}
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
+      {/* Today's Agenda */}
+      <div className="xl:col-span-3">
+        <SectionCard title="Today's Agenda">
+          {todayTasks.length === 0 ? (
+            <div className="py-10 text-center text-zinc-500">
+              Nothing scheduled today.
             </div>
-          ))
-        )}
-      </SectionCard>
+          ) : (
+            <div className="space-y-2">
+              {todayTasks.map((lead) => (
+                <div
+                  key={lead.id}
+                  className="flex items-center justify-between rounded-lg border border-zinc-100 p-3 transition hover:bg-zinc-50"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {lead.lead_name}
+                    </p>
 
-      <SectionCard title="Today's Schedule">
-        {todayTasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Nothing scheduled today.
-          </p>
-        ) : (
-          todayTasks.map((lead) => (
-            <div
-              key={lead.id}
-              className="mb-3 rounded-lg border p-4"
-            >
-              <h4 className="font-medium">
-                {lead.follow_up_time || "--:--"}
-              </h4>
+                    <p className="text-sm text-zinc-500">
+                      {getTaskLabel(lead.status)}
+                    </p>
+                  </div>
 
-              <p>{lead.lead_name}</p>
-
-              <small className="text-slate-500">
-                {getTaskLabel(lead.status)}
-              </small>
+                  <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium">
+                    {lead.follow_up_time || "--:--"}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))
-        )}
-      </SectionCard>
+          )}
+        </SectionCard>
+      </div>
+
+      {/* Needs Attention */}
+      <div className="xl:col-span-2">
+        <SectionCard title="Needs Attention">
+          {overdueFollowUps.length === 0 ? (
+            <div className="py-10 text-center text-zinc-500">
+              You're all caught up.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {overdueFollowUps.map((lead) => (
+                <div
+                  key={lead.id}
+                  className="rounded-lg border border-red-100 bg-red-50 p-3"
+                >
+                  <p className="font-medium">
+                    {lead.lead_name}
+                  </p>
+
+                  <p className="mt-1 text-sm text-red-600">
+                    Follow-up was due on {lead.follow_up_date}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+      </div>
     </div>
 
+    {/* Recent Activity */}
     <SectionCard title="Recent Activity">
       <RecentActivity />
     </SectionCard>
