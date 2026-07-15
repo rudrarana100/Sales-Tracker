@@ -7,6 +7,7 @@ import { Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { testBackend } from "./features/leads/api/backendApi";
 import PipelinePage from "./features/leads/pages/PipelinePage";
+import AppLayout from "./components/layout/AppLayout";
 
 function App() {
    useEffect(() => {
@@ -17,7 +18,8 @@ function App() {
 
     checkBackend();
   }, []);
-  return (
+return (
+  <AppLayout>
     <Routes>
       <Route path="/" element={<LeadsPage />} />
       <Route path="/call-session" element={<CallSessionPage />} />
@@ -26,7 +28,8 @@ function App() {
       <Route path="/follow-ups" element={<FollowUpsPage />} />
       <Route path="/pipeline" element={<PipelinePage />} />
     </Routes>
-  );
+  </AppLayout>
+);
 }
 
 export default App;

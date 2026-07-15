@@ -77,6 +77,12 @@ function CallSessionPage() {
       console.error(error);
     }
   }
+   const coldLeads = leads.filter(
+  (lead) =>
+    lead.status === "cold" &&
+    !skippedLeadIds.includes(lead.id)
+);
+  const currentLead = coldLeads[0];
   useEffect(() => {
     if (currentLead) {
       fetchNotes(currentLead.id);
@@ -88,12 +94,7 @@ function skipLead() {
   setSkippedLeadIds((prev) => [...prev, currentLead.id]);
 }
 
-  const coldLeads = leads.filter(
-  (lead) =>
-    lead.status === "cold" &&
-    !skippedLeadIds.includes(lead.id)
-);
-  const currentLead = coldLeads[0];
+ 
 
   const outcomeConfig = {
     interested: {
