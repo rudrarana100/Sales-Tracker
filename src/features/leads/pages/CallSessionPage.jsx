@@ -147,10 +147,6 @@ function CallSessionPage() {
         last_contact_date: new Date().toISOString().split("T")[0],
       };
 
-      if (outcome === "no_answer") {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-      }
 
       await updateLead(currentLead.id, updates);
 
@@ -175,6 +171,7 @@ function CallSessionPage() {
         activity_type: "call_outcome",
         description: outcomeDescriptions[outcome] || outcome,
       });
+      setSkippedLeadIds((prev) => [...prev, currentLead.id]);
       await fetchLeads();
       setShowInterestedActions(false);
     } catch (error) {
@@ -244,6 +241,7 @@ function CallSessionPage() {
             ? `Reached gatekeeper. Callback scheduled for ${callbackDate} at ${callbackTime}`
             : `Callback scheduled for ${callbackDate} at ${callbackTime}`,
       });
+      setSkippedLeadIds((prev) => [...prev, currentLead.id]);
       setShowCallbackForm(false);
       setCallbackDate("");
       setCallbackTime("");
@@ -275,28 +273,13 @@ function CallSessionPage() {
         last_contact_date: new Date().toISOString().split("T")[0],
         meeting_link: meetLink,
       });
-      await createFollowUp({
-        lead_id: currentLead.id,
 
-        type: "meeting",
-
-        title: "Google Meet",
-
-        notes: "Conduct discovery meeting",
-
-        scheduled_date: meetingDate,
-
-        scheduled_time: meetingTime,
-
-        priority: "high",
-
-        status: "pending",
-      });
       await addActivity({
         lead_id: currentLead.id,
         activity_type: "meeting",
         description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
       });
+      setSkippedLeadIds((prev) => [...prev, currentLead.id]);
       sendMeetingConfirmation(meetLink);
       setShowMeetingForm(false);
       setMeetingDate("");
@@ -781,6 +764,8 @@ function CallSessionPage() {
           });
 
           await fetchLeads();
+
+          setSkippedLeadIds((prev) => [...prev, currentLead.id]);
         }}
       />
     </div>
