@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { getLeads, updateLead } from "../api/leadsApi";
 import { addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
-import { getNotes } from "../api/notesApi";
 import { getActivities } from "../api/activitiesApi";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/common/PageHeader";
+import { getNotes, addNote } from "../api/notesApi";
 import {
   Phone,
   User,
@@ -62,6 +62,7 @@ function CallSessionPage() {
   const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("");
   const [skippedLeadIds, setSkippedLeadIds] = useState([]);
+  const [callbackNote, setCallbackNote] = useState("");
 
   const coldLeads = leads.filter(
     (l) => l.status === "cold" && !skippedLeadIds.includes(l.id),
@@ -197,6 +198,12 @@ function CallSessionPage() {
         follow_up_date: callbackDate,
         follow_up_time: callbackTime,
       });
+      if (callbackNote.trim()) {
+        await addNote({
+          lead_id: currentLead.id,
+          content: callbackNote.trim(),
+        });
+      }
       await addActivity({
         lead_id: currentLead.id,
         activity_type: "callback",
@@ -205,6 +212,7 @@ function CallSessionPage() {
       setShowCallbackForm(false);
       setCallbackDate("");
       setCallbackTime("");
+      setCallbackNote("");
       await fetchLeads();
     } catch (error) {
       console.error(error);
@@ -606,6 +614,11 @@ function CallSessionPage() {
                   type="time"
                   value={callbackTime}
                   onChange={(e) => setCallbackTime(e.target.value)}
+                />
+                <Input
+                  placeholder="Notes"
+                  value={callbackNote}
+                  onChange={(e) => setCallbackNote(e.target.value)}
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={saveCallback} className="flex-1">
