@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/common/PageHeader";
 import { getNotes, addNote } from "../api/notesApi";
+import { createFollowUp } from "../api/followUpsApi";
 import {
   Phone,
   User,
@@ -110,57 +111,69 @@ function CallSessionPage() {
     not_interested: { status: "closed_lost" },
   };
 
-const outcomeDescriptions = {
-  interested: "Lead marked as Interested",
-  no_answer: "No answer",
-  invalid_number: "Invalid phone number",
-  gatekeeper: "Reached gatekeeper",
-  callback_requested: "Callback requested",
-  not_interested: "Lead not interested",
-};
+  const outcomeDescriptions = {
+    interested: "Lead marked as Interested",
+    no_answer: "No answer",
+    invalid_number: "Invalid phone number",
+    gatekeeper: "Reached gatekeeper",
+    callback_requested: "Callback requested",
+    not_interested: "Lead not interested",
+  };
 
   async function handleOutcome(outcome) {
     try {
       if (!currentLead) return;
       if (outcome === "callback_requested") {
-  setCallbackReason("callback");
-  setShowCallbackForm(true);
-  return;
-}
+        setCallbackReason("callback");
+        setShowCallbackForm(true);
+        return;
+      }
       if (outcome === "interested") {
         setShowInterestedActions(true);
         return;
       }
-     if (outcome === "gatekeeper") {
-  setCallbackReason("gatekeeper");
-  setShowCallbackForm(true);
-  return;
-}
+      if (outcome === "gatekeeper") {
+        setCallbackReason("gatekeeper");
+        setShowCallbackForm(true);
+        return;
+      }
 
- const config = outcomeConfig[outcome];
+      const config = outcomeConfig[outcome];
 
-const updates = {
-  status: config.status,
-  last_outcome: outcome,
-  last_contact_date: new Date().toISOString().split("T")[0],
-};
+      const updates = {
+        status: config.status,
+        last_outcome: outcome,
+        last_contact_date: new Date().toISOString().split("T")[0],
+      };
 
-if (outcome === "no_answer") {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+      if (outcome === "no_answer") {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+      }
 
-  updates.follow_up_date = tomorrow.toISOString().split("T")[0];
-  updates.follow_up_time = "10:00";
-}
+      await updateLead(currentLead.id, updates);
 
-await updateLead(currentLead.id, updates);
+      if (outcome === "no_answer") {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
-await addActivity({
-  lead_id: currentLead.id,
-  activity_type: "call_outcome",
-  description:
-    outcomeDescriptions[outcome] || outcome,
-});
+        await createFollowUp({
+          lead_id: currentLead.id,
+          type: "call",
+          title: "No Answer Follow-up",
+          notes: "Retry call.",
+          scheduled_date: tomorrow.toISOString().split("T")[0],
+          scheduled_time: "10:00",
+          priority: "medium",
+          status: "pending",
+        });
+      }
+
+      await addActivity({
+        lead_id: currentLead.id,
+        activity_type: "call_outcome",
+        description: outcomeDescriptions[outcome] || outcome,
+      });
       await fetchLeads();
       setShowInterestedActions(false);
     } catch (error) {
@@ -211,8 +224,24 @@ await addActivity({
         status: "contacted",
         last_outcome: "callback_requested",
         last_contact_date: new Date().toISOString().split("T")[0],
-        follow_up_date: callbackDate,
-        follow_up_time: callbackTime,
+      });
+      await createFollowUp({
+        lead_id: currentLead.id,
+
+        type: "call",
+
+        title:
+          callbackReason === "gatekeeper" ? "Gatekeeper Follow-up" : "Callback",
+
+        notes: callbackNote,
+
+        scheduled_date: callbackDate,
+
+        scheduled_time: callbackTime,
+
+        priority: "medium",
+
+        status: "pending",
       });
       if (callbackNote.trim()) {
         await addNote({
@@ -221,13 +250,13 @@ await addActivity({
         });
       }
       await addActivity({
-  lead_id: currentLead.id,
-  activity_type: "callback",
-  description:
-    callbackReason === "gatekeeper"
-      ? `Reached gatekeeper. Callback scheduled for ${callbackDate} at ${callbackTime}`
-      : `Callback scheduled for ${callbackDate} at ${callbackTime}`,
-});
+        lead_id: currentLead.id,
+        activity_type: "callback",
+        description:
+          callbackReason === "gatekeeper"
+            ? `Reached gatekeeper. Callback scheduled for ${callbackDate} at ${callbackTime}`
+            : `Callback scheduled for ${callbackDate} at ${callbackTime}`,
+      });
       setShowCallbackForm(false);
       setCallbackDate("");
       setCallbackTime("");
@@ -257,9 +286,24 @@ await addActivity({
         status: "meeting_booked",
         last_outcome: "google_meet_booked",
         last_contact_date: new Date().toISOString().split("T")[0],
-        follow_up_date: meetingDate,
-        follow_up_time: meetingTime,
         meeting_link: meetLink,
+      });
+      await createFollowUp({
+        lead_id: currentLead.id,
+
+        type: "meeting",
+
+        title: "Google Meet",
+
+        notes: "Conduct discovery meeting",
+
+        scheduled_date: meetingDate,
+
+        scheduled_time: meetingTime,
+
+        priority: "high",
+
+        status: "pending",
       });
       await addActivity({
         lead_id: currentLead.id,
