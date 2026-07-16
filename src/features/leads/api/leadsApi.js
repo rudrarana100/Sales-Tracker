@@ -80,7 +80,7 @@ export async function getLeadById(id) {
 export async function leadExists(phone, email) {
   let query = supabase
     .from("leads")
-    .select("phone,email");
+    .select("phone, email");
 
   if (phone && email) {
     query = query.or(`phone.eq.${phone},email.eq.${email}`);

@@ -100,12 +100,14 @@ function LeadForm({ onLeadAdded }) {
 
       console.log("Lead Added!");
     } catch (error) {
+      console.error(error);
+
       if (error.code === "23505") {
-        alert("A lead with this phone number already exists.");
-      } else {
-        console.error(error);
-        alert("Something went wrong.");
+        alert("Duplicate lead detected.");
+        return;
       }
+
+      alert("Something went wrong.");
     }
   }
   return (
