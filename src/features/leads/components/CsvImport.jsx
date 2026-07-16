@@ -1,4 +1,9 @@
-import { useState } from "react";
+import {
+  useState,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import Papa from "papaparse";
 import { importLeads, getExistingPhones } from "../api/leadsApi";
 import { Button } from "@/components/ui/button";
@@ -11,14 +16,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Upload, Download, FileSpreadsheet } from "lucide-react";
+import {
+  Upload,
+  Download,
+  FileSpreadsheet,
+} from "lucide-react";
 
-function CsvImport({ onImport }) {
+const CsvImport = forwardRef(function CsvImport(
+  { onImport },
+  ref
+) {
   const [rows, setRows] = useState([]);
+
+  const fileInputRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    openFilePicker() {
+      fileInputRef.current?.click();
+    },
+  }));
 
   function handleFile(e) {
     const file = e.target.files[0];
     if (!file) return;
+
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
@@ -31,9 +52,17 @@ function CsvImport({ onImport }) {
   async function handleImport() {
     try {
       const existing = await getExistingPhones();
-      const existingPhones = new Set(existing.map((lead) => lead.phone));
-      const uniqueLeads = rows.filter((row) => !existingPhones.has(row.phone));
-      const skipped = rows.length - uniqueLeads.length;
+
+      const existingPhones = new Set(
+        existing.map((lead) => lead.phone)
+      );
+
+      const uniqueLeads = rows.filter(
+        (row) => !existingPhones.has(row.phone)
+      );
+
+      const skipped =
+        rows.length - uniqueLeads.length;
 
       if (uniqueLeads.length === 0) {
         alert("All leads already exist.");
@@ -41,8 +70,15 @@ function CsvImport({ onImport }) {
       }
 
       await importLeads(uniqueLeads);
-      if (onImport) await onImport();
-      alert(`Imported ${uniqueLeads.length} leads.\nSkipped ${skipped} duplicates.`);
+
+      if (onImport) {
+        await onImport();
+      }
+
+      alert(
+        `Imported ${uniqueLeads.length} leads.\nSkipped ${skipped} duplicates.`
+      );
+
       setRows([]);
     } catch (error) {
       console.error(error);
@@ -54,11 +90,20 @@ function CsvImport({ onImport }) {
     <SectionCard title="Import Leads">
       <div className="space-y-4">
         <div className="flex items-center gap-3">
+
           <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-ash px-3 py-2 text-sm text-fog transition hover:border-smoke hover:text-charcoal">
             <Upload className="h-3.5 w-3.5" />
             Choose CSV File
-            <input type="file" accept=".csv" onChange={handleFile} className="hidden" />
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFile}
+              className="hidden"
+            />
           </label>
+
           <span className="text-xs text-fog">
             <FileSpreadsheet className="mr-1 inline h-3.5 w-3.5" />
             .csv
@@ -78,14 +123,29 @@ function CsvImport({ onImport }) {
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {rows.slice(0, 10).map((row, index) => (
                     <TableRow key={index}>
-                      <TableCell className="font-medium">{row.lead_name}</TableCell>
-                      <TableCell>{row.contact_person}</TableCell>
-                      <TableCell>{row.phone}</TableCell>
-                      <TableCell>{row.email}</TableCell>
-                      <TableCell className="capitalize">{row.status}</TableCell>
+                      <TableCell className="font-medium">
+                        {row.lead_name}
+                      </TableCell>
+
+                      <TableCell>
+                        {row.contact_person}
+                      </TableCell>
+
+                      <TableCell>
+                        {row.phone}
+                      </TableCell>
+
+                      <TableCell>
+                        {row.email}
+                      </TableCell>
+
+                      <TableCell className="capitalize">
+                        {row.status}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -98,15 +158,19 @@ function CsvImport({ onImport }) {
               </p>
             )}
 
-            <Button size="sm" onClick={handleImport}>
+            <Button
+              size="sm"
+              onClick={handleImport}
+            >
               <Download className="h-3.5 w-3.5" />
-              Import {rows.length} Lead{rows.length !== 1 ? "s" : ""}
+              Import {rows.length} Lead
+              {rows.length !== 1 ? "s" : ""}
             </Button>
           </div>
         )}
       </div>
     </SectionCard>
   );
-}
+});
 
 export default CsvImport;
