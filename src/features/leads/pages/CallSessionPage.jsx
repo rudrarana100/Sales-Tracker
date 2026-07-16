@@ -763,9 +763,12 @@ function CallSessionPage() {
             description: "Lead marked as Interested",
           });
 
-          await fetchLeads();
 
           setSkippedLeadIds((prev) => [...prev, currentLead.id]);
+
+
+          await fetchLeads();
+
         }}
       />
     </div>
