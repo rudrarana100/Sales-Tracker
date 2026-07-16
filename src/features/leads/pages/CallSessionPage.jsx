@@ -63,6 +63,7 @@ function CallSessionPage() {
   const [meetingTime, setMeetingTime] = useState("");
   const [skippedLeadIds, setSkippedLeadIds] = useState([]);
   const [callbackNote, setCallbackNote] = useState("");
+  const [callbackReason, setCallbackReason] = useState("");
 
   const coldLeads = leads.filter(
     (l) => l.status === "cold" && !skippedLeadIds.includes(l.id),
@@ -109,42 +110,57 @@ function CallSessionPage() {
     not_interested: { status: "closed_lost" },
   };
 
+const outcomeDescriptions = {
+  interested: "Lead marked as Interested",
+  no_answer: "No answer",
+  invalid_number: "Invalid phone number",
+  gatekeeper: "Reached gatekeeper",
+  callback_requested: "Callback requested",
+  not_interested: "Lead not interested",
+};
+
   async function handleOutcome(outcome) {
     try {
       if (!currentLead) return;
       if (outcome === "callback_requested") {
-        setShowCallbackForm(true);
-        return;
-      }
+  setCallbackReason("callback");
+  setShowCallbackForm(true);
+  return;
+}
       if (outcome === "interested") {
         setShowInterestedActions(true);
         return;
       }
-      if (outcome === "gatekeeper") {
-        setShowCallbackForm(true);
+     if (outcome === "gatekeeper") {
+  setCallbackReason("gatekeeper");
+  setShowCallbackForm(true);
+  return;
+}
 
-        await addActivity({
-          lead_id: currentLead.id,
-          activity_type: "call_outcome",
-          description: "Reached gatekeeper",
-        });
+ const config = outcomeConfig[outcome];
 
-        return;
-      }
+const updates = {
+  status: config.status,
+  last_outcome: outcome,
+  last_contact_date: new Date().toISOString().split("T")[0],
+};
 
-      const config = outcomeConfig[outcome];
+if (outcome === "no_answer") {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-      await updateLead(currentLead.id, {
-        status: config.status,
-        last_outcome: outcome,
-        last_contact_date: new Date().toISOString().split("T")[0],
-      });
+  updates.follow_up_date = tomorrow.toISOString().split("T")[0];
+  updates.follow_up_time = "10:00";
+}
 
-      await addActivity({
-        lead_id: currentLead.id,
-        activity_type: "call_outcome",
-        description: outcome,
-      });
+await updateLead(currentLead.id, updates);
+
+await addActivity({
+  lead_id: currentLead.id,
+  activity_type: "call_outcome",
+  description:
+    outcomeDescriptions[outcome] || outcome,
+});
       await fetchLeads();
       setShowInterestedActions(false);
     } catch (error) {
@@ -205,14 +221,18 @@ function CallSessionPage() {
         });
       }
       await addActivity({
-        lead_id: currentLead.id,
-        activity_type: "callback",
-        description: `Callback scheduled for ${callbackDate} at ${callbackTime}`,
-      });
+  lead_id: currentLead.id,
+  activity_type: "callback",
+  description:
+    callbackReason === "gatekeeper"
+      ? `Reached gatekeeper. Callback scheduled for ${callbackDate} at ${callbackTime}`
+      : `Callback scheduled for ${callbackDate} at ${callbackTime}`,
+});
       setShowCallbackForm(false);
       setCallbackDate("");
       setCallbackTime("");
       setCallbackNote("");
+      setCallbackReason("");
       await fetchLeads();
     } catch (error) {
       console.error(error);
