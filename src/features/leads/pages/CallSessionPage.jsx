@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/common/PageHeader";
 import { getNotes, addNote } from "../api/notesApi";
-import { createFollowUp } from "../api/followUpsApi";
+import { createFollowUp } from "../api/folloeUpsApi";
+import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
 import {
   Phone,
   User,
@@ -65,7 +66,7 @@ function CallSessionPage() {
   const [skippedLeadIds, setSkippedLeadIds] = useState([]);
   const [callbackNote, setCallbackNote] = useState("");
   const [callbackReason, setCallbackReason] = useState("");
-
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const coldLeads = leads.filter(
     (l) => l.status === "cold" && !skippedLeadIds.includes(l.id),
   );
@@ -195,23 +196,9 @@ function CallSessionPage() {
     );
   }
 
-  async function markInterested() {
-    try {
-      await updateLead(currentLead.id, {
-        status: "warm",
-        last_outcome: "interested",
-        last_contact_date: new Date().toISOString().split("T")[0],
-      });
-      await addActivity({
-        lead_id: currentLead.id,
-        activity_type: "status_change",
-        description: "Lead marked as Interested",
-      });
-      setShowInterestedActions(false);
-      await fetchLeads();
-    } catch (error) {
-      console.error(error);
-    }
+  function markInterested() {
+    setShowInterestedActions(false);
+    setShowFollowUpModal(true);
   }
 
   async function saveCallback() {
@@ -745,9 +732,9 @@ function CallSessionPage() {
                 <Button
                   size="sm"
                   className="w-full"
-                  onClick={async () => {
-                    await markInterested();
+                  onClick={() => {
                     sendWhatsapp();
+                    markInterested();
                   }}
                 >
                   <MessageCircle className="h-3.5 w-3.5" /> Send WhatsApp
@@ -776,6 +763,26 @@ function CallSessionPage() {
           )}
         </div>
       </div>
+      <ScheduleFollowUpModal
+        open={showFollowUpModal}
+        lead={currentLead}
+        onClose={() => setShowFollowUpModal(false)}
+        onSaved={async () => {
+          await updateLead(currentLead.id, {
+            status: "warm",
+            last_outcome: "interested",
+            last_contact_date: new Date().toISOString().split("T")[0],
+          });
+
+          await addActivity({
+            lead_id: currentLead.id,
+            activity_type: "status_change",
+            description: "Lead marked as Interested",
+          });
+
+          await fetchLeads();
+        }}
+      />
     </div>
   );
 }
