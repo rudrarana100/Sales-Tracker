@@ -86,91 +86,64 @@ const CsvImport = forwardRef(function CsvImport(
     }
   }
 
-  return (
-    <SectionCard title="Import Leads">
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
+return (
+  <>
+    <input
+      ref={fileInputRef}
+      type="file"
+      accept=".csv"
+      onChange={handleFile}
+      className="hidden"
+    />
 
-          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-ash px-3 py-2 text-sm text-fog transition hover:border-smoke hover:text-charcoal">
-            <Upload className="h-3.5 w-3.5" />
-            Choose CSV File
+    {rows.length > 0 && (
+      <SectionCard title="Import Leads">
+        <div className="space-y-3">
+          <div className="rounded-lg border border-ash">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Lead</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handleFile}
-              className="hidden"
-            />
-          </label>
-
-          <span className="text-xs text-fog">
-            <FileSpreadsheet className="mr-1 inline h-3.5 w-3.5" />
-            .csv
-          </span>
-        </div>
-
-        {rows.length > 0 && (
-          <div className="space-y-3">
-            <div className="rounded-lg border border-ash">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Lead</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Status</TableHead>
+              <TableBody>
+                {rows.slice(0, 10).map((row, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">
+                      {row.lead_name}
+                    </TableCell>
+                    <TableCell>{row.contact_person}</TableCell>
+                    <TableCell>{row.phone}</TableCell>
+                    <TableCell>{row.email}</TableCell>
+                    <TableCell className="capitalize">
+                      {row.status}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {rows.slice(0, 10).map((row, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">
-                        {row.lead_name}
-                      </TableCell>
-
-                      <TableCell>
-                        {row.contact_person}
-                      </TableCell>
-
-                      <TableCell>
-                        {row.phone}
-                      </TableCell>
-
-                      <TableCell>
-                        {row.email}
-                      </TableCell>
-
-                      <TableCell className="capitalize">
-                        {row.status}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            {rows.length > 10 && (
-              <p className="text-xs text-fog">
-                Showing first 10 of {rows.length} leads...
-              </p>
-            )}
-
-            <Button
-              size="sm"
-              onClick={handleImport}
-            >
-              <Download className="h-3.5 w-3.5" />
-              Import {rows.length} Lead
-              {rows.length !== 1 ? "s" : ""}
-            </Button>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        )}
-      </div>
-    </SectionCard>
-  );
+
+          {rows.length > 10 && (
+            <p className="text-xs text-fog">
+              Showing first 10 of {rows.length} leads...
+            </p>
+          )}
+
+          <Button size="sm" onClick={handleImport}>
+            <Download className="h-3.5 w-3.5" />
+            Import {rows.length} Lead{rows.length !== 1 ? "s" : ""}
+          </Button>
+        </div>
+      </SectionCard>
+    )}
+  </>
+);
 });
 
 export default CsvImport;

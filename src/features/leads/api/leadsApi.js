@@ -77,18 +77,29 @@ export async function getLeadById(id) {
   return data;
 }
 
-export async function leadExists(phone) {
-  const { data, error } = await supabase
+export async function leadExists(phone, email) {
+  let query = supabase
     .from("leads")
-    .select("id, phone")
-    .eq("phone", phone);
+    .select("phone,email");
+
+  if (phone && email) {
+    query = query.or(`phone.eq.${phone},email.eq.${email}`);
+  } else if (phone) {
+    query = query.eq("phone", phone);
+  } else if (email) {
+    query = query.eq("email", email);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 
-  console.log("Checking:", phone);
-  console.log("Matched rows:", data);
-
-  return data.length > 0;
+  return {
+    phoneExists: data.some((lead) => lead.phone === phone),
+    emailExists: email
+      ? data.some((lead) => lead.email === email)
+      : false,
+  };
 }
 
 export async function getFollowUps() {
