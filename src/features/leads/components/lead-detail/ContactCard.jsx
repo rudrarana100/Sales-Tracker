@@ -1,84 +1,32 @@
-import {
-  Globe,
-  Mail,
-  MapPin,
-  Phone,
-  User,
-  Briefcase,
-} from "lucide-react";
+import { Globe, Mail, MapPin, Phone, User, Briefcase } from "lucide-react";
 
 export default function ContactCard({ lead }) {
   const Item = ({ icon: Icon, label, value, link }) => (
-    <div className="flex items-start gap-4 rounded-xl border border-zinc-200 p-4">
-      <Icon className="mt-1 h-5 w-5 text-zinc-500" />
-
-      <div>
-        <p className="text-xs uppercase tracking-wide text-zinc-500">
-          {label}
-        </p>
-
+    <div className="flex items-center gap-3 rounded-md border border-ash px-3 py-2.5">
+      <Icon className="h-4 w-4 shrink-0 text-fog" />
+      <div className="min-w-0">
+        <p className="text-[11px] uppercase tracking-wider text-fog">{label}</p>
         {link && value ? (
-          <a
-            href={value}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-1 block font-medium text-blue-600 hover:underline"
-          >
+          <a href={value} target="_blank" rel="noreferrer" className="text-sm font-medium text-electric-blue hover:underline">
             Open
           </a>
         ) : (
-          <p className="mt-1 font-medium">
-            {value || "--"}
-          </p>
+          <p className="truncate text-sm font-medium text-charcoal">{value || "--"}</p>
         )}
       </div>
     </div>
   );
 
   return (
-    <div className="rounded-3xl border border-zinc-100 bg-white p-8 transition-all duration-300 hover:shadow-lg">
-      <h2 className="mb-6 text-2xl font-semibold tracking-tight">
-        Contact Information
-      </h2>
-
-      <div className="grid gap-4">
-        <Item
-          icon={User}
-          label="Contact Person"
-          value={lead.contact_person}
-        />
-
-        <Item
-          icon={Phone}
-          label="Phone"
-          value={lead.phone}
-        />
-
-        <Item
-          icon={Mail}
-          label="Email"
-          value={lead.email}
-        />
-
-        <Item
-          icon={Globe}
-          label="Website"
-          value={lead.website}
-          link
-        />
-
-        <Item
-          icon={MapPin}
-          label="Google Maps"
-          value={lead.google_maps_link}
-          link
-        />
-
-        <Item
-          icon={Briefcase}
-          label="Business Type"
-          value={lead.business_type}
-        />
+    <div className="rounded-xl border border-ash bg-canvas-white p-5">
+      <h2 className="mb-4 text-sm font-medium text-charcoal">Contact Information</h2>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <Item icon={User} label="Contact Person" value={lead.contact_person} />
+        <Item icon={Phone} label="Phone" value={lead.phone} />
+        <Item icon={Mail} label="Email" value={lead.email} />
+        <Item icon={Globe} label="Website" value={lead.website} link />
+        <Item icon={MapPin} label="Google Maps" value={lead.google_maps_link} link />
+        <Item icon={Briefcase} label="Business Type" value={lead.business_type} />
       </div>
     </div>
   );

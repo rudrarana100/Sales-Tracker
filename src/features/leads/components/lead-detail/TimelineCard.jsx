@@ -1,18 +1,8 @@
-export default function TimelineCard({
-  leadId,
-  refreshTrigger,
-  ActivityTimeline,
-}) {
+export default function TimelineCard({ leadId, refreshTrigger, ActivityTimeline }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6">
-      <h2 className="mb-6 text-xl font-semibold">
-        Activity Timeline
-      </h2>
-
-      <ActivityTimeline
-        leadId={leadId}
-        refreshTrigger={refreshTrigger}
-      />
+    <div className="rounded-xl border border-ash bg-canvas-white p-5">
+      <h2 className="mb-4 text-sm font-medium text-charcoal">Activity Timeline</h2>
+      <ActivityTimeline leadId={leadId} refreshTrigger={refreshTrigger} />
     </div>
   );
 }

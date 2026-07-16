@@ -1,118 +1,111 @@
 import { useState } from "react";
 import Papa from "papaparse";
-import { importLeads } from "../api/leadsApi";
-import { getExistingPhones } from "../api/leadsApi";
+import { importLeads, getExistingPhones } from "../api/leadsApi";
+import { Button } from "@/components/ui/button";
+import SectionCard from "@/components/common/SectionCard";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Upload, Download, FileSpreadsheet } from "lucide-react";
 
-function CsvImport( {onImport} ) {
-    
+function CsvImport({ onImport }) {
   const [rows, setRows] = useState([]);
 
   function handleFile(e) {
     const file = e.target.files[0];
-
     if (!file) return;
-
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-
       complete(results) {
-        console.log(results.data);
-
         setRows(results.data);
       },
     });
   }
- async function handleImport() {
-  try {
-    const existing = await getExistingPhones();
 
-    const existingPhones = new Set(
-      existing.map((lead) => lead.phone)
-    );
+  async function handleImport() {
+    try {
+      const existing = await getExistingPhones();
+      const existingPhones = new Set(existing.map((lead) => lead.phone));
+      const uniqueLeads = rows.filter((row) => !existingPhones.has(row.phone));
+      const skipped = rows.length - uniqueLeads.length;
 
-    const uniqueLeads = rows.filter(
-      (row) => !existingPhones.has(row.phone)
-    );
+      if (uniqueLeads.length === 0) {
+        alert("All leads already exist.");
+        return;
+      }
 
-    const skipped = rows.length - uniqueLeads.length;
-
-    if (uniqueLeads.length === 0) {
-      alert("All leads already exist.");
-      return;
+      await importLeads(uniqueLeads);
+      if (onImport) await onImport();
+      alert(`Imported ${uniqueLeads.length} leads.\nSkipped ${skipped} duplicates.`);
+      setRows([]);
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
     }
-
-    await importLeads(uniqueLeads);
-
-    if (onImport) {
-      await onImport();
-    }
-
-    alert(
-      `Imported ${uniqueLeads.length} leads.\nSkipped ${skipped} duplicates.`
-    );
-
-    setRows([]);
-  } catch (error) {
-    console.error(error);
-    alert(error.message);
   }
-}
 
   return (
-    <div style={{ marginBottom: "20px" }}>
-      <h2>Import Leads</h2>
+    <SectionCard title="Import Leads">
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-ash px-3 py-2 text-sm text-fog transition hover:border-smoke hover:text-charcoal">
+            <Upload className="h-3.5 w-3.5" />
+            Choose CSV File
+            <input type="file" accept=".csv" onChange={handleFile} className="hidden" />
+          </label>
+          <span className="text-xs text-fog">
+            <FileSpreadsheet className="mr-1 inline h-3.5 w-3.5" />
+            .csv
+          </span>
+        </div>
 
-      <input type="file" accept=".csv" onChange={handleFile} />
+        {rows.length > 0 && (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-ash">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Lead</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.slice(0, 10).map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{row.lead_name}</TableCell>
+                      <TableCell>{row.contact_person}</TableCell>
+                      <TableCell>{row.phone}</TableCell>
+                      <TableCell>{row.email}</TableCell>
+                      <TableCell className="capitalize">{row.status}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
 
-      {rows.length > 0 && (
-        <>
-          <h3>Preview ({rows.length} Leads)</h3>
+            {rows.length > 10 && (
+              <p className="text-xs text-fog">
+                Showing first 10 of {rows.length} leads...
+              </p>
+            )}
 
-          <table
-            border="1"
-            cellPadding="8"
-            style={{
-              borderCollapse: "collapse",
-              width: "100%",
-              marginTop: "10px",
-            }}
-          >
-            <thead>
-              <tr>
-                <th>Lead</th>
-                <th>Contact</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {rows.slice(0, 10).map((row, index) => (
-                <tr key={index}>
-                  <td>{row.lead_name}</td>
-                  <td>{row.contact_person}</td>
-                  <td>{row.phone}</td>
-                  <td>{row.email}</td>
-                  <td>{row.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {rows.length > 10 && (
-            <p style={{ marginTop: "10px" }}>
-              Showing first 10 of {rows.length} leads...
-            </p>
-          )}
-
-          <button onClick={handleImport}>
-            Import {rows.length} Leads
-          </button>
-        </>
-      )}
-    </div>
+            <Button size="sm" onClick={handleImport}>
+              <Download className="h-3.5 w-3.5" />
+              Import {rows.length} Lead{rows.length !== 1 ? "s" : ""}
+            </Button>
+          </div>
+        )}
+      </div>
+    </SectionCard>
   );
 }
 

@@ -3,10 +3,11 @@ import { getLeads } from "../api/leadsApi";
 import Dashboard from "../components/Dashboard";
 import CsvImport from "../components/CsvImport";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Eye, Phone } from "lucide-react";
 
 function LeadsPage() {
   const [leads, setLeads] = useState([]);
-
   const navigate = useNavigate();
 
   async function fetchLeads() {
@@ -23,23 +24,21 @@ function LeadsPage() {
   }, []);
 
   return (
-    <div>
+    <div className="space-y-5">
       <Dashboard
         leads={leads}
         onStartCalling={() => navigate("/call-session")}
       />
 
-      <div style={{ margin: "20px 0" }}>
-        <button
-          onClick={() => navigate("/leads")}
-          style={{ marginRight: "10px" }}
-        >
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={() => navigate("/leads")}>
+          <Eye className="h-3.5 w-3.5" />
           View All Leads
-        </button>
-
-        <button onClick={() => navigate("/call-session")}>
+        </Button>
+        <Button size="sm" onClick={() => navigate("/call-session")}>
+          <Phone className="h-3.5 w-3.5" />
           Start Calling
-        </button>
+        </Button>
       </div>
 
       <CsvImport onImport={fetchLeads} />

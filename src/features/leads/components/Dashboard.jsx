@@ -1,18 +1,24 @@
-import { useState } from "react";
 import RecentActivity from "./RecentActivity";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
 import SectionCard from "@/components/common/SectionCard";
-
 import {
   Phone,
   Calendar,
   Video,
+  ArrowRight,
+  Upload,
+  Users,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-function Dashboard({ leads, onStartCalling }) {
-  const [showRecentActivity, setShowRecentActivity] = useState(false);
+function Dashboard({
+  leads,
+  onStartCalling,
+  onImportClick, // <-- your CSV file picker handler
+}) {
+  const navigate = useNavigate();
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -33,149 +39,160 @@ function Dashboard({ leads, onStartCalling }) {
   const todayTasks = leads
     .filter((lead) => lead.follow_up_date === today)
     .sort((a, b) =>
-      (a.follow_up_time || "").localeCompare(
-        b.follow_up_time || ""
-      )
+      (a.follow_up_time || "").localeCompare(b.follow_up_time || "")
     );
 
   const overdueFollowUps = leads
-    .filter(
-      (lead) =>
-        lead.follow_up_date &&
-        lead.follow_up_date < today
-    )
+    .filter((lead) => lead.follow_up_date && lead.follow_up_date < today)
     .sort((a, b) =>
-      (a.follow_up_time || "").localeCompare(
-        b.follow_up_time || ""
-      )
+      (a.follow_up_time || "").localeCompare(b.follow_up_time || "")
     );
 
   function getTaskLabel(status) {
     switch (status) {
       case "meeting_booked":
         return "Google Meet";
-
       case "contacted":
         return "Follow-up Call";
-
       case "warm":
         return "Warm Lead";
-
       case "proposal_sent":
         return "Proposal Follow-up";
-
       case "cold":
         return "Cold Call";
-
       default:
         return status;
     }
   }
 
-return (
-  <div className="space-y-6">
-    <PageHeader
-      title="Dashboard"
-      description="Manage today's sales activity."
-      action={
-        <Button className="rounded-lg px-5" onClick={onStartCalling}>
-          Resume Calling
-        </Button>
-      }
-    />
-
-    {/* Stats */}
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <StatCard
-        title="Cold Calls"
-        value={coldCallsRemaining}
-        icon={<Phone className="h-5 w-5" />}
+  return (
+    <div className="space-y-5">
+      <PageHeader
+        title="Dashboard"
+        description="Today's sales activity overview."
+        action={
+          <Button size="sm" onClick={onStartCalling}>
+            Resume Calling
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        }
       />
 
-      <StatCard
-        title="Follow-ups"
-        value={followUpsToday}
-        icon={<Calendar className="h-5 w-5" />}
-      />
+      {/* Stats */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatCard
+          title="Cold Calls"
+          value={coldCallsRemaining}
+          icon={<Phone className="h-3.5 w-3.5" />}
+        />
 
-      <StatCard
-        title="Meetings"
-        value={meetingsToday}
-        icon={<Video className="h-5 w-5" />}
-      />
-    </div>
+        <StatCard
+          title="Follow-ups"
+          value={followUpsToday}
+          icon={<Calendar className="h-3.5 w-3.5" />}
+        />
 
-    {/* Agenda + Attention */}
-    <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
-      {/* Today's Agenda */}
-      <div className="xl:col-span-3">
-        <SectionCard title="Today's Agenda">
-          {todayTasks.length === 0 ? (
-            <div className="py-10 text-center text-zinc-500">
-              Nothing scheduled today.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {todayTasks.map((lead) => (
-                <div
-                  key={lead.id}
-                  className="flex items-center justify-between rounded-lg border border-zinc-100 p-3 transition hover:bg-zinc-50"
-                >
-                  <div>
-                    <p className="font-medium">
+        <StatCard
+          title="Meetings"
+          value={meetingsToday}
+          icon={<Video className="h-3.5 w-3.5" />}
+        />
+      </div>
+
+      {/* Quick Actions */}
+      <SectionCard title="Quick Actions">
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/leads")}
+          >
+            <Users className="mr-2 h-4 w-4" />
+            View All Leads
+          </Button>
+
+          <Button onClick={onStartCalling}>
+            <Phone className="mr-2 h-4 w-4" />
+            Start Calling
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={onImportClick}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Import CSV
+          </Button>
+        </div>
+      </SectionCard>
+
+      {/* Agenda + Attention */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
+        <div className="xl:col-span-3">
+          <SectionCard title="Today's Agenda">
+            {todayTasks.length === 0 ? (
+              <div className="py-8 text-center text-sm text-fog">
+                Nothing scheduled today.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {todayTasks.map((lead) => (
+                  <div
+                    key={lead.id}
+                    className="flex items-center justify-between rounded-md border border-ash px-3 py-2 transition hover:bg-paper-mist"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-charcoal">
+                        {lead.lead_name}
+                      </p>
+
+                      <p className="text-xs text-fog">
+                        {getTaskLabel(lead.status)}
+                      </p>
+                    </div>
+
+                    <span className="rounded-full bg-paper-mist px-2 py-0.5 text-[11px] font-medium text-fog">
+                      {lead.follow_up_time || "--:--"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+        <div className="xl:col-span-2">
+          <SectionCard title="Needs Attention">
+            {overdueFollowUps.length === 0 ? (
+              <div className="py-8 text-center text-sm text-fog">
+                You're all caught up.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {overdueFollowUps.map((lead) => (
+                  <div
+                    key={lead.id}
+                    className="rounded-md border border-red-200 bg-red-50/50 px-3 py-2"
+                  >
+                    <p className="text-sm font-medium text-charcoal">
                       {lead.lead_name}
                     </p>
 
-                    <p className="text-sm text-zinc-500">
-                      {getTaskLabel(lead.status)}
+                    <p className="mt-0.5 text-xs text-red-600">
+                      Follow-up was due on {lead.follow_up_date}
                     </p>
                   </div>
-
-                  <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium">
-                    {lead.follow_up_time || "--:--"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </SectionCard>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        </div>
       </div>
 
-      {/* Needs Attention */}
-      <div className="xl:col-span-2">
-        <SectionCard title="Needs Attention">
-          {overdueFollowUps.length === 0 ? (
-            <div className="py-10 text-center text-zinc-500">
-              You're all caught up.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {overdueFollowUps.map((lead) => (
-                <div
-                  key={lead.id}
-                  className="rounded-lg border border-red-100 bg-red-50 p-3"
-                >
-                  <p className="font-medium">
-                    {lead.lead_name}
-                  </p>
-
-                  <p className="mt-1 text-sm text-red-600">
-                    Follow-up was due on {lead.follow_up_date}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </SectionCard>
-      </div>
+      <SectionCard title="Recent Activity">
+        <RecentActivity />
+      </SectionCard>
     </div>
-
-    {/* Recent Activity */}
-    <SectionCard title="Recent Activity">
-      <RecentActivity />
-    </SectionCard>
-  </div>
-);
+  );
 }
 
 export default Dashboard;

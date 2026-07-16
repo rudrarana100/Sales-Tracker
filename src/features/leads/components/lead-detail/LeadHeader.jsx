@@ -1,82 +1,59 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-const statusColors = {
-  cold: "bg-slate-200 text-slate-800",
-  contacted: "bg-blue-100 text-blue-700",
-  warm: "bg-amber-100 text-amber-700",
-  meeting_booked: "bg-violet-100 text-violet-700",
-  proposal_sent: "bg-cyan-100 text-cyan-700",
-  closed_won: "bg-green-100 text-green-700",
-  closed_lost: "bg-red-100 text-red-700",
+const statusStyles = {
+  cold: "bg-blue-50 text-blue-600",
+  contacted: "bg-amber-50 text-amber-600",
+  warm: "bg-orange-50 text-orange-600",
+  meeting_booked: "bg-purple-50 text-purple-600",
+  proposal_sent: "bg-indigo-50 text-indigo-600",
+  closed_won: "bg-green-50 text-green-600",
+  closed_lost: "bg-red-50 text-red-600",
 };
 
 export default function LeadHeader({ lead, navigate, handleLeadUpdate }) {
   return (
-    <div className="rounded-3xl border border-zinc-100 bg-white p-8 transition-all duration-300 hover:shadow-lg ">
+    <div className="rounded-xl border border-ash bg-canvas-white p-5">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate("/leads")}
+        className="mb-4 -ml-1"
+      >
+        <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+        Back to Leads
+      </Button>
+
       <div className="flex items-start justify-between">
         <div>
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/leads")}
-            className="mb-5 px-0"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Leads
-          </Button>
-
-          <h1 className="text-4xl font-semibold tracking-tight">
+          <h1 className="text-xl font-medium text-charcoal">
             {lead.lead_name}
           </h1>
-
-          <p className="mt-2 text-zinc-500">
+          <p className="mt-0.5 text-sm text-fog">
             {lead.contact_person || "No contact person"}
           </p>
         </div>
-
-        <Badge
-          className={`${statusColors[lead.status]} capitalize rounded-full px-4 py-1`}
-        >
+        <Badge className={`${statusStyles[lead.status] || 'bg-paper-mist text-fog'} capitalize rounded-full px-3`}>
           {lead.status.replaceAll("_", " ")}
         </Badge>
       </div>
 
-      <div className="mt-8">
-        <label className="mb-2 block text-sm font-medium text-zinc-500">
-          Lead Status
-        </label>
-
-        <Select
+      <div className="mt-5 flex items-center gap-3">
+        <span className="text-xs text-fog">Status:</span>
+        <select
           value={lead.status}
-          onValueChange={(value) => {
-
-            handleLeadUpdate({
-              status: value,
-            });
-          }}
+          onChange={(e) => handleLeadUpdate({ status: e.target.value })}
+          className="h-7 rounded-md border border-ash bg-canvas-white px-2 text-sm text-charcoal outline-none"
         >
-          <SelectTrigger className="w-64">
-            <SelectValue />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="cold">Cold</SelectItem>
-            <SelectItem value="contacted">Contacted</SelectItem>
-            <SelectItem value="warm">Warm</SelectItem>
-            <SelectItem value="meeting_booked">Meeting Booked</SelectItem>
-            <SelectItem value="proposal_sent">Proposal Sent</SelectItem>
-            <SelectItem value="closed_won">Closed Won</SelectItem>
-            <SelectItem value="closed_lost">Closed Lost</SelectItem>
-          </SelectContent>
-        </Select>
+          <option value="cold">Cold</option>
+          <option value="contacted">Contacted</option>
+          <option value="warm">Warm</option>
+          <option value="meeting_booked">Meeting Booked</option>
+          <option value="proposal_sent">Proposal Sent</option>
+          <option value="closed_won">Closed Won</option>
+          <option value="closed_lost">Closed Lost</option>
+        </select>
       </div>
     </div>
   );

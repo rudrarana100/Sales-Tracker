@@ -1,23 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function SectionCard({
-  title,
-  children,
-  action,
-}) {
+export default function SectionCard({ title, children, action }) {
   return (
-    <Card className="border-zinc-200 shadow-none">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 px-5 py-4">
-        <CardTitle className="text-base font-semibold tracking-tight text-zinc-900">
-          {title}
-        </CardTitle>
-
-        {action}
-      </CardHeader>
-
-      <CardContent className="p-5">
-        {children}
-      </CardContent>
+    <Card className="border-ash shadow-none">
+      {title && (
+        <CardHeader className="flex flex-row items-center justify-between border-b border-ash px-4 py-3">
+          <CardTitle className="text-sm font-medium text-charcoal">
+            {title}
+          </CardTitle>
+          {action}
+        </CardHeader>
+      )}
+      <CardContent className="p-4">{children}</CardContent>
     </Card>
   );
 }

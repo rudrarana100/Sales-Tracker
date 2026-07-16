@@ -1,96 +1,35 @@
 import { Button } from "@/components/ui/button";
-import {
-  Phone,
-  Globe,
-  Mail,
-  MessageCircle,
-  MapPin,
-  Video,
-} from "lucide-react";
+import { Phone, Globe, Mail, MessageCircle, MapPin, Video } from "lucide-react";
 
 export default function QuickActionsCard({
-  lead,
-  copyPhone,
-  copyWebsite,
-  sendEmail,
-  sendWhatsapp,
-  setShowMeetingForm,
+  lead, copyPhone, copyWebsite, sendEmail, sendWhatsapp, setShowMeetingForm,
 }) {
   const openMaps = () => {
     if (!lead.google_maps_link) return;
     window.open(lead.google_maps_link, "_blank");
   };
 
-  const openWebsite = () => {
-    if (!lead.website) return;
-
-    let url = lead.website;
-
-    if (!url.startsWith("http")) {
-      url = "https://" + url;
-    }
-
-    window.open(url, "_blank");
-  };
-
   return (
-    <div className="rounded-3xl border border-zinc-100 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <h2 className="mb-8 text-2xl font-semibold tracking-tight">
-        Quick Actions
-      </h2>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Button
-          variant="outline"
-          className="h-12 justify-start gap-3 rounded-xl"
-          onClick={copyPhone}
-        >
-          <Phone className="h-4 w-4" />
-          Copy Phone
+    <div className="rounded-xl border border-ash bg-canvas-white p-5">
+      <h2 className="mb-4 text-sm font-medium text-charcoal">Quick Actions</h2>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <Button variant="outline" size="sm" className="justify-start gap-2" onClick={copyPhone}>
+          <Phone className="h-3.5 w-3.5" /> Copy Phone
         </Button>
-
-        <Button
-          variant="outline"
-          className="h-12 justify-start gap-3 rounded-xl"
-          onClick={sendWhatsapp}
-        >
-          <MessageCircle className="h-4 w-4" />
-          WhatsApp
+        <Button variant="outline" size="sm" className="justify-start gap-2" onClick={sendWhatsapp}>
+          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
         </Button>
-
-        <Button
-          variant="outline"
-          className="h-12 justify-start gap-3 rounded-xl"
-          onClick={sendEmail}
-        >
-          <Mail className="h-4 w-4" />
-          Email
+        <Button variant="outline" size="sm" className="justify-start gap-2" onClick={sendEmail}>
+          <Mail className="h-3.5 w-3.5" /> Email
         </Button>
-
-        <Button
-          variant="outline"
-          className="h-12 justify-start gap-3 rounded-xl"
-          onClick={copyWebsite}
-        >
-          <Globe className="h-4 w-4" />
-          Copy Website
+        <Button variant="outline" size="sm" className="justify-start gap-2" onClick={copyWebsite}>
+          <Globe className="h-3.5 w-3.5" /> Copy Website
         </Button>
-
-        <Button
-          variant="outline"
-          className="h-12 justify-start gap-3 rounded-xl"
-          onClick={openMaps}
-        >
-          <MapPin className="h-4 w-4" />
-          Google Maps
+        <Button variant="outline" size="sm" className="justify-start gap-2" onClick={openMaps}>
+          <MapPin className="h-3.5 w-3.5" /> Maps
         </Button>
-
-        <Button
-          className="h-12 justify-start gap-3 rounded-xl"
-          onClick={() => setShowMeetingForm(true)}
-        >
-          <Video className="h-4 w-4" />
-          Book Meeting
+        <Button size="sm" className="justify-start gap-2" onClick={() => setShowMeetingForm(true)}>
+          <Video className="h-3.5 w-3.5" /> Book Meeting
         </Button>
       </div>
     </div>

@@ -3,6 +3,22 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { getLeads, updateLead } from "../api/leadsApi";
 import { addActivity } from "../api/activitiesApi";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import PageHeader from "@/components/common/PageHeader";
+import {
+  Globe, MapPin, MessageCircle, Copy, ExternalLink,
+  Search, User, Phone, Building2, Calendar, Clock,
+} from "lucide-react";
+
+const columnConfig = [
+  { key: "contacted", label: "Contacted", color: "border-t-blue-400" },
+  { key: "warm", label: "Warm", color: "border-t-amber-400" },
+  { key: "meeting_booked", label: "Meeting", color: "border-t-purple-400" },
+  { key: "proposal_sent", label: "Proposal", color: "border-t-indigo-400" },
+  { key: "closed_won", label: "Won", color: "border-t-green-400" },
+  { key: "closed_lost", label: "Lost", color: "border-t-red-400" },
+];
 
 function PipelinePage() {
   const [leads, setLeads] = useState([]);
@@ -10,9 +26,7 @@ function PipelinePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
+  useEffect(() => { fetchLeads(); }, []);
 
   async function fetchLeads() {
     try {
@@ -27,37 +41,28 @@ function PipelinePage() {
 
   async function handleDragEnd(result) {
     const { source, destination, draggableId } = result;
-
-    if (!destination) return;
-
-    if (source.droppableId === destination.droppableId) return;
-
-    const labels = {
-      cold: "Cold",
-      contacted: "Contacted",
-      warm: "Warm",
-      meeting_booked: "Meeting Booked",
-      proposal_sent: "Proposal Sent",
-      closed_won: "Closed Won",
-      closed_lost: "Closed Lost",
-    };
-
+    if (!destination || source.droppableId === destination.droppableId) return;
+    const labels = { cold: "Cold", contacted: "Contacted", warm: "Warm", meeting_booked: "Meeting Booked", proposal_sent: "Proposal Sent", closed_won: "Closed Won", closed_lost: "Closed Lost" };
     try {
-      await updateLead(draggableId, {
-        status: destination.droppableId,
-      });
-
-      await addActivity({
-        lead_id: draggableId,
-        activity_type: "status_change",
-        description: `Moved to ${labels[destination.droppableId]}`,
-      });
-
+      await updateLead(draggableId, { status: destination.droppableId });
+      await addActivity({ lead_id: draggableId, activity_type: "status_change", description: `Moved to ${labels[destination.droppableId]}` });
       await fetchLeads();
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) { console.error(error); }
   }
+
+  const filteredLeads = leads.filter((lead) => {
+    const s = searchTerm.toLowerCase();
+    return lead.lead_name?.toLowerCase().includes(s) || lead.contact_person?.toLowerCase().includes(s) || lead.phone?.includes(s);
+  });
+
+  const columns = {
+    contacted: filteredLeads.filter((l) => l.status === "contacted"),
+    warm: filteredLeads.filter((l) => l.status === "warm"),
+    meeting_booked: filteredLeads.filter((l) => l.status === "meeting_booked"),
+    proposal_sent: filteredLeads.filter((l) => l.status === "proposal_sent"),
+    closed_won: filteredLeads.filter((l) => l.status === "closed_won"),
+    closed_lost: filteredLeads.filter((l) => l.status === "closed_lost"),
+  };
 
   function renderLeadCard(lead, index) {
     return (
@@ -67,104 +72,30 @@ function PipelinePage() {
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              padding: "12px",
-              marginBottom: "12px",
-              background: "#fff",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              ...provided.draggableProps.style,
-            }}
+            style={provided.draggableProps.style}
+            className="mb-2 rounded-lg border border-ash bg-canvas-white p-3 shadow-subtle transition-shadow hover:shadow-sm"
           >
-            <h4 style={{ marginBottom: "10px" }}>{lead.lead_name}</h4>
-
-            <p>👤 {lead.contact_person || "--"}</p>
-
-            <p>📞 {lead.phone}</p>
-
-            <p>🏢 {lead.business_type || "--"}</p>
-
-            <p>
-              {lead.follow_up_date
-                ? `📅 ${new Date(lead.follow_up_date).toLocaleDateString(
-                    "en-IN",
-                  )}`
-                : "No Follow-up"}
-            </p>
-
-            <p>🕒 {lead.follow_up_time || "--"}</p>
-
-            <hr />
-
-            <div
-              style={{
-                display: "flex",
-                gap: "8px",
-                flexWrap: "wrap",
-              }}
-            >
-              {/* Website */}
-              <button
-                onClick={() => {
-                  if (!lead.website) {
-                    alert("No website");
-                    return;
-                  }
-
-                  let url = lead.website;
-
-                  if (!url.startsWith("http")) {
-                    url = "https://" + url;
-                  }
-
-                  window.open(url, "_blank");
-                }}
-              >
-                🌐
-              </button>
-
-              {/* Maps */}
-              <button
-                onClick={() => {
-                  if (!lead.google_maps_link) {
-                    alert("No Maps Link");
-                    return;
-                  }
-
-                  window.open(lead.google_maps_link, "_blank");
-                }}
-              >
-                📍
-              </button>
-
-              {/* WhatsApp */}
-              <button
-                onClick={() => {
-                  let phone = lead.phone.replace(/\D/g, "");
-
-                  if (phone.length === 10) {
-                    phone = "91" + phone;
-                  }
-
-                  window.open(`https://wa.me/${phone}`, "_blank");
-                }}
-              >
-                💬
-              </button>
-
-              {/* Copy Phone */}
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(lead.phone);
-                  alert("Phone copied!");
-                }}
-              >
-                📋
-              </button>
-
-              {/* Open Lead */}
-              <button onClick={() => navigate(`/leads/${lead.id}`)}>👀</button>
+            <h4 className="mb-2 text-sm font-medium text-charcoal">{lead.lead_name}</h4>
+            <div className="space-y-0.5 text-xs text-fog">
+              <p className="flex items-center gap-1"><User className="h-3 w-3" />{lead.contact_person || "--"}</p>
+              <p className="flex items-center gap-1"><Phone className="h-3 w-3" />{lead.phone}</p>
+              <p className="flex items-center gap-1"><Building2 className="h-3 w-3" />{lead.business_type || "--"}</p>
+              <p className="flex items-center gap-1"><Calendar className="h-3 w-3" />{lead.follow_up_date ? new Date(lead.follow_up_date).toLocaleDateString("en-IN") : "No Follow-up"}</p>
+              <p className="flex items-center gap-1"><Clock className="h-3 w-3" />{lead.follow_up_time || "--"}</p>
+            </div>
+            <hr className="my-2 border-ash" />
+            <div className="flex flex-wrap gap-1">
+              {[
+                { icon: Globe, title: "Website", onClick: () => { if (!lead.website) return; let u = lead.website; if (!u.startsWith("http")) u = "https://" + u; window.open(u, "_blank"); } },
+                { icon: MapPin, title: "Maps", onClick: () => { if (!lead.google_maps_link) return; window.open(lead.google_maps_link, "_blank"); } },
+                { icon: MessageCircle, title: "WhatsApp", onClick: () => { let p = lead.phone.replace(/\D/g, ""); if (p.length === 10) p = "91" + p; window.open(`https://wa.me/${p}`, "_blank"); } },
+                { icon: Copy, title: "Copy Phone", onClick: () => { navigator.clipboard.writeText(lead.phone); alert("Phone copied!"); } },
+                { icon: ExternalLink, title: "Open Lead", onClick: () => navigate(`/leads/${lead.id}`) },
+              ].map((btn, i) => (
+                <Button key={i} size="icon-xs" variant="outline" title={btn.title} onClick={btn.onClick}>
+                  <btn.icon className="h-3 w-3" />
+                </Button>
+              ))}
             </div>
           </div>
         )}
@@ -172,99 +103,38 @@ function PipelinePage() {
     );
   }
 
-  const filteredLeads = leads.filter((lead) => {
-    const search = searchTerm.toLowerCase();
-
-    return (
-      lead.lead_name?.toLowerCase().includes(search) ||
-      lead.contact_person?.toLowerCase().includes(search) ||
-      lead.phone?.includes(search)
-    );
-  });
-
-  const columns = {
-    contacted: filteredLeads.filter((lead) => lead.status === "contacted"),
-    warm: filteredLeads.filter((lead) => lead.status === "warm"),
-    meeting_booked: filteredLeads.filter(
-      (lead) => lead.status === "meeting_booked",
-    ),
-    proposal_sent: filteredLeads.filter(
-      (lead) => lead.status === "proposal_sent",
-    ),
-    closed_won: filteredLeads.filter((lead) => lead.status === "closed_won"),
-    closed_lost: filteredLeads.filter((lead) => lead.status === "closed_lost"),
-  };
-
-  if (loading) {
-    return <h2>Loading...</h2>;
-  }
+  if (loading) return <div className="flex h-64 items-center justify-center text-sm text-fog">Loading...</div>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Deal Pipeline</h1>
-      <input
-        type="text"
-        placeholder="🔍 Search by lead, contact or phone..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{
-          width: "350px",
-          padding: "10px",
-          marginBottom: "20px",
-          borderRadius: "8px",
-          border: "1px solid #ccc",
-        }}
-      />
+    <div className="space-y-5">
+      <PageHeader title="Pipeline" description="Drag and drop leads to update their status." />
+
+      <div className="relative max-w-xs">
+        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-fog" />
+        <Input placeholder="Search by lead, contact or phone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-8 h-8" />
+      </div>
+
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div
-          style={{
-            display: "flex",
-            gap: "20px",
-            overflowX: "auto",
-            alignItems: "flex-start",
-          }}
-        >
-          {[
-            ["Contacted", "contacted"],
-            ["Warm", "warm"],
-            ["Meeting", "meeting_booked"],
-            ["Proposal", "proposal_sent"],
-            ["Won", "closed_won"],
-            ["Lost", "closed_lost"],
-          ].map(([title, key]) => (
+        <div className="flex gap-3 overflow-x-auto pb-3">
+          {columnConfig.map(({ key, label, color }) => (
             <Droppable droppableId={key} key={key}>
               {(provided) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  style={{
-                    minWidth: "250px",
-                    background: "#f5f5f5",
-                    padding: "15px",
-                    borderRadius: "10px",
-                    minHeight: "500px",
-                  }}
+                  className={`min-w-[240px] flex-1 rounded-xl border-t-4 bg-paper-mist p-3 ${color}`}
                 >
-                  <h3>
-                    {title} ({columns[key].length})
-                  </h3>
-
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-charcoal">{label}</h3>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ash text-[11px] font-medium text-fog">
+                      {columns[key].length}
+                    </span>
+                  </div>
                   {columns[key].length === 0 ? (
-                    <p
-                      style={{
-                        color: "#888",
-                        textAlign: "center",
-                        marginTop: "20px",
-                      }}
-                    >
-                      No active deals
-                    </p>
+                    <div className="rounded-lg border border-dashed border-ash py-6 text-center text-xs text-fog">No deals</div>
                   ) : (
-                    columns[key].map((lead, index) =>
-                      renderLeadCard(lead, index),
-                    )
+                    columns[key].map((lead, index) => renderLeadCard(lead, index))
                   )}
-
                   {provided.placeholder}
                 </div>
               )}
