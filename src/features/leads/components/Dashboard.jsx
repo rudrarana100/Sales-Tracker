@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 
 function Dashboard({
   leads,
+  followUps,
   onStartCalling,
   onImportClick, // <-- your CSV file picker handler
 }) {
@@ -23,29 +24,28 @@ function Dashboard({
   const today = new Date().toISOString().split("T")[0];
 
   const coldCallsRemaining = leads.filter(
-    (lead) => lead.status === "cold"
+    (lead) => lead.status === "cold",
   ).length;
 
-  const followUpsToday = leads.filter(
-    (lead) => lead.follow_up_date === today
+  const followUpsToday = followUps.filter(
+    (followUp) => followUp.scheduled_date === today,
   ).length;
 
-  const meetingsToday = leads.filter(
-    (lead) =>
-      lead.status === "meeting_booked" &&
-      lead.follow_up_date === today
+  const meetingsToday = followUps.filter(
+    (followUp) =>
+      followUp.type === "meeting" && followUp.scheduled_date === today,
   ).length;
 
-  const todayTasks = leads
-    .filter((lead) => lead.follow_up_date === today)
+  const todayTasks = followUps
+    .filter((followUp) => followUp.scheduled_date === today)
     .sort((a, b) =>
-      (a.follow_up_time || "").localeCompare(b.follow_up_time || "")
+      (a.scheduled_time || "").localeCompare(b.scheduled_time || ""),
     );
 
-  const overdueFollowUps = leads
-    .filter((lead) => lead.follow_up_date && lead.follow_up_date < today)
+  const overdueFollowUps = followUps
+    .filter((followUp) => followUp.scheduled_date < today)
     .sort((a, b) =>
-      (a.follow_up_time || "").localeCompare(b.follow_up_time || "")
+      (a.scheduled_time || "").localeCompare(b.scheduled_time || ""),
     );
 
   function getTaskLabel(status) {
@@ -102,10 +102,7 @@ function Dashboard({
       {/* Quick Actions */}
       <SectionCard title="Quick Actions">
         <div className="flex flex-wrap gap-3">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/leads")}
-          >
+          <Button variant="outline" onClick={() => navigate("/leads")}>
             <Users className="mr-2 h-4 w-4" />
             View All Leads
           </Button>
@@ -115,10 +112,7 @@ function Dashboard({
             Start Calling
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={onImportClick}
-          >
+          <Button variant="outline" onClick={onImportClick}>
             <Upload className="mr-2 h-4 w-4" />
             Import CSV
           </Button>
@@ -135,26 +129,28 @@ function Dashboard({
               </div>
             ) : (
               <div className="space-y-1.5">
-                {todayTasks.map((lead) => (
-                  <div
-                    key={lead.id}
-                    className="flex items-center justify-between rounded-md border border-ash px-3 py-2 transition hover:bg-paper-mist"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-charcoal">
-                        {lead.lead_name}
-                      </p>
+                {todayTasks.map((followUp) => {
+                  const lead = followUp.leads;
 
-                      <p className="text-xs text-fog">
-                        {getTaskLabel(lead.status)}
-                      </p>
+                  return (
+                    <div
+                      key={followUp.id}
+                      className="flex items-center justify-between rounded-md border border-ash px-3 py-2 transition hover:bg-paper-mist"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-charcoal">
+                          {lead.lead_name}
+                        </p>
+
+                        <p className="text-xs text-fog">{followUp.title}</p>
+                      </div>
+
+                      <span className="rounded-full bg-paper-mist px-2 py-0.5 text-[11px] font-medium text-fog">
+                        {followUp.scheduled_time || "--:--"}
+                      </span>
                     </div>
-
-                    <span className="rounded-full bg-paper-mist px-2 py-0.5 text-[11px] font-medium text-fog">
-                      {lead.follow_up_time || "--:--"}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </SectionCard>
@@ -168,20 +164,24 @@ function Dashboard({
               </div>
             ) : (
               <div className="space-y-1.5">
-                {overdueFollowUps.map((lead) => (
-                  <div
-                    key={lead.id}
-                    className="rounded-md border border-red-200 bg-red-50/50 px-3 py-2"
-                  >
-                    <p className="text-sm font-medium text-charcoal">
-                      {lead.lead_name}
-                    </p>
+                {overdueFollowUps.map((followUp) => {
+                  const lead = followUp.leads;
 
-                    <p className="mt-0.5 text-xs text-red-600">
-                      Follow-up was due on {lead.follow_up_date}
-                    </p>
-                  </div>
-                ))}
+                  return (
+                    <div
+                      key={followUp.id}
+                      className="rounded-md border border-red-200 bg-red-50/50 px-3 py-2"
+                    >
+                      <p className="text-sm font-medium text-charcoal">
+                        {lead.lead_name}
+                      </p>
+
+                      <p className="mt-0.5 text-xs text-red-600">
+                        {followUp.title} was due on {followUp.scheduled_date}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </SectionCard>
