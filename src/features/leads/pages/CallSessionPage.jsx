@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/common/PageHeader";
 import { getNotes, addNote } from "../api/notesApi";
-import { createFollowUp } from "../api/folloeUpsApi";
+import { createFollowUp } from "../api/followUpsApi";
 import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
 import {
   Phone,
@@ -160,7 +160,7 @@ function CallSessionPage() {
           title: "No Answer Follow-up",
           notes: "Retry call.",
           scheduled_date: tomorrow.toISOString().split("T")[0],
-          scheduled_time: "10:00",
+          scheduled_time: null,
           priority: "medium",
           status: "pending",
         });

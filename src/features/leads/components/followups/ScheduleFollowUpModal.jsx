@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFollowUp } from "../../api/folloeUpsApi";
+import { createFollowUp } from "../../api/followUpsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

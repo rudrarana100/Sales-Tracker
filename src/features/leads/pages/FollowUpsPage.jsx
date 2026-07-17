@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getFollowUps } from "../api/leadsApi";
+import { getFollowUps } from "../api/followUpsApi";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,7 @@ function FollowUpsPage() {
   async function fetchFollowUps() {
     try {
       const data = await getFollowUps();
-      setFollowUps(data);
+      setFollowUps(data.filter((f) => f.status === "pending"));
     } catch (error) {
       console.error(error);
     } finally {
@@ -43,13 +43,32 @@ function FollowUpsPage() {
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+const overdue = followUps.filter((followUp) => {
+  const d = new Date(followUp.scheduled_date);
+  d.setHours(0, 0, 0, 0);
+  return d < today;
+});
 
-  const overdue = followUps.filter((lead) => { const d = new Date(lead.follow_up_date); d.setHours(0, 0, 0, 0); return d < today; });
-  const todayFollowUps = followUps.filter((lead) => { const d = new Date(lead.follow_up_date); d.setHours(0, 0, 0, 0); return d.getTime() === today.getTime(); });
-  const tomorrowFollowUps = followUps.filter((lead) => { const d = new Date(lead.follow_up_date); d.setHours(0, 0, 0, 0); return d.getTime() === tomorrow.getTime(); });
-  const upcoming = followUps.filter((lead) => { const d = new Date(lead.follow_up_date); d.setHours(0, 0, 0, 0); return d > tomorrow; });
+const todayFollowUps = followUps.filter((followUp) => {
+  const d = new Date(followUp.scheduled_date);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime() === today.getTime();
+});
 
-  function renderLeadCard(lead) {
+const tomorrowFollowUps = followUps.filter((followUp) => {
+  const d = new Date(followUp.scheduled_date);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime() === tomorrow.getTime();
+});
+
+const upcoming = followUps.filter((followUp) => {
+  const d = new Date(followUp.scheduled_date);
+  d.setHours(0, 0, 0, 0);
+  return d > tomorrow;
+});
+
+ function renderLeadCard(followUp) {
+  const lead = followUp.leads;
     return (
       <Card key={lead.id} className="border-ash shadow-none">
         <CardContent className="p-4">
@@ -59,8 +78,8 @@ function FollowUpsPage() {
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-fog">
                 <span className="flex items-center gap-1"><User className="h-3 w-3" />{lead.contact_person || "--"}</span>
                 <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{lead.phone}</span>
-                <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{lead.follow_up_time || "--"}</span>
-                <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{lead.follow_up_date}</span>
+                <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{followUp.scheduled_time || "--"}</span>
+                <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{followUp.scheduled_date}</span>
               </div>
               <Badge className={`${statusStyles[lead.status] || 'bg-paper-mist text-fog'} capitalize rounded-full`}>
                 {lead.status.replace(/_/g, " ")}

@@ -4,16 +4,20 @@ import { supabase } from "../../../lib/supabase";
 export async function getFollowUps() {
   const { data, error } = await supabase
     .from("follow_ups")
-    .select(`
-      *,
-      leads (
-        id,
-        lead_name,
-        phone,
-        contact_person,
-        status
-      )
-    `)
+    .select(
+      `
+  *,
+  leads (
+    id,
+    lead_name,
+    phone,
+    contact_person,
+    status,
+    website,
+    google_maps_link
+  )
+`,
+    )
     .order("scheduled_date", { ascending: true })
     .order("scheduled_time", { ascending: true });
 
@@ -28,16 +32,20 @@ export async function getTodayFollowUps() {
 
   const { data, error } = await supabase
     .from("follow_ups")
-    .select(`
-      *,
-      leads (
-        id,
-        lead_name,
-        phone,
-        contact_person,
-        status
-      )
-    `)
+    .select(
+      `
+  *,
+  leads (
+    id,
+    lead_name,
+    phone,
+    contact_person,
+    status,
+    website,
+    google_maps_link
+  )
+`,
+    )
     .eq("scheduled_date", today)
     .eq("status", "pending")
     .order("scheduled_time", { ascending: true });
@@ -53,16 +61,20 @@ export async function getOverdueFollowUps() {
 
   const { data, error } = await supabase
     .from("follow_ups")
-    .select(`
-      *,
-      leads (
-        id,
-        lead_name,
-        phone,
-        contact_person,
-        status
-      )
-    `)
+    .select(
+      `
+  *,
+  leads (
+    id,
+    lead_name,
+    phone,
+    contact_person,
+    status,
+    website,
+    google_maps_link
+  )
+`,
+    )
     .lt("scheduled_date", today)
     .eq("status", "pending")
     .order("scheduled_date", { ascending: true });
@@ -119,10 +131,7 @@ export async function completeFollowUp(id) {
 
 // Delete follow-up
 export async function deleteFollowUp(id) {
-  const { error } = await supabase
-    .from("follow_ups")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("follow_ups").delete().eq("id", id);
 
   if (error) throw error;
 }
