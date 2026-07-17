@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { createFollowUp } from "../../api/followUpsApi";
+import { useState, useEffect } from "react";
+import { createFollowUp, updateFollowUp } from "../../api/followUpsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { addActivity } from "../../api/activitiesApi";
 
 function ScheduleFollowUpModal({
   lead,
+  followUp = null,
   open,
   onClose,
   onSaved,
@@ -15,43 +17,76 @@ function ScheduleFollowUpModal({
   const [priority, setPriority] = useState("medium");
   const [notes, setNotes] = useState("");
 
+  useEffect(() => {
+    if (!open) return;
+
+    if (followUp) {
+      setType(followUp.type);
+      setDate(followUp.scheduled_date || "");
+      setTime(followUp.scheduled_time || "");
+      setPriority(followUp.priority || "medium");
+      setNotes(followUp.notes || "");
+    } else {
+      setType("call");
+      setDate("");
+      setTime("");
+      setPriority("medium");
+      setNotes("");
+    }
+  }, [open, followUp]);
+
   if (!open) return null;
 
-  async function handleSave() {
-    if (!date) {
-      alert("Please select a follow-up date.");
-      return;
-    }
-
-    try {
-      await createFollowUp({
-        lead_id: lead.id,
-        type,
-        title: `${type.charAt(0).toUpperCase() + type.slice(1)} Follow-up`,
-        notes,
-        scheduled_date: date,
-        scheduled_time: time || null,
-        priority,
-        status: "pending",
-      });
-
-      onSaved?.();
-      onClose();
-    } catch (error) {
-      console.error(error);
-      alert("Failed to create follow-up.");
-    }
+async function handleSave() {
+  if (!date) {
+    alert("Please select a follow-up date.");
+    return;
   }
+
+  const payload = {
+    lead_id: lead.id,
+    type,
+    title: `${type.charAt(0).toUpperCase() + type.slice(1)} Follow-up`,
+    notes,
+    scheduled_date: date,
+    scheduled_time: time || null,
+    priority,
+    status: "pending",
+  };
+
+  try {
+    if (followUp) {
+      await updateFollowUp(followUp.id, payload);
+
+      await addActivity({
+        lead_id: lead.id,
+        activity_type: "follow_up_rescheduled",
+        description: `Rescheduled follow-up to ${date}${time ? ` ${time}` : ""}`,
+      });
+    } else {
+      await createFollowUp(payload);
+    }
+
+    onSaved?.();
+    onClose();
+  } catch (error) {
+    console.error(error);
+    alert(
+      followUp
+        ? "Failed to update follow-up."
+        : "Failed to create follow-up."
+    );
+  }
+}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
         <h2 className="mb-4 text-lg font-semibold">
-          Schedule Follow-up
+          {followUp ? "Reschedule Follow-up" : "Schedule Follow-up"}
         </h2>
 
         <div className="space-y-3">
-
           <select
             className="w-full rounded-lg border p-2"
             value={type}
@@ -95,18 +130,14 @@ function ScheduleFollowUpModal({
           />
 
           <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={onClose}
-            >
+            <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
 
             <Button onClick={handleSave}>
-              Save Follow-up
+              {followUp ? "Update Follow-up" : "Save Follow-up"}
             </Button>
           </div>
-
         </div>
       </div>
     </div>

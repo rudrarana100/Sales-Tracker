@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { getFollowUps, completeFollowUp } from "../api/followUpsApi";
+import {
+  getFollowUps,
+  completeFollowUp,
+  skipFollowUp,
+} from "../api/followUpsApi";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import SectionCard from "@/components/common/SectionCard";
 import { addActivity } from "../api/activitiesApi";
 import PageHeader from "@/components/common/PageHeader";
+import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
 import {
   Globe,
   MapPin,
@@ -33,6 +38,8 @@ function FollowUpsPage() {
   const navigate = useNavigate();
   const [followUps, setFollowUps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingFollowUp, setEditingFollowUp] = useState(null);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
 
   useEffect(() => {
     fetchFollowUps();
@@ -49,30 +56,46 @@ function FollowUpsPage() {
     }
   }
 
+  async function handleComplete(followUp) {
+    const confirmed = window.confirm(`Mark "${followUp.title}" as completed?`);
 
-async function handleComplete(followUp) {
-  const confirmed = window.confirm(
-    `Mark "${followUp.title}" as completed?`
-  );
+    if (!confirmed) return;
 
-  if (!confirmed) return;
+    try {
+      await completeFollowUp(followUp.id);
 
-  try {
-    await completeFollowUp(followUp.id);
+      await addActivity({
+        lead_id: followUp.lead_id,
+        activity_type: "follow_up_completed",
+        description: `Completed follow-up: ${followUp.title}`,
+      });
 
-    await addActivity({
-      lead_id: followUp.lead_id,
-      activity_type: "follow_up_completed",
-      description: `Completed follow-up: ${followUp.title}`,
-    });
-
-    await fetchFollowUps();
-  } catch (error) {
-    console.error(error);
-    alert("Failed to complete follow-up.");
+      await fetchFollowUps();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to complete follow-up.");
+    }
   }
-}
+  async function handleSkip(followUp) {
+    const confirmed = window.confirm(`Skip "${followUp.title}"?`);
 
+    if (!confirmed) return;
+
+    try {
+      await skipFollowUp(followUp.id);
+
+      await addActivity({
+        lead_id: followUp.lead_id,
+        activity_type: "follow_up_skipped",
+        description: `Skipped follow-up: ${followUp.title}`,
+      });
+
+      await fetchFollowUps();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to skip follow-up.");
+    }
+  }
   if (loading)
     return (
       <div className="flex h-64 items-center justify-center text-sm text-fog">
@@ -186,6 +209,23 @@ async function handleComplete(followUp) {
             </Button>
             <Button size="xs" onClick={() => handleComplete(followUp)}>
               Complete
+            </Button>
+            <Button
+              size="xs"
+              variant="outline"
+              onClick={() => {
+                setEditingFollowUp(followUp);
+                setShowRescheduleModal(true);
+              }}
+            >
+              Reschedule
+            </Button>
+            <Button
+              size="xs"
+              variant="secondary"
+              onClick={() => handleSkip(followUp)}
+            >
+              Skip
             </Button>
           </div>
         </CardContent>
@@ -305,6 +345,16 @@ async function handleComplete(followUp) {
           )}
         </div>
       )}
+      <ScheduleFollowUpModal
+        lead={editingFollowUp?.leads}
+        followUp={editingFollowUp}
+        open={showRescheduleModal}
+        onClose={() => {
+          setShowRescheduleModal(false);
+          setEditingFollowUp(null);
+        }}
+        onSaved={fetchFollowUps}
+      />
     </div>
   );
 }

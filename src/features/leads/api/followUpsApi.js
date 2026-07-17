@@ -149,3 +149,17 @@ export async function getLeadFollowUps(leadId) {
 
   return data;
 }
+export async function skipFollowUp(id) {
+  const { data, error } = await supabase
+    .from("follow_ups")
+    .update({
+      status: "skipped",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select();
+
+  if (error) throw error;
+
+  return data;
+}
