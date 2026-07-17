@@ -5,6 +5,7 @@ import {
   Phone,
   CalendarDays,
   KanbanSquare,
+  BriefcaseBusiness,
   Settings,
 } from "lucide-react";
 
@@ -13,6 +14,7 @@ const menu = [
   { title: "Leads", icon: Users, path: "/leads" },
   { title: "Call Session", icon: Phone, path: "/call-session" },
   { title: "Follow-ups", icon: CalendarDays, path: "/follow-ups" },
+  { title: "Deals", icon: BriefcaseBusiness, path: "/deals" },
   { title: "Pipeline", icon: KanbanSquare, path: "/pipeline" },
 ];
 
@@ -23,15 +25,21 @@ export default function Sidebar() {
         <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
           S
         </div>
+
         <div>
-          <h1 className="text-sm font-medium text-charcoal">SalesTracker</h1>
-          <p className="text-[11px] text-fog">Outbound CRM</p>
+          <h1 className="text-sm font-medium text-charcoal">
+            SalesTracker
+          </h1>
+          <p className="text-[11px] text-fog">
+            Outbound CRM
+          </p>
         </div>
       </div>
 
       <nav className="flex-1 space-y-0.5 px-2 py-3">
         {menu.map((item) => {
           const Icon = item.icon;
+
           return (
             <NavLink
               key={item.path}

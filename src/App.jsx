@@ -8,9 +8,10 @@ import { useEffect } from "react";
 import { testBackend } from "./features/leads/api/backendApi";
 import PipelinePage from "./features/leads/pages/PipelinePage";
 import AppLayout from "./components/layout/AppLayout";
+import DealsPage from "./features/leads/pages/DealsPage";
 
 function App() {
-   useEffect(() => {
+  useEffect(() => {
     async function checkBackend() {
       const data = await testBackend();
       console.log(data);
@@ -18,18 +19,19 @@ function App() {
 
     checkBackend();
   }, []);
-return (
-  <AppLayout>
-    <Routes>
-      <Route path="/" element={<LeadsPage />} />
-      <Route path="/call-session" element={<CallSessionPage />} />
-      <Route path="/leads" element={<AllLeadsPage />} />
-      <Route path="/leads/:id" element={<LeadDetailPage />} />
-      <Route path="/follow-ups" element={<FollowUpsPage />} />
-      <Route path="/pipeline" element={<PipelinePage />} />
-    </Routes>
-  </AppLayout>
-);
+  return (
+    <AppLayout>
+      <Routes>
+        <Route path="/" element={<LeadsPage />} />
+        <Route path="/call-session" element={<CallSessionPage />} />
+        <Route path="/leads" element={<AllLeadsPage />} />
+        <Route path="/leads/:id" element={<LeadDetailPage />} />
+        <Route path="/follow-ups" element={<FollowUpsPage />} />
+        <Route path="/pipeline" element={<PipelinePage />} />
+        <Route path="/deals" element={<DealsPage />} />
+      </Routes>
+    </AppLayout>
+  );
 }
 
 export default App;

@@ -53,3 +53,14 @@ export async function deleteDeal(id) {
 
   if (error) throw error;
 }
+export async function getDealByLeadId(leadId) {
+  const { data, error } = await supabase
+    .from("deals")
+    .select("*")
+    .eq("lead_id", leadId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
+}
