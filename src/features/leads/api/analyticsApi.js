@@ -1,3 +1,60 @@
+// Revenue
+
+export function getContractValue(deals) {
+  return deals.reduce(
+    (sum, deal) => sum + Number(deal.value || 0),
+    0
+  );
+}
+
+export function getCollectedRevenue(deals) {
+  return deals
+    .filter((deal) => deal.payment_status === "paid")
+    .reduce((sum, deal) => sum + Number(deal.value || 0), 0);
+}
+
+export function getPendingRevenue(deals) {
+  return deals
+    .filter((deal) => deal.payment_status !== "paid")
+    .reduce((sum, deal) => sum + Number(deal.value || 0), 0);
+}
+
+// Deals
+
+export function getAverageDeal(deals) {
+  if (!deals.length) return 0;
+
+  return Math.round(getContractValue(deals) / deals.length);
+}
+
+// Leads
+
+export function getConversionRate(leads) {
+  if (!leads.length) return 0;
+
+  const converted = leads.filter(
+    (lead) => lead.status === "closed_won"
+  ).length;
+
+  return Math.round((converted / leads.length) * 100);
+}
+
+export function getWinRate(leads) {
+  const won = leads.filter(
+    (lead) => lead.status === "closed_won"
+  ).length;
+
+  const lost = leads.filter(
+    (lead) => lead.status === "closed_lost"
+  ).length;
+
+  if (won + lost === 0) return 0;
+
+  return Math.round((won / (won + lost)) * 100);
+}
+
+// Revenue Graph
+
 export function getRevenueByMonth(deals) {
   const months = [
     "Jan",
@@ -14,13 +71,12 @@ export function getRevenueByMonth(deals) {
     "Dec",
   ];
 
-  const revenue = new Array(12).fill(0);
+  const revenue = Array(12).fill(0);
 
   deals.forEach((deal) => {
     if (!deal.close_date) return;
 
-    const date = new Date(deal.close_date);
-    const month = date.getMonth();
+    const month = new Date(deal.close_date).getMonth();
 
     revenue[month] += Number(deal.value || 0);
   });
@@ -31,40 +87,32 @@ export function getRevenueByMonth(deals) {
   }));
 }
 
+// Payment Graph
+
 export function getPaymentDistribution(deals) {
   return [
     {
       name: "Paid",
-      value: deals.filter((d) => d.payment_status === "paid").length,
-    },
-    {
-      name: "Partial",
-      value: deals.filter((d) => d.payment_status === "partial").length,
+      value: getCollectedRevenue(deals),
     },
     {
       name: "Pending",
-      value: deals.filter((d) => d.payment_status === "pending").length,
+      value: getPendingRevenue(deals),
     },
   ];
 }
 
-export function getWinRate(leads) {
-  if (leads.length === 0) return 0;
+// Lead Status Graph
 
-  const won = leads.filter(
-    (lead) => lead.status === "closed_won"
-  ).length;
+export function getLeadStatusDistribution(leads) {
+  const counts = {};
 
-  return Math.round((won / leads.length) * 100);
-}
+  leads.forEach((lead) => {
+    counts[lead.status] = (counts[lead.status] || 0) + 1;
+  });
 
-export function getAverageDeal(deals) {
-  if (deals.length === 0) return 0;
-
-  const total = deals.reduce(
-    (sum, deal) => sum + Number(deal.value || 0),
-    0
-  );
-
-  return Math.round(total / deals.length);
+  return Object.entries(counts).map(([status, value]) => ({
+    name: status.replaceAll("_", " "),
+    value,
+  }));
 }

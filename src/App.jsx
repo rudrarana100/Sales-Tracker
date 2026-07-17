@@ -9,6 +9,7 @@ import { testBackend } from "./features/leads/api/backendApi";
 import PipelinePage from "./features/leads/pages/PipelinePage";
 import AppLayout from "./components/layout/AppLayout";
 import DealsPage from "./features/leads/pages/DealsPage";
+import AnalyticsPage from "./features/leads/pages/AnalyticsPage";
 
 function App() {
   useEffect(() => {
@@ -29,6 +30,7 @@ function App() {
         <Route path="/follow-ups" element={<FollowUpsPage />} />
         <Route path="/pipeline" element={<PipelinePage />} />
         <Route path="/deals" element={<DealsPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
       </Routes>
     </AppLayout>
   );
