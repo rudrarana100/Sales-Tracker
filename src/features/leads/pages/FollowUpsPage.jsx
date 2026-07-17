@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import SectionCard from "@/components/common/SectionCard";
+import { addActivity } from "../api/activitiesApi";
 import PageHeader from "@/components/common/PageHeader";
 import {
   Globe,
@@ -49,9 +50,21 @@ function FollowUpsPage() {
   }
 
 
-  async function handleComplete(id) {
+async function handleComplete(followUp) {
+  const confirmed = window.confirm(
+    `Mark "${followUp.title}" as completed?`
+  );
+
+  if (!confirmed) return;
+
   try {
-    await completeFollowUp(id);
+    await completeFollowUp(followUp.id);
+
+    await addActivity({
+      lead_id: followUp.lead_id,
+      activity_type: "follow_up_completed",
+      description: `Completed follow-up: ${followUp.title}`,
+    });
 
     await fetchFollowUps();
   } catch (error) {
@@ -171,7 +184,7 @@ function FollowUpsPage() {
             >
               <ExternalLink className="h-3 w-3" /> Open
             </Button>
-            <Button size="xs" onClick={() => handleComplete(followUp.id)}>
+            <Button size="xs" onClick={() => handleComplete(followUp)}>
               Complete
             </Button>
           </div>
