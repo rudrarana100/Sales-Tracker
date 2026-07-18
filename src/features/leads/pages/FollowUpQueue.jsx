@@ -60,7 +60,10 @@ export default function FollowUpQueue() {
       if (currentIndex < queue.length - 1) {
         setCurrentIndex((prev) => prev + 1);
       } else {
-        setQueue([]);
+        setOutcome("");
+setNotes("");
+setCurrentIndex(0);
+setQueue([]);
       }
     } catch (err) {
       console.error(err);
@@ -147,10 +150,15 @@ export default function FollowUpQueue() {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button>
-            <Phone className="mr-2 h-4 w-4" />
-            Call
-          </Button>
+          <Button
+  onClick={() => {
+    if (!lead.phone) return;
+    window.location.href = `tel:${lead.phone}`;
+  }}
+>
+  <Phone className="mr-2 h-4 w-4" />
+  Call
+</Button>
 
           <Button
             variant="outline"
