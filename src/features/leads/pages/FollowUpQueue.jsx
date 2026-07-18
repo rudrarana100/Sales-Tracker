@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Phone, Globe, MapPin, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getFollowUps } from "../api/followUpsApi";
+import { getFollowUps, completeFollowUp } from "../api/followUpsApi";
+import { addActivity } from "../api/activitiesApi";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function FollowUpQueue() {
@@ -12,8 +13,8 @@ export default function FollowUpQueue() {
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-const [outcome, setOutcome] = useState("");
-const [notes, setNotes] = useState("");
+  const [outcome, setOutcome] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     fetchQueue();
@@ -43,11 +44,33 @@ const [notes, setNotes] = useState("");
     }
   }
 
+  async function handleSaveAndNext() {
+    try {
+      await addActivity({
+        lead_id: followUp.lead_id,
+        activity_type: "call",
+        description: `${outcome}${notes ? ` - ${notes}` : ""}`,
+      });
+
+      await completeFollowUp(followUp.id);
+
+      setOutcome("");
+      setNotes("");
+
+      if (currentIndex < queue.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      } else {
+        setQueue([]);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save follow-up.");
+    }
+  }
+
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        Loading...
-      </div>
+      <div className="flex h-64 items-center justify-center">Loading...</div>
     );
   }
 
@@ -58,10 +81,7 @@ const [notes, setNotes] = useState("");
           title="Today's Calling Queue"
           description="Focus on one follow-up at a time."
           action={
-            <Button
-              variant="outline"
-              onClick={() => navigate("/followups")}
-            >
+            <Button variant="outline" onClick={() => navigate("/followups")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Exit Queue
             </Button>
@@ -69,13 +89,9 @@ const [notes, setNotes] = useState("");
         />
 
         <div className="rounded-xl border border-ash bg-canvas-white p-12 text-center">
-          <h2 className="text-2xl font-semibold">
-            You're all caught up
-          </h2>
+          <h2 className="text-2xl font-semibold">You're all caught up</h2>
 
-          <p className="mt-2 text-fog">
-            No follow-ups scheduled for today.
-          </p>
+          <p className="mt-2 text-fog">No follow-ups scheduled for today.</p>
         </div>
       </div>
     );
@@ -90,10 +106,7 @@ const [notes, setNotes] = useState("");
         title="Today's Calling Queue"
         description="Focus on one follow-up at a time."
         action={
-          <Button
-            variant="outline"
-            onClick={() => navigate("/followups")}
-          >
+          <Button variant="outline" onClick={() => navigate("/followups")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Exit Queue
           </Button>
@@ -101,7 +114,6 @@ const [notes, setNotes] = useState("");
       />
 
       <div className="rounded-xl border border-ash bg-canvas-white p-8">
-
         <p className="text-sm text-fog">
           Follow-up {currentIndex + 1} of {queue.length}
         </p>
@@ -110,12 +122,9 @@ const [notes, setNotes] = useState("");
           {lead.lead_name}
         </h1>
 
-        <p className="mt-2 text-lg text-fog">
-          {followUp.title}
-        </p>
+        <p className="mt-2 text-lg text-fog">{followUp.title}</p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-
           <div>
             <p className="text-xs text-fog">Phone</p>
             <p className="font-medium">{lead.phone || "--"}</p>
@@ -123,29 +132,21 @@ const [notes, setNotes] = useState("");
 
           <div>
             <p className="text-xs text-fog">Time</p>
-            <p className="font-medium">
-              {followUp.scheduled_time || "--"}
-            </p>
+            <p className="font-medium">{followUp.scheduled_time || "--"}</p>
           </div>
 
           <div>
             <p className="text-xs text-fog">Contact Person</p>
-            <p className="font-medium">
-              {lead.contact_person || "--"}
-            </p>
+            <p className="font-medium">{lead.contact_person || "--"}</p>
           </div>
 
           <div>
             <p className="text-xs text-fog">Date</p>
-            <p className="font-medium">
-              {followUp.scheduled_date}
-            </p>
+            <p className="font-medium">{followUp.scheduled_date}</p>
           </div>
-
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-
           <Button>
             <Phone className="mr-2 h-4 w-4" />
             Call
@@ -154,7 +155,7 @@ const [notes, setNotes] = useState("");
           <Button
             variant="outline"
             onClick={() => {
-              let p = lead.phone.replace(/\D/g, "");
+              let p = (lead.phone || "").replace(/\D/g, "");
               if (p.length === 10) p = "91" + p;
               window.open(`https://wa.me/${p}`, "_blank");
             }}
@@ -192,65 +193,40 @@ const [notes, setNotes] = useState("");
             <MapPin className="mr-2 h-4 w-4" />
             Maps
           </Button>
-
         </div>
         <div className="mt-10 border-t pt-8">
+          <h3 className="text-lg font-semibold text-charcoal">Call Outcome</h3>
 
-  <h3 className="text-lg font-semibold text-charcoal">
-    Call Outcome
-  </h3>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {["Interested", "Call Back", "No Answer", "Not Interested"].map(
+              (item) => (
+                <Button
+                  key={item}
+                  variant={outcome === item ? "default" : "outline"}
+                  onClick={() => setOutcome(item)}
+                >
+                  {item}
+                </Button>
+              ),
+            )}
+          </div>
 
-  <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-6">
+            <label className="mb-2 block text-sm font-medium">Notes</label>
 
-    {[
-      "Interested",
-      "Call Back",
-      "No Answer",
-      "Not Interested",
-    ].map((item) => (
-      <Button
-        key={item}
-        variant={outcome === item ? "default" : "outline"}
-        onClick={() => setOutcome(item)}
-      >
-        {item}
-      </Button>
-    ))}
-
-  </div>
-
-  <div className="mt-6">
-
-    <label className="mb-2 block text-sm font-medium">
-      Notes
-    </label>
-
-    <Textarea
-      placeholder="Add notes from the conversation..."
-      value={notes}
-      onChange={(e) => setNotes(e.target.value)}
-      rows={5}
-    />
-
-  </div>
-
-</div>
-<div className="mt-8 flex justify-end">
-
-  <Button
-    disabled={!outcome}
-    onClick={() => {
-      console.log({
-        followUp,
-        outcome,
-        notes,
-      });
-    }}
-  >
-    Save & Next
-  </Button>
-
-</div>
+            <Textarea
+              placeholder="Add notes from the conversation..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={5}
+            />
+          </div>
+        </div>
+        <div className="mt-8 flex justify-end">
+          <Button disabled={!outcome} onClick={handleSaveAndNext}>
+            Save & Next
+          </Button>
+        </div>
       </div>
     </div>
   );
