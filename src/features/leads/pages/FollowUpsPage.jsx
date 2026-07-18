@@ -238,6 +238,11 @@ function FollowUpsPage() {
       <PageHeader
         title="Follow-ups"
         description="Manage your follow-up schedule."
+        action={
+          <Button onClick={() => navigate("/followups/queue")}>
+            Start Today's Follow-ups
+          </Button>
+        }
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
