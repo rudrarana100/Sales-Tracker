@@ -15,8 +15,6 @@ const menu = [
   { title: "Leads", icon: Users, path: "/leads" },
   { title: "Call Session", icon: Phone, path: "/call-session" },
   { title: "Follow-ups", icon: CalendarDays, path: "/follow-ups" },
-  { title: "Deals", icon: BriefcaseBusiness, path: "/deals" },
-  { title: "Analytics", icon: BarChart3, path: "/analytics" },
   { title: "Pipeline", icon: KanbanSquare, path: "/pipeline" },
 ];
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getLeadById, updateLead } from "../api/leadsApi";
-import { createDeal, getDealByLeadId } from "../api/dealsApi";
 import ActivityTimeline from "../components/ActivityTimeline";
 import NotesPanel from "../components/NotesPanel";
 import { addActivity } from "../api/activitiesApi";
@@ -20,7 +19,6 @@ import { Video, Calendar, X, Check } from "lucide-react";
 function LeadDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [lead, setLead] = useState(null);
   const [timelineRefresh, setTimelineRefresh] = useState(0);
   const [showFollowUpForm, setShowFollowUpForm] = useState(false);
   const [followUpDate, setFollowUpDate] = useState("");
