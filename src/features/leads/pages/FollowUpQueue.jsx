@@ -13,8 +13,6 @@ export default function FollowUpQueue() {
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [outcome, setOutcome] = useState("");
-  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     fetchQueue();
@@ -202,34 +200,20 @@ setQueue([]);
             Maps
           </Button>
         </div>
-        <div className="mt-10 border-t pt-8">
-          <h3 className="text-lg font-semibold text-charcoal">Call Outcome</h3>
+        <LeadInteractionPanel
+  lead={lead}
+  followUp={followUp}
+  mode="followup"
+  onFinish={async () => {
+    await completeFollowUp(followUp.id);
 
-          <div className="mt-4 flex flex-wrap gap-3">
-            {["Interested", "Call Back", "No Answer", "Not Interested"].map(
-              (item) => (
-                <Button
-                  key={item}
-                  variant={outcome === item ? "default" : "outline"}
-                  onClick={() => setOutcome(item)}
-                >
-                  {item}
-                </Button>
-              ),
-            )}
-          </div>
-
-          <div className="mt-6">
-            <label className="mb-2 block text-sm font-medium">Notes</label>
-
-            <Textarea
-              placeholder="Add notes from the conversation..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={5}
-            />
-          </div>
-        </div>
+    if (currentIndex < queue.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    } else {
+      setQueue([]);
+    }
+  }}
+/>
         <div className="mt-8 flex justify-end">
           <Button disabled={!outcome} onClick={handleSaveAndNext}>
             Save & Next
