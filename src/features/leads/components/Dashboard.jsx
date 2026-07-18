@@ -44,6 +44,7 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
     );
   const overdueCount = overdueFollowUps.length;
 
+
   return (
     <div className="space-y-5">
       <PageHeader
