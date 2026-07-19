@@ -5,7 +5,24 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getFollowUps, completeFollowUp } from "../api/followUpsApi";
 import { addActivity } from "../api/activitiesApi";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import {
+  ThumbsUp,
+  ThumbsDown,
+  PhoneOff,
+  Shield,
+  CalendarCheck,
+  Video,
+  Calendar,
+  XCircle,
+} from "lucide-react";
+
+import { updateLead } from "../api/leadsApi";
+import { createFollowUp } from "../api/followUpsApi";
+import { createGoogleMeet } from "@/utils/meetingUtils";
+import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
 
 export default function FollowUpQueue() {
   const navigate = useNavigate();
@@ -13,10 +30,90 @@ export default function FollowUpQueue() {
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showInterestedActions, setShowInterestedActions] = useState(false);
+  const [showMeetingForm, setShowMeetingForm] = useState(false);
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
 
-  useEffect(() => {
-    fetchQueue();
-  }, []);
+  const [showCallbackForm, setShowCallbackForm] = useState(false);
+
+  const [meetingDate, setMeetingDate] = useState("");
+  const [meetingTime, setMeetingTime] = useState("");
+
+  const [callbackDate, setCallbackDate] = useState("");
+  const [callbackTime, setCallbackTime] = useState("");
+  const [callbackNote, setCallbackNote] = useState("");
+  const [callbackReason, setCallbackReason] = useState("");
+
+  async function finishCurrentFollowUp() {
+    await completeFollowUp(followUp.id);
+
+    if (currentIndex < queue.length - 1) {
+      setCurrentIndex((p) => p + 1);
+    } else {
+      setQueue([]);
+    }
+  }
+
+  const outcomeConfig = {
+    interested: { status: "warm" },
+    no_answer: { status: "cold" },
+    gatekeeper: { status: "contacted" },
+    callback_requested: { status: "contacted" },
+    not_interested: { status: "closed_lost" },
+  };
+
+  async function handleOutcome(outcome) {
+    try {
+      if (outcome === "interested") {
+        setShowInterestedActions(true);
+        return;
+      }
+
+      if (outcome === "callback_requested") {
+        setCallbackReason("callback");
+        setShowCallbackForm(true);
+        return;
+      }
+
+      if (outcome === "gatekeeper") {
+        setCallbackReason("gatekeeper");
+        setShowCallbackForm(true);
+        return;
+      }
+
+      if (outcome === "no_answer") {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        await createFollowUp({
+          lead_id: lead.id,
+          type: "call",
+          title: "No Answer Follow-up",
+          notes: "Retry call.",
+          scheduled_date: tomorrow.toISOString().split("T")[0],
+          scheduled_time: null,
+          priority: "medium",
+          status: "pending",
+        });
+      }
+
+      await updateLead(lead.id, {
+        status: outcomeConfig[outcome].status,
+        last_outcome: outcome,
+        last_contact_date: new Date().toISOString().split("T")[0],
+      });
+
+      await addActivity({
+        lead_id: lead.id,
+        activity_type: "call_outcome",
+        description: outcome.replaceAll("_", " "),
+      });
+
+      await finishCurrentFollowUp();
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function fetchQueue() {
     try {
@@ -42,32 +139,9 @@ export default function FollowUpQueue() {
     }
   }
 
-  async function handleSaveAndNext() {
-    try {
-      await addActivity({
-        lead_id: followUp.lead_id,
-        activity_type: "call",
-        description: `${outcome}${notes ? ` - ${notes}` : ""}`,
-      });
-
-      await completeFollowUp(followUp.id);
-
-      setOutcome("");
-      setNotes("");
-
-      if (currentIndex < queue.length - 1) {
-        setCurrentIndex((prev) => prev + 1);
-      } else {
-        setOutcome("");
-setNotes("");
-setCurrentIndex(0);
-setQueue([]);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to save follow-up.");
-    }
-  }
+  useEffect(() => {
+    fetchQueue();
+  }, []);
 
   if (loading) {
     return (
@@ -149,14 +223,14 @@ setQueue([]);
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Button
-  onClick={() => {
-    if (!lead.phone) return;
-    window.location.href = `tel:${lead.phone}`;
-  }}
->
-  <Phone className="mr-2 h-4 w-4" />
-  Call
-</Button>
+            onClick={() => {
+              if (!lead.phone) return;
+              window.location.href = `tel:${lead.phone}`;
+            }}
+          >
+            <Phone className="mr-2 h-4 w-4" />
+            Call
+          </Button>
 
           <Button
             variant="outline"
@@ -200,25 +274,114 @@ setQueue([]);
             Maps
           </Button>
         </div>
-        <LeadInteractionPanel
-  lead={lead}
-  followUp={followUp}
-  mode="followup"
-  onFinish={async () => {
-    await completeFollowUp(followUp.id);
 
-    if (currentIndex < queue.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      setQueue([]);
-    }
-  }}
-/>
-        <div className="mt-8 flex justify-end">
-          <Button disabled={!outcome} onClick={handleSaveAndNext}>
-            Save & Next
-          </Button>
-        </div>
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Call Outcome</CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-2">
+            <Button
+              className="w-full justify-start"
+              variant="outline"
+              onClick={() => handleOutcome("no_answer")}
+            >
+              <PhoneOff className="mr-2 h-4 w-4" />
+              No Answer
+            </Button>
+
+            <Button
+              className="w-full justify-start"
+              variant="outline"
+              onClick={() => handleOutcome("gatekeeper")}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Gatekeeper
+            </Button>
+
+            <Button
+              className="w-full justify-start"
+              variant="outline"
+              onClick={() => handleOutcome("callback_requested")}
+            >
+              <CalendarCheck className="mr-2 h-4 w-4" />
+              Callback Requested
+            </Button>
+
+            <Button
+              className="w-full justify-start border-green-200 text-green-700"
+              variant="outline"
+              onClick={() => handleOutcome("interested")}
+            >
+              <ThumbsUp className="mr-2 h-4 w-4" />
+              Interested
+            </Button>
+
+            <Button
+              className="w-full justify-start"
+              variant="outline"
+              onClick={() => handleOutcome("not_interested")}
+            >
+              <ThumbsDown className="mr-2 h-4 w-4" />
+              Not Interested
+            </Button>
+          </CardContent>
+        </Card>
+
+        {showInterestedActions && (
+  <Card className="mt-4 border-green-200">
+    <CardHeader>
+      <CardTitle>Prospect Interested</CardTitle>
+    </CardHeader>
+
+    <CardContent className="space-y-2">
+      <Button
+        className="w-full"
+        onClick={() => {
+          // we'll replace this with sendWhatsapp() next
+        }}
+      >
+        <MessageCircle className="mr-2 h-4 w-4" />
+        Send WhatsApp
+      </Button>
+
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() => {
+          setShowInterestedActions(false);
+          setShowMeetingForm(true);
+        }}
+      >
+        <Video className="mr-2 h-4 w-4" />
+        Book Google Meet
+      </Button>
+
+      <Button
+        variant="ghost"
+        className="w-full"
+        onClick={() => {
+          setShowInterestedActions(false);
+          setShowFollowUpModal(true);
+        }}
+      >
+        <Calendar className="mr-2 h-4 w-4" />
+        Schedule Follow-up
+      </Button>
+
+      <Button
+        variant="ghost"
+        className="w-full"
+        onClick={() => setShowInterestedActions(false)}
+      >
+        <XCircle className="mr-2 h-4 w-4" />
+        Cancel
+      </Button>
+    </CardContent>
+  </Card>
+)}
+
+        <div className="mt-8 flex justify-end"></div>
       </div>
     </div>
   );
