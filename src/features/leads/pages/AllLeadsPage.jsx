@@ -35,31 +35,30 @@ function AllLeadsPage() {
   });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Leads"
         description="Manage and organize all your prospects."
         action={
           <Button size="sm" onClick={() => setShowForm(!showForm)}>
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
             Add Lead
           </Button>
         }
       />
 
-      {/* Search + Filter */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-fog" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search leads..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8 h-8"
+            className="pl-9 h-9 rounded-lg"
           />
         </div>
         <select
-          className="h-8 rounded-md border border-ash bg-canvas-white px-3 text-sm text-charcoal outline-none"
+          className="h-9 rounded-lg border bg-background px-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
@@ -74,11 +73,10 @@ function AllLeadsPage() {
         </select>
       </div>
 
-      {/* Add Lead Form */}
       {showForm && (
         <SectionCard title={
           <span className="flex items-center gap-2">
-            <UserPlus className="h-3.5 w-3.5" />
+            <UserPlus className="h-4 w-4" />
             Add New Lead
           </span>
         }>
@@ -86,7 +84,6 @@ function AllLeadsPage() {
         </SectionCard>
       )}
 
-      {/* Leads List */}
       <SectionCard title={`All Leads (${filteredLeads.length})`}>
         <LeadsList leads={filteredLeads} onStatusChange={fetchLeads} />
       </SectionCard>

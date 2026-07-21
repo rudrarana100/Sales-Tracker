@@ -51,31 +51,31 @@ function NotesPanel({ leadId, onNoteAdded }) {
       <div className="flex gap-2">
         <textarea
           rows={2}
-          className="min-h-0 flex-1 rounded-md border border-ash bg-canvas-white px-3 py-2 text-sm outline-none transition placeholder:text-fog focus:border-ring focus:ring-1 focus:ring-ring/30"
+          className="min-h-0 flex-1 rounded-lg border bg-background px-3 py-2 text-sm outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring resize-none"
           placeholder="Write a note..."
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
         />
         <Button size="sm" onClick={handleAddNote} className="self-start">
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className="h-4 w-4" />
           Add
         </Button>
       </div>
 
       {notes.length === 0 ? (
-        <p className="text-xs text-fog">No notes yet.</p>
+        <p className="text-sm text-muted-foreground">No notes yet.</p>
       ) : (
         <div className="space-y-2">
           {notes.map((note) => (
-            <div key={note.id} className="flex items-start justify-between rounded-md border border-ash bg-paper-mist px-3 py-2">
+            <div key={note.id} className="flex items-start justify-between rounded-lg border bg-muted/50 px-4 py-3">
               <div>
-                <p className="text-sm text-charcoal">{note.content}</p>
-                <p className="mt-0.5 text-[11px] text-fog">
+                <p className="text-sm text-foreground">{note.content}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   {new Date(note.created_at).toLocaleString()}
                 </p>
               </div>
-              <Button size="icon-xs" variant="ghost" onClick={() => handleDelete(note)} className="text-fog hover:text-red-500 shrink-0">
-                <Trash2 className="h-3 w-3" />
+              <Button size="icon-xs" variant="ghost" onClick={() => handleDelete(note)} className="text-muted-foreground hover:text-destructive shrink-0">
+                <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>
           ))}

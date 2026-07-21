@@ -1,24 +1,34 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Moon, Sun } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function Topbar() {
+  const { theme, toggleTheme } = useTheme();
+
   return (
-    <header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b border-ash bg-canvas-white px-5">
-      <div className="relative w-64">
-        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-fog" />
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-xl px-4 lg:px-6">
+      <div className="relative w-full max-w-xs">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search leads..."
-          className="h-7 rounded-sm border-ash bg-paper-mist pl-8 text-xs shadow-none focus-visible:ring-1"
+          className="h-9 rounded-lg border bg-muted/50 pl-9 text-sm shadow-none focus-visible:ring-1 focus-visible:ring-ring"
         />
       </div>
 
-      <div className="flex items-center gap-3">
-        <button className="flex h-7 w-7 items-center justify-center rounded-md border border-ash text-fog transition hover:bg-paper-mist hover:text-charcoal">
-          <Bell className="h-3.5 w-3.5" />
+      <div className="flex items-center gap-2">
+        <button
+          onClick={toggleTheme}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-150"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
-        <Avatar className="h-7 w-7">
-          <AvatarFallback className="bg-paper-mist text-[11px] font-medium text-charcoal">
+        <button className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-150 relative">
+          <Bell className="h-4 w-4" />
+          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-destructive" />
+        </button>
+        <Avatar className="h-8 w-8 ml-1">
+          <AvatarFallback className="bg-accent text-accent-foreground text-xs font-medium">
             RR
           </AvatarFallback>
         </Avatar>

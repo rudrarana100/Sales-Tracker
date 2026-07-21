@@ -39,7 +39,7 @@ function LeadsPage() {
   }, []);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <Dashboard
         leads={leads}
         followUps={followUps}

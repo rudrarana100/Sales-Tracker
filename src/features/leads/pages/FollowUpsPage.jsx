@@ -25,13 +25,13 @@ import {
 } from "lucide-react";
 
 const statusStyles = {
-  cold: "bg-blue-50 text-blue-600",
-  contacted: "bg-amber-50 text-amber-600",
-  warm: "bg-orange-50 text-orange-600",
-  meeting_booked: "bg-purple-50 text-purple-600",
-  proposal_sent: "bg-indigo-50 text-indigo-600",
-  closed_won: "bg-green-50 text-green-600",
-  closed_lost: "bg-red-50 text-red-600",
+  cold: "bg-accent text-muted-foreground",
+  contacted: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  warm: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  meeting_booked: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+  proposal_sent: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+  closed_won: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  closed_lost: "bg-red-500/10 text-red-600 dark:text-red-400",
 };
 
 function FollowUpsPage() {
@@ -98,7 +98,7 @@ function FollowUpsPage() {
   }
   if (loading)
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-fog">
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
         Loading...
       </div>
     );
@@ -134,14 +134,14 @@ function FollowUpsPage() {
   function renderLeadCard(followUp) {
     const lead = followUp.leads;
     return (
-      <Card key={followUp.id} className="border-ash shadow-none">
-        <CardContent className="p-4">
+      <Card key={followUp.id} className="premium-card">
+        <CardContent className="p-5">
           <div className="flex items-start justify-between">
             <div className="space-y-1.5 min-w-0 flex-1">
-              <h3 className="text-sm font-medium text-charcoal">
+              <h3 className="text-sm font-medium text-foreground">
                 {lead.lead_name}
               </h3>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-fog">
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <User className="h-3 w-3" />
                   {lead.contact_person || "--"}
@@ -160,13 +160,13 @@ function FollowUpsPage() {
                 </span>
               </div>
               <Badge
-                className={`${statusStyles[lead.status] || "bg-paper-mist text-fog"} capitalize rounded-full`}
+                className={`${statusStyles[lead.status] || "bg-accent text-muted-foreground"} capitalize rounded-full`}
               >
                 {lead.status.replace(/_/g, " ")}
               </Badge>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="mt-4 flex flex-wrap gap-1.5">
             <Button
               size="xs"
               variant="outline"
@@ -234,7 +234,7 @@ function FollowUpsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Follow-ups"
         description="Manage your follow-up schedule."
@@ -250,38 +250,38 @@ function FollowUpsPage() {
           {
             label: "Overdue",
             count: overdue.length,
-            border: "border-red-200",
-            text: "text-red-500",
+            accent: "text-red-500",
+            bg: "bg-red-500/10",
           },
           {
             label: "Today",
             count: todayFollowUps.length,
-            border: "border-amber-200",
-            text: "text-amber-500",
+            accent: "text-amber-500",
+            bg: "bg-amber-500/10",
           },
           {
             label: "Tomorrow",
             count: tomorrowFollowUps.length,
-            border: "border-emerald-200",
-            text: "text-emerald-500",
+            accent: "text-emerald-500",
+            bg: "bg-emerald-500/10",
           },
           {
             label: "Upcoming",
             count: upcoming.length,
-            border: "border-blue-200",
-            text: "text-blue-500",
+            accent: "text-blue-500",
+            bg: "bg-blue-500/10",
           },
         ].map((s) => (
           <div
             key={s.label}
-            className={`rounded-xl border ${s.border} bg-canvas-white p-4`}
+            className="premium-card p-5"
           >
             <p
-              className={`text-xs font-medium uppercase tracking-wider ${s.text}`}
+              className={`text-xs font-medium uppercase tracking-wider ${s.accent}`}
             >
               {s.label}
             </p>
-            <h2 className="mt-1 text-2xl font-medium text-charcoal">
+            <h2 className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground">
               {s.count}
             </h2>
           </div>
@@ -289,8 +289,8 @@ function FollowUpsPage() {
       </div>
 
       {followUps.length === 0 ? (
-        <Card className="border-ash shadow-none">
-          <CardContent className="py-10 text-center text-sm text-fog">
+        <Card className="premium-card">
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">
             No follow-ups scheduled.
           </CardContent>
         </Card>
@@ -300,7 +300,7 @@ function FollowUpsPage() {
             <SectionCard
               title={
                 <span className="flex items-center gap-1.5">
-                  <AlertTriangle className="h-3.5 w-3.5 text-red-500" /> Overdue
+                  <AlertTriangle className="h-4 w-4 text-red-500" /> Overdue
                   ({overdue.length})
                 </span>
               }
@@ -312,7 +312,7 @@ function FollowUpsPage() {
             <SectionCard
               title={
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-amber-500" /> Today (
+                  <Calendar className="h-4 w-4 text-amber-500" /> Today (
                   {todayFollowUps.length})
                 </span>
               }
@@ -326,7 +326,7 @@ function FollowUpsPage() {
             <SectionCard
               title={
                 <span className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-emerald-500" /> Tomorrow (
+                  <Clock className="h-4 w-4 text-emerald-500" /> Tomorrow (
                   {tomorrowFollowUps.length})
                 </span>
               }
@@ -340,7 +340,7 @@ function FollowUpsPage() {
             <SectionCard
               title={
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-blue-500" /> Upcoming (
+                  <Calendar className="h-4 w-4 text-blue-500" /> Upcoming (
                   {upcoming.length})
                 </span>
               }

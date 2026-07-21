@@ -114,6 +114,80 @@ export default function FollowUpQueue() {
       console.error(err);
     }
   }
+  function sendWhatsapp() {
+  if (!lead.phone) {
+    alert("No phone number found.");
+    return;
+  }
+
+
+
+  let phone = lead.phone.replace(/\D/g, "");
+
+  if (phone.length === 10) phone = "91" + phone;
+
+  const msg = `Hi ${lead.contact_person || ""},
+
+Great speaking with you today!
+
+As discussed, here's some information about BuiltStack.
+
+We help businesses build modern websites that increase trust and help generate more leads.
+
+Would love to show you a few examples on a quick Google Meet whenever you're free.`;
+
+  window.open(
+    `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
+    "_blank"
+  );
+}
+
+  async function saveMeeting() {
+    try {
+      if (!meetingDate || !meetingTime) {
+        alert("Please select both date and time.");
+        return;
+      }
+      const start = new Date(`${meetingDate}T${meetingTime}`);
+      const end = new Date(start.getTime() + 30 * 60 * 1000);
+      const meetLink = await createGoogleMeet(
+        `Meeting with ${lead.lead_name}`,
+        "BuiltStack Discovery Call",
+        start.toISOString(),
+        end.toISOString(),
+      );
+      await updateLead(lead.id, {
+        status: "meeting_booked",
+        last_outcome: "google_meet_booked",
+        last_contact_date: new Date().toISOString().split("T")[0],
+        meeting_link: meetLink,
+      });
+
+      await addActivity({
+        lead_id: lead.id,
+        activity_type: "meeting",
+        description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
+      });
+      sendMeetingConfirmation(meetLink);
+      await finishCurrentFollowUp();
+      setShowMeetingForm(false);
+      setMeetingDate("");
+      setMeetingTime("");
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function sendMeetingConfirmation(meetLink) {
+    if (!lead.phone) return;
+    let phone = lead.phone.replace(/\D/g, "");
+    if (phone.length === 10) phone = "91" + phone;
+    const msg = `Hi ${lead.contact_person || lead.lead_name},\n\nGreat speaking with you today!\n\nOur Google Meet has been scheduled.\n\n📅 Date: ${new Date(meetingDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}\n🕒 Time: ${meetingTime}\n\nMeeting Link:\n${meetLink}\n\nLooking forward to speaking with you.\n\n- Rudra\nBuiltStack`;
+    window.open(
+      `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
+      "_blank",
+    );
+  }
 
   async function fetchQueue() {
     try {
@@ -145,7 +219,7 @@ export default function FollowUpQueue() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">Loading...</div>
+      <div className="flex h-64 items-center justify-center text-muted-foreground">Loading...</div>
     );
   }
 
@@ -163,10 +237,10 @@ export default function FollowUpQueue() {
           }
         />
 
-        <div className="rounded-xl border border-ash bg-canvas-white p-12 text-center">
-          <h2 className="text-2xl font-semibold">You're all caught up</h2>
+        <div className="premium-card p-12 text-center">
+          <h2 className="text-2xl font-semibold text-foreground">You're all caught up</h2>
 
-          <p className="mt-2 text-fog">No follow-ups scheduled for today.</p>
+          <p className="mt-2 text-muted-foreground">No follow-ups scheduled for today.</p>
         </div>
       </div>
     );
@@ -188,36 +262,36 @@ export default function FollowUpQueue() {
         }
       />
 
-      <div className="rounded-xl border border-ash bg-canvas-white p-8">
-        <p className="text-sm text-fog">
+      <div className="premium-card p-8">
+        <p className="text-sm text-muted-foreground">
           Follow-up {currentIndex + 1} of {queue.length}
         </p>
 
-        <h1 className="mt-2 text-3xl font-semibold text-charcoal">
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
           {lead.lead_name}
         </h1>
 
-        <p className="mt-2 text-lg text-fog">{followUp.title}</p>
+        <p className="mt-2 text-lg text-muted-foreground">{followUp.title}</p>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <div>
-            <p className="text-xs text-fog">Phone</p>
-            <p className="font-medium">{lead.phone || "--"}</p>
+            <p className="text-xs text-muted-foreground">Phone</p>
+            <p className="font-medium text-foreground">{lead.phone || "--"}</p>
           </div>
 
           <div>
-            <p className="text-xs text-fog">Time</p>
-            <p className="font-medium">{followUp.scheduled_time || "--"}</p>
+            <p className="text-xs text-muted-foreground">Time</p>
+            <p className="font-medium text-foreground">{followUp.scheduled_time || "--"}</p>
           </div>
 
           <div>
-            <p className="text-xs text-fog">Contact Person</p>
-            <p className="font-medium">{lead.contact_person || "--"}</p>
+            <p className="text-xs text-muted-foreground">Contact Person</p>
+            <p className="font-medium text-foreground">{lead.contact_person || "--"}</p>
           </div>
 
           <div>
-            <p className="text-xs text-fog">Date</p>
-            <p className="font-medium">{followUp.scheduled_date}</p>
+            <p className="text-xs text-muted-foreground">Date</p>
+            <p className="font-medium text-foreground">{followUp.scheduled_date}</p>
           </div>
         </div>
 
@@ -275,9 +349,9 @@ export default function FollowUpQueue() {
           </Button>
         </div>
 
-        <Card className="mt-8">
+        <Card className="mt-8 premium-card">
           <CardHeader>
-            <CardTitle>Call Outcome</CardTitle>
+            <CardTitle className="text-sm font-medium">Call Outcome</CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-2">
@@ -309,7 +383,7 @@ export default function FollowUpQueue() {
             </Button>
 
             <Button
-              className="w-full justify-start border-green-200 text-green-700"
+              className="w-full justify-start border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
               variant="outline"
               onClick={() => handleOutcome("interested")}
             >
@@ -329,60 +403,126 @@ export default function FollowUpQueue() {
         </Card>
 
         {showInterestedActions && (
-  <Card className="mt-4 border-green-200">
+          <Card className="mt-5 premium-card border-emerald-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <ThumbsUp className="h-4 w-4" /> Prospect Interested
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-2">
+              <Button
+                className="w-full"
+                onClick={() => {
+  sendWhatsapp();
+  setShowInterestedActions(false);
+  setShowFollowUpModal(true);
+}}
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Send WhatsApp
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setShowInterestedActions(false);
+                  setShowMeetingForm(true);
+                }}
+              >
+                <Video className="mr-2 h-4 w-4" />
+                Book Google Meet
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => {
+                  setShowInterestedActions(false);
+                  setShowFollowUpModal(true);
+                }}
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                Schedule Follow-up
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setShowInterestedActions(false)}
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                Cancel
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {showMeetingForm && (
+  <Card className="mt-5 premium-card">
     <CardHeader>
-      <CardTitle>Prospect Interested</CardTitle>
+      <CardTitle className="flex items-center gap-2 text-sm font-medium">
+        <Video className="h-4 w-4" /> Book Google Meet
+      </CardTitle>
     </CardHeader>
 
-    <CardContent className="space-y-2">
-      <Button
-        className="w-full"
-        onClick={() => {
-          // we'll replace this with sendWhatsapp() next
-        }}
-      >
-        <MessageCircle className="mr-2 h-4 w-4" />
-        Send WhatsApp
-      </Button>
+    <CardContent className="space-y-3">
+      <Input
+        type="date"
+        value={meetingDate}
+        onChange={(e) => setMeetingDate(e.target.value)}
+      />
 
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() => {
-          setShowInterestedActions(false);
-          setShowMeetingForm(true);
-        }}
-      >
-        <Video className="mr-2 h-4 w-4" />
-        Book Google Meet
-      </Button>
+      <Input
+        type="time"
+        value={meetingTime}
+        onChange={(e) => setMeetingTime(e.target.value)}
+      />
 
-      <Button
-        variant="ghost"
-        className="w-full"
-        onClick={() => {
-          setShowInterestedActions(false);
-          setShowFollowUpModal(true);
-        }}
-      >
-        <Calendar className="mr-2 h-4 w-4" />
-        Schedule Follow-up
-      </Button>
+      <div className="flex gap-2">
+        <Button onClick={saveMeeting}>
+          Create Meet
+        </Button>
 
-      <Button
-        variant="ghost"
-        className="w-full"
-        onClick={() => setShowInterestedActions(false)}
-      >
-        <XCircle className="mr-2 h-4 w-4" />
-        Cancel
-      </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setShowMeetingForm(false);
+            setMeetingDate("");
+            setMeetingTime("");
+          }}
+        >
+          Cancel
+        </Button>
+      </div>
     </CardContent>
   </Card>
 )}
 
         <div className="mt-8 flex justify-end"></div>
       </div>
+
+      <ScheduleFollowUpModal
+        open={showFollowUpModal}
+        lead={lead}
+        onClose={() => setShowFollowUpModal(false)}
+        onSaved={async () => {
+          await updateLead(lead.id, {
+            status: "warm",
+            last_outcome: "interested",
+            last_contact_date: new Date().toISOString().split("T")[0],
+          });
+
+          await addActivity({
+            lead_id: lead.id,
+            activity_type: "status_change",
+            description: "Lead marked as Interested",
+          });
+
+          await finishCurrentFollowUp();
+        }}
+      />
     </div>
   );
 }

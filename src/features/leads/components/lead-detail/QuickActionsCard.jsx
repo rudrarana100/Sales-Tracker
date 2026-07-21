@@ -10,26 +10,26 @@ export default function QuickActionsCard({
   };
 
   return (
-    <div className="rounded-xl border border-ash bg-canvas-white p-5">
-      <h2 className="mb-4 text-sm font-medium text-charcoal">Quick Actions</h2>
+    <div className="premium-card p-6">
+      <h2 className="mb-4 text-sm font-medium text-foreground">Quick Actions</h2>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Button variant="outline" size="sm" className="justify-start gap-2" onClick={copyPhone}>
-          <Phone className="h-3.5 w-3.5" /> Copy Phone
+          <Phone className="h-4 w-4" /> Copy Phone
         </Button>
         <Button variant="outline" size="sm" className="justify-start gap-2" onClick={sendWhatsapp}>
-          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+          <MessageCircle className="h-4 w-4" /> WhatsApp
         </Button>
         <Button variant="outline" size="sm" className="justify-start gap-2" onClick={sendEmail}>
-          <Mail className="h-3.5 w-3.5" /> Email
+          <Mail className="h-4 w-4" /> Email
         </Button>
         <Button variant="outline" size="sm" className="justify-start gap-2" onClick={copyWebsite}>
-          <Globe className="h-3.5 w-3.5" /> Copy Website
+          <Globe className="h-4 w-4" /> Copy Website
         </Button>
         <Button variant="outline" size="sm" className="justify-start gap-2" onClick={openMaps}>
-          <MapPin className="h-3.5 w-3.5" /> Maps
+          <MapPin className="h-4 w-4" /> Maps
         </Button>
         <Button size="sm" className="justify-start gap-2" onClick={() => setShowMeetingForm(true)}>
-          <Video className="h-3.5 w-3.5" /> Book Meeting
+          <Video className="h-4 w-4" /> Book Meeting
         </Button>
       </div>
     </div>

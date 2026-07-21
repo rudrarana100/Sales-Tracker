@@ -2,24 +2,24 @@ import { Globe, Mail, MapPin, Phone, User, Briefcase } from "lucide-react";
 
 export default function ContactCard({ lead }) {
   const Item = ({ icon: Icon, label, value, link }) => (
-    <div className="flex items-center gap-3 rounded-md border border-ash px-3 py-2.5">
-      <Icon className="h-4 w-4 shrink-0 text-fog" />
+    <div className="flex items-center gap-3 rounded-lg border bg-card px-4 py-3">
+      <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
       <div className="min-w-0">
-        <p className="text-[11px] uppercase tracking-wider text-fog">{label}</p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
         {link && value ? (
-          <a href={value} target="_blank" rel="noreferrer" className="text-sm font-medium text-electric-blue hover:underline">
+          <a href={value} target="_blank" rel="noreferrer" className="text-sm font-medium text-ring hover:underline">
             Open
           </a>
         ) : (
-          <p className="truncate text-sm font-medium text-charcoal">{value || "--"}</p>
+          <p className="truncate text-sm font-medium text-foreground">{value || "--"}</p>
         )}
       </div>
     </div>
   );
 
   return (
-    <div className="rounded-xl border border-ash bg-canvas-white p-5">
-      <h2 className="mb-4 text-sm font-medium text-charcoal">Contact Information</h2>
+    <div className="premium-card p-6">
+      <h2 className="mb-4 text-sm font-medium text-foreground">Contact Information</h2>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Item icon={User} label="Contact Person" value={lead.contact_person} />
         <Item icon={Phone} label="Phone" value={lead.phone} />

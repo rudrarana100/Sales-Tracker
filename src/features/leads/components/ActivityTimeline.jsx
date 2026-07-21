@@ -40,17 +40,17 @@ function ActivityTimeline({ leadId, refreshTrigger }) {
   return (
     <div className="space-y-3">
       {activities.length === 0 ? (
-        <p className="text-xs text-fog">No activity yet.</p>
+        <p className="text-sm text-muted-foreground">No activity yet.</p>
       ) : (
         activities.map((activity) => (
           <div key={activity.id} className="flex gap-3">
             <div className="flex flex-col items-center">
               <span className="text-sm">{activityIcons[activity.activity_type] || "📌"}</span>
-              <div className="mt-1 w-px flex-1 bg-ash" />
+              <div className="mt-1 w-px flex-1 bg-border" />
             </div>
             <div className="pb-3">
-              <p className="text-sm text-charcoal">{formatDescription(activity)}</p>
-              <p className="text-[11px] text-fog">
+              <p className="text-sm text-foreground">{formatDescription(activity)}</p>
+              <p className="text-xs text-muted-foreground">
                 {new Date(activity.created_at).toLocaleDateString("en-IN", {
                   day: "numeric", month: "short", year: "numeric",
                 })}

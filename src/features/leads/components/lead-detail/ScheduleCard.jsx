@@ -5,21 +5,21 @@ export default function ScheduleCard({
   lead, setShowFollowUpForm, setFollowUpDate, setFollowUpTime, setShowMeetingForm,
 }) {
   return (
-    <div className="rounded-xl border border-ash bg-canvas-white p-5">
-      <h2 className="mb-4 text-sm font-medium text-charcoal">Next Action</h2>
+    <div className="premium-card p-6">
+      <h2 className="mb-4 text-sm font-medium text-foreground">Next Action</h2>
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <CalendarDays size={16} className="text-fog" />
+          <CalendarDays size={16} className="text-muted-foreground" />
           <div>
-            <p className="text-[11px] text-fog">Follow-up Date</p>
-            <p className="text-sm font-medium text-charcoal">{lead.follow_up_date || "--"}</p>
+            <p className="text-xs text-muted-foreground">Follow-up Date</p>
+            <p className="text-sm font-medium text-foreground">{lead.follow_up_date || "--"}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Clock size={16} className="text-fog" />
+          <Clock size={16} className="text-muted-foreground" />
           <div>
-            <p className="text-[11px] text-fog">Follow-up Time</p>
-            <p className="text-sm font-medium text-charcoal">{lead.follow_up_time || "--"}</p>
+            <p className="text-xs text-muted-foreground">Follow-up Time</p>
+            <p className="text-sm font-medium text-foreground">{lead.follow_up_time || "--"}</p>
           </div>
         </div>
         <div className="flex gap-2 pt-2">
@@ -31,7 +31,7 @@ export default function ScheduleCard({
             Schedule Follow-up
           </Button>
           <Button size="sm" onClick={() => setShowMeetingForm(true)}>
-            <Video className="mr-1.5 h-3.5 w-3.5" />
+            <Video className="mr-1.5 h-4 w-4" />
             Book Meeting
           </Button>
         </div>

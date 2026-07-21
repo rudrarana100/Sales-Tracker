@@ -36,19 +36,19 @@ import {
 } from "lucide-react";
 
 const statusBadge = {
-  cold: { label: "Cold", class: "bg-blue-50 text-blue-600" },
-  contacted: { label: "Contacted", class: "bg-amber-50 text-amber-600" },
-  warm: { label: "Warm", class: "bg-orange-50 text-orange-600" },
+  cold: { label: "Cold", class: "bg-accent text-muted-foreground" },
+  contacted: { label: "Contacted", class: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
+  warm: { label: "Warm", class: "bg-orange-500/10 text-orange-600 dark:text-orange-400" },
   meeting_booked: {
     label: "Meeting Booked",
-    class: "bg-purple-50 text-purple-600",
+    class: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
   },
   proposal_sent: {
     label: "Proposal Sent",
-    class: "bg-indigo-50 text-indigo-600",
+    class: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
   },
-  closed_won: { label: "Closed Won", class: "bg-green-50 text-green-600" },
-  closed_lost: { label: "Closed Lost", class: "bg-red-50 text-red-600" },
+  closed_won: { label: "Closed Won", class: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
+  closed_lost: { label: "Closed Lost", class: "bg-red-500/10 text-red-600 dark:text-red-400" },
 };
 
 function CallSessionPage() {
@@ -303,22 +303,22 @@ function CallSessionPage() {
 
   if (loading)
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-fog">
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
         Loading...
       </div>
     );
 
   if (coldLeads.length === 0) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         <PageHeader title="Call Session" />
-        <Card className="border-ash shadow-none">
-          <CardContent className="flex flex-col items-center py-14">
-            <PhoneCall className="mb-3 h-10 w-10 text-green-500" />
-            <h2 className="text-lg font-medium text-charcoal">
+        <Card className="premium-card">
+          <CardContent className="flex flex-col items-center py-16">
+            <PhoneCall className="mb-4 h-12 w-12 text-emerald-500" />
+            <h2 className="text-xl font-semibold text-foreground">
               Session Complete
             </h2>
-            <p className="mt-1 text-sm text-fog">No cold leads remaining.</p>
+            <p className="mt-1 text-sm text-muted-foreground">No cold leads remaining.</p>
           </CardContent>
         </Card>
       </div>
@@ -328,22 +328,22 @@ function CallSessionPage() {
   const si = statusBadge[currentLead.status] || statusBadge.cold;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Call Session"
         description={`Lead ${currentIndex} of ${totalCold}`}
       />
 
-      <Card className="border-ash shadow-none">
-        <CardContent className="p-5">
+      <Card className="premium-card">
+        <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-lg font-medium text-charcoal">
+              <h2 className="text-xl font-semibold text-foreground">
                 {currentLead.lead_name}
               </h2>
-              <div className="mt-1 flex items-center gap-2">
+              <div className="mt-1.5 flex items-center gap-3">
                 <Badge className={`${si.class} rounded-full`}>{si.label}</Badge>
-                <span className="text-xs text-fog">
+                <span className="text-xs text-muted-foreground">
                   Last:{" "}
                   {currentLead.last_contact_date
                     ? new Date(
@@ -356,12 +356,12 @@ function CallSessionPage() {
                 </span>
               </div>
             </div>
-            <span className="rounded-full bg-paper-mist px-2.5 py-0.5 text-xs font-medium text-fog">
+            <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-muted-foreground">
               {currentIndex}/{totalCold}
             </span>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 icon: User,
@@ -386,12 +386,12 @@ function CallSessionPage() {
             ].map((item, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2.5 rounded-md border border-ash px-3 py-2"
+                className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5"
               >
-                <item.icon className="h-3.5 w-3.5 shrink-0 text-fog" />
+                <item.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0">
-                  <p className="text-[11px] text-fog">{item.label}</p>
-                  <p className="truncate text-sm font-medium text-charcoal">
+                  <p className="text-xs text-muted-foreground">{item.label}</p>
+                  <p className="truncate text-sm font-medium text-foreground">
                     {item.value || "--"}
                   </p>
                 </div>
@@ -399,7 +399,7 @@ function CallSessionPage() {
             ))}
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-1.5">
+          <div className="mt-5 flex flex-wrap gap-1.5">
             {[
               {
                 icon: Globe,
@@ -451,7 +451,7 @@ function CallSessionPage() {
                 className="gap-1.5"
                 onClick={btn.onClick}
               >
-                <btn.icon className="h-3.5 w-3.5" />
+                <btn.icon className="h-4 w-4" />
                 {btn.label}
               </Button>
             ))}
@@ -459,31 +459,31 @@ function CallSessionPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          <Card className="border-ash shadow-none">
-            <CardHeader className="border-b border-ash px-4 py-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="space-y-5 lg:col-span-2">
+          <Card className="premium-card">
+            <CardHeader className="border-b px-5 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Clock className="h-4 w-4" /> Previous Interaction
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 gap-3">
+            <CardContent className="p-5">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-fog">Status</p>
+                  <p className="text-xs text-muted-foreground">Status</p>
                   <Badge className={`mt-0.5 ${si.class} rounded-full`}>
                     {si.label}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-xs text-fog">Last Outcome</p>
-                  <p className="mt-0.5 text-sm font-medium capitalize text-charcoal">
+                  <p className="text-xs text-muted-foreground">Last Outcome</p>
+                  <p className="mt-0.5 text-sm font-medium capitalize text-foreground">
                     {currentLead.last_outcome?.replace(/_/g, " ") || "--"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-fog">Last Contact</p>
-                  <p className="mt-0.5 text-sm text-charcoal">
+                  <p className="text-xs text-muted-foreground">Last Contact</p>
+                  <p className="mt-0.5 text-sm text-foreground">
                     {currentLead.last_contact_date
                       ? new Date(
                           currentLead.last_contact_date,
@@ -496,8 +496,8 @@ function CallSessionPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-fog">Next Follow-up</p>
-                  <p className="mt-0.5 text-sm text-charcoal">
+                  <p className="text-xs text-muted-foreground">Next Follow-up</p>
+                  <p className="mt-0.5 text-sm text-foreground">
                     {currentLead.follow_up_date
                       ? `${new Date(currentLead.follow_up_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} ${currentLead.follow_up_time || ""}`
                       : "--"}
@@ -507,24 +507,24 @@ function CallSessionPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-ash shadow-none">
-            <CardHeader className="border-b border-ash px-4 py-3">
+          <Card className="premium-card">
+            <CardHeader className="border-b px-5 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <FileText className="h-4 w-4" /> Recent Notes
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="p-5">
               {notes.length === 0 ? (
-                <p className="text-sm text-fog">No notes available.</p>
+                <p className="text-sm text-muted-foreground">No notes available.</p>
               ) : (
                 <div className="space-y-2">
                   {notes.map((note) => (
                     <div
                       key={note.id}
-                      className="rounded-md border border-ash bg-paper-mist px-3 py-2"
+                      className="rounded-lg border bg-muted/50 px-4 py-3"
                     >
-                      <p className="text-sm text-charcoal">{note.content}</p>
-                      <p className="mt-0.5 text-xs text-fog">
+                      <p className="text-sm text-foreground">{note.content}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
                         {new Date(note.created_at).toLocaleDateString("en-IN")}
                       </p>
                     </div>
@@ -534,23 +534,23 @@ function CallSessionPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-ash shadow-none">
-            <CardHeader className="border-b border-ash px-4 py-3">
+          <Card className="premium-card">
+            <CardHeader className="border-b px-5 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Activity className="h-4 w-4" /> Recent Activity
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="p-5">
               {activities.length === 0 ? (
-                <p className="text-sm text-fog">No activity found.</p>
+                <p className="text-sm text-muted-foreground">No activity found.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {activities.map((a) => (
-                    <div key={a.id} className="flex items-start gap-2.5">
-                      <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-electric-blue" />
+                    <div key={a.id} className="flex items-start gap-3">
+                      <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-ring" />
                       <div>
-                        <p className="text-sm text-charcoal">{a.description}</p>
-                        <p className="text-xs text-fog">
+                        <p className="text-sm text-foreground">{a.description}</p>
+                        <p className="text-xs text-muted-foreground">
                           {new Date(a.created_at).toLocaleString("en-IN")}
                         </p>
                       </div>
@@ -563,13 +563,13 @@ function CallSessionPage() {
         </div>
 
         <div className="space-y-3">
-          <Card className="border-ash shadow-none">
-            <CardHeader className="border-b border-ash px-4 py-3">
+          <Card className="premium-card">
+            <CardHeader className="border-b px-5 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Phone className="h-4 w-4" /> Call Outcome
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="p-5">
               <div className="space-y-1.5">
                 {[
                   {
@@ -606,8 +606,8 @@ function CallSessionPage() {
                     icon: ThumbsUp,
                     label: "Interested",
                     action: "interested",
-                    color: "text-green-500",
-                    extra: "border-green-200 text-green-700 hover:bg-green-50",
+                    color: "text-emerald-500",
+                    extra: "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10",
                   },
                 ].map((btn) => (
                   <Button
@@ -625,20 +625,20 @@ function CallSessionPage() {
                   className="w-full justify-start gap-2"
                   onClick={skipLead}
                 >
-                  <SkipForward className="h-4 w-4 text-fog" /> Skip Lead
+                  <SkipForward className="h-4 w-4 text-muted-foreground" /> Skip Lead
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {showCallbackForm && (
-            <Card className="border-blue-200 shadow-none">
-              <CardHeader className="border-b border-blue-100 px-4 py-3">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-700">
+            <Card className="premium-card border-blue-500/30">
+              <CardHeader className="border-b px-5 py-4">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400">
                   <Calendar className="h-4 w-4" /> Schedule Callback
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2.5 p-4">
+              <CardContent className="space-y-2.5 p-5">
                 <Input
                   type="date"
                   value={callbackDate}
@@ -656,7 +656,7 @@ function CallSessionPage() {
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={saveCallback} className="flex-1">
-                    <CalendarCheck className="h-3.5 w-3.5" /> Save
+                    <CalendarCheck className="h-4 w-4" /> Save
                   </Button>
                   <Button
                     size="sm"
@@ -671,13 +671,13 @@ function CallSessionPage() {
           )}
 
           {showMeetingForm && (
-            <Card className="border-purple-200 shadow-none">
-              <CardHeader className="border-b border-purple-100 px-4 py-3">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-700">
+            <Card className="premium-card border-purple-500/30">
+              <CardHeader className="border-b px-5 py-4">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-600 dark:text-purple-400">
                   <Video className="h-4 w-4" /> Book Google Meet
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2.5 p-4">
+              <CardContent className="space-y-2.5 p-5">
                 <Input
                   type="date"
                   value={meetingDate}
@@ -690,7 +690,7 @@ function CallSessionPage() {
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={saveMeeting} className="flex-1">
-                    <Video className="h-3.5 w-3.5" /> Confirm
+                    <Video className="h-4 w-4" /> Confirm
                   </Button>
                   <Button
                     size="sm"
@@ -705,13 +705,13 @@ function CallSessionPage() {
           )}
 
           {showInterestedActions && (
-            <Card className="border-green-200 shadow-none">
-              <CardHeader className="border-b border-green-100 px-4 py-3">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-green-700">
+            <Card className="premium-card border-emerald-500/30">
+              <CardHeader className="border-b px-5 py-4">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                   <ThumbsUp className="h-4 w-4" /> Prospect Interested
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-1.5 p-4">
+              <CardContent className="space-y-1.5 p-5">
                 <Button
                   size="sm"
                   className="w-full"
@@ -720,7 +720,7 @@ function CallSessionPage() {
                     markInterested();
                   }}
                 >
-                  <MessageCircle className="h-3.5 w-3.5" /> Send WhatsApp
+                  <MessageCircle className="h-4 w-4" /> Send WhatsApp
                 </Button>
                 <Button
                   size="sm"
@@ -731,7 +731,7 @@ function CallSessionPage() {
                     setShowMeetingForm(true);
                   }}
                 >
-                  <Video className="h-3.5 w-3.5" /> Book Google Meet
+                  <Video className="h-4 w-4" /> Book Google Meet
                 </Button>
                 <Button
                   size="sm"
@@ -739,7 +739,7 @@ function CallSessionPage() {
                   className="w-full"
                   onClick={() => setShowInterestedActions(false)}
                 >
-                  <XCircle className="h-3.5 w-3.5" /> Skip
+                  <XCircle className="h-4 w-4" /> Skip
                 </Button>
               </CardContent>
             </Card>

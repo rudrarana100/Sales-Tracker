@@ -3,6 +3,7 @@ import { createFollowUp, updateFollowUp } from "../../api/followUpsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { addActivity } from "../../api/activitiesApi";
+import { X } from "lucide-react";
 
 function ScheduleFollowUpModal({
   lead,
@@ -80,15 +81,20 @@ async function handleSave() {
 }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold">
-          {followUp ? "Reschedule Follow-up" : "Schedule Follow-up"}
-        </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-modal animate-slide-in">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-semibold text-foreground">
+            {followUp ? "Reschedule Follow-up" : "Schedule Follow-up"}
+          </h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
         <div className="space-y-3">
           <select
-            className="w-full rounded-lg border p-2"
+            className="w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
             value={type}
             onChange={(e) => setType(e.target.value)}
           >
@@ -113,7 +119,7 @@ async function handleSave() {
           />
 
           <select
-            className="w-full rounded-lg border p-2"
+            className="w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
           >
@@ -123,13 +129,13 @@ async function handleSave() {
           </select>
 
           <textarea
-            className="min-h-24 w-full rounded-lg border p-2"
+            className="min-h-24 w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground resize-none"
             placeholder="Notes..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>

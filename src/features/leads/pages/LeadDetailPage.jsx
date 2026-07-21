@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getLeadById, updateLead } from "../api/leadsApi";
+
 import ActivityTimeline from "../components/ActivityTimeline";
 import NotesPanel from "../components/NotesPanel";
 import { addActivity } from "../api/activitiesApi";
@@ -19,6 +20,7 @@ import { Video, Calendar, X, Check } from "lucide-react";
 function LeadDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [lead, setLead] = useState(null);
   const [timelineRefresh, setTimelineRefresh] = useState(0);
   const [showFollowUpForm, setShowFollowUpForm] = useState(false);
   const [followUpDate, setFollowUpDate] = useState("");
@@ -44,20 +46,19 @@ function LeadDetailPage() {
     try {
       await updateLead(lead.id, values);
       if (values.status === "closed_won") {
-  const existingDeal = await getDealByLeadId(lead.id);
-
-  if (!existingDeal) {
-    await createDeal({
-      lead_id: lead.id,
-      deal_name: lead.lead_name,
-      value: 0,
-      close_date: new Date().toISOString().split("T")[0],
-      payment_status: "pending",
-      invoice_status: "not_sent",
-      notes: "",
-    });
-  }
-}
+        const existingDeal = await getDealByLeadId(lead.id);
+        if (!existingDeal) {
+          await createDeal({
+            lead_id: lead.id,
+            deal_name: lead.lead_name,
+            value: 0,
+            close_date: new Date().toISOString().split("T")[0],
+            payment_status: "pending",
+            invoice_status: "not_sent",
+            notes: "",
+          });
+        }
+      }
       if (values.status) {
         const statusLabels = {
           cold: "Cold",
@@ -224,14 +225,14 @@ function LeadDetailPage() {
 
   if (!lead) {
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-fog">
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="mx-auto max-w-3xl space-y-5">
       <LeadHeader
         lead={lead}
         navigate={navigate}
@@ -247,12 +248,11 @@ function LeadDetailPage() {
         setShowMeetingForm={setShowMeetingForm}
       />
 
-      {/* Meeting Form */}
       {showMeetingForm && (
-        <Card className="border-electric-blue/30 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-ash px-4 py-3">
+        <Card className="premium-card border-ring/20">
+          <CardHeader className="flex flex-row items-center justify-between border-b px-5 py-4">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <Video className="h-4 w-4 text-electric-blue" />
+              <Video className="h-4 w-4 text-ring" />
               Book Google Meet
             </CardTitle>
             <Button
@@ -260,10 +260,10 @@ function LeadDetailPage() {
               variant="ghost"
               onClick={() => setShowMeetingForm(false)}
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3 p-4">
+          <CardContent className="space-y-3 p-5">
             <Input
               type="date"
               value={meetingDate}
@@ -276,7 +276,7 @@ function LeadDetailPage() {
             />
             <div className="flex gap-2">
               <Button size="sm" onClick={saveMeeting}>
-                <Check className="h-3.5 w-3.5" />
+                <Check className="h-4 w-4" />
                 Create Meeting
               </Button>
               <Button
@@ -291,10 +291,9 @@ function LeadDetailPage() {
         </Card>
       )}
 
-      {/* Follow-up Form */}
       {showFollowUpForm && (
-        <Card className="border-ash shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-ash px-4 py-3">
+        <Card className="premium-card">
+          <CardHeader className="flex flex-row items-center justify-between border-b px-5 py-4">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Calendar className="h-4 w-4" />
               Schedule Follow-up
@@ -304,10 +303,10 @@ function LeadDetailPage() {
               variant="ghost"
               onClick={() => setShowFollowUpForm(false)}
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3 p-4">
+          <CardContent className="space-y-3 p-5">
             <Input
               type="date"
               value={followUpDate}
@@ -319,7 +318,7 @@ function LeadDetailPage() {
               onChange={(e) => setFollowUpTime(e.target.value)}
             />
             <Button size="sm" onClick={saveFollowUp}>
-              <Check className="h-3.5 w-3.5" />
+              <Check className="h-4 w-4" />
               Save Follow-up
             </Button>
           </CardContent>
@@ -334,7 +333,7 @@ function LeadDetailPage() {
         setShowMeetingForm={setShowMeetingForm}
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <NotesCard
           leadId={lead.id}
           setTimelineRefresh={setTimelineRefresh}

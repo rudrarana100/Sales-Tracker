@@ -21,12 +21,12 @@ import {
 } from "lucide-react";
 
 const columnConfig = [
-  { key: "contacted", label: "Contacted", color: "border-t-blue-400" },
-  { key: "warm", label: "Warm", color: "border-t-amber-400" },
-  { key: "meeting_booked", label: "Meeting", color: "border-t-purple-400" },
-  { key: "proposal_sent", label: "Proposal", color: "border-t-indigo-400" },
-  { key: "closed_won", label: "Won", color: "border-t-green-400" },
-  { key: "closed_lost", label: "Lost", color: "border-t-red-400" },
+  { key: "contacted", label: "Contacted", color: "border-t-blue-500" },
+  { key: "warm", label: "Warm", color: "border-t-amber-500" },
+  { key: "meeting_booked", label: "Meeting", color: "border-t-purple-500" },
+  { key: "proposal_sent", label: "Proposal", color: "border-t-indigo-500" },
+  { key: "closed_won", label: "Won", color: "border-t-emerald-500" },
+  { key: "closed_lost", label: "Lost", color: "border-t-red-500" },
 ];
 
 function PipelinePage() {
@@ -85,15 +85,12 @@ function PipelinePage() {
 
     const previousLeads = [...leads];
 
-    // Find dragged lead
     const movedLead = leads.find((lead) => String(lead.id) === draggableId);
 
     if (!movedLead) return;
 
-    // Everything except dragged lead
     const remaining = leads.filter((lead) => String(lead.id) !== draggableId);
 
-    // Put dragged lead at the beginning
     const updatedLeads = [
       {
         ...movedLead,
@@ -117,7 +114,6 @@ function PipelinePage() {
     } catch (error) {
       console.error(error);
 
-      // Rollback
       setLeads(previousLeads);
     }
   }
@@ -152,36 +148,36 @@ function PipelinePage() {
               ...provided.draggableProps.style,
               transitionDuration: "0.08s",
             }}
-            className="mb-2 rounded-lg border border-ash bg-canvas-white p-3 shadow-subtle transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+            className="mb-2 rounded-lg border bg-card p-4 shadow-card transition-all duration-200 hover:shadow-elevated hover:-translate-y-0.5"
           >
-            <h4 className="mb-2 text-sm font-medium text-charcoal">
+            <h4 className="mb-3 text-sm font-medium text-foreground">
               {lead.lead_name}
             </h4>
-            <div className="space-y-0.5 text-xs text-fog">
-              <p className="flex items-center gap-1">
+            <div className="space-y-1 text-xs text-muted-foreground">
+              <p className="flex items-center gap-1.5">
                 <User className="h-3 w-3" />
                 {lead.contact_person || "--"}
               </p>
-              <p className="flex items-center gap-1">
+              <p className="flex items-center gap-1.5">
                 <Phone className="h-3 w-3" />
                 {lead.phone}
               </p>
-              <p className="flex items-center gap-1">
+              <p className="flex items-center gap-1.5">
                 <Building2 className="h-3 w-3" />
                 {lead.business_type || "--"}
               </p>
-              <p className="flex items-center gap-1">
+              <p className="flex items-center gap-1.5">
                 <Calendar className="h-3 w-3" />
                 {lead.follow_up_date
                   ? new Date(lead.follow_up_date).toLocaleDateString("en-IN")
                   : "No Follow-up"}
               </p>
-              <p className="flex items-center gap-1">
+              <p className="flex items-center gap-1.5">
                 <Clock className="h-3 w-3" />
                 {lead.follow_up_time || "--"}
               </p>
             </div>
-            <hr className="my-2 border-ash" />
+            <hr className="my-3 border" />
             <div className="flex flex-wrap gap-1">
               {[
                 {
@@ -244,49 +240,49 @@ function PipelinePage() {
 
   if (loading)
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-fog">
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
         Loading...
       </div>
     );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Pipeline"
         description="Drag and drop leads to update their status."
       />
 
       <div className="relative max-w-xs">
-        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-fog" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search by lead, contact or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-8 h-8"
+          className="pl-9 h-9 rounded-lg"
         />
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-       <div className="kanban-scroll flex h-[calc(100vh-170px)] gap-3 overflow-x-auto overflow-y-hidden">
+       <div className="kanban-scroll flex h-[calc(100vh-180px)] gap-4 overflow-x-auto overflow-y-hidden pb-2">
           {columnConfig.map(({ key, label, color }) => (
             <Droppable droppableId={key} key={key}>
               {(provided) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`flex w-[280px] min-w-[280px] flex-col rounded-xl border-t-4 bg-paper-mist p-3 ${color}`}
+                  className={`flex w-[280px] min-w-[280px] flex-col rounded-xl border-t-4 bg-muted/50 p-3 ${color}`}
                 >
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-charcoal">
+                  <div className="mb-3 flex items-center justify-between px-1">
+                    <h3 className="text-sm font-medium text-foreground">
                       {label}
                     </h3>
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ash text-[11px] font-medium text-fog">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-xs font-medium text-muted-foreground">
                       {columns[key].length}
                     </span>
                   </div>
                   <div className="column-scroll flex-1 overflow-y-auto space-y-2 pr-1">
                     {columns[key].length === 0 ? (
-                      <div className="rounded-lg border border-dashed border-ash py-6 text-center text-xs text-fog">
+                      <div className="rounded-lg border border-dashed py-8 text-center text-xs text-muted-foreground">
                         No deals
                       </div>
                     ) : (

@@ -20,9 +20,9 @@ function RecentActivity() {
     : activities.slice(0, 3);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {activities.length === 0 ? (
-        <p className="text-xs text-fog">
+        <p className="text-sm text-muted-foreground">
           No recent activity.
         </p>
       ) : (
@@ -30,9 +30,9 @@ function RecentActivity() {
           {displayedActivities.map((activity) => (
             <div
               key={activity.id}
-              className="rounded-lg border border-ash px-4 py-3 transition-colors hover:bg-muted/40"
+              className="rounded-lg border px-4 py-3 transition-colors hover:bg-accent"
             >
-              <p className="text-sm text-charcoal">
+              <p className="text-sm text-foreground">
                 <span className="font-medium">
                   {activity.leads?.lead_name}
                 </span>
@@ -40,7 +40,7 @@ function RecentActivity() {
                 {activity.description}
               </p>
 
-              <p className="mt-1 text-[11px] text-fog">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {new Date(activity.created_at).toLocaleString()}
               </p>
             </div>
@@ -49,7 +49,7 @@ function RecentActivity() {
           {activities.length > 3 && (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-ash py-2 text-sm font-medium text-fog transition hover:bg-muted"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent"
             >
               {expanded ? (
                 <>

@@ -99,7 +99,7 @@ return (
     {rows.length > 0 && (
       <SectionCard title="Import Leads">
         <div className="space-y-3">
-          <div className="rounded-lg border border-ash">
+          <div className="rounded-lg border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -130,13 +130,13 @@ return (
           </div>
 
           {rows.length > 10 && (
-            <p className="text-xs text-fog">
+            <p className="text-xs text-muted-foreground">
               Showing first 10 of {rows.length} leads...
             </p>
           )}
 
           <Button size="sm" onClick={handleImport}>
-            <Download className="h-3.5 w-3.5" />
+            <Download className="h-4 w-4" />
             Import {rows.length} Lead{rows.length !== 1 ? "s" : ""}
           </Button>
         </div>

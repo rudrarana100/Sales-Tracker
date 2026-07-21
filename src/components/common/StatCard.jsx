@@ -2,17 +2,17 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function StatCard({ title, value, icon, accent }) {
   return (
-    <Card className="border-ash shadow-none transition hover:border-smoke">
-      <CardContent className="flex items-center justify-between p-4">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-fog">
+    <Card className="premium-card premium-card-hover">
+      <CardContent className="flex items-center justify-between p-5">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {title}
           </p>
-          <h2 className="mt-1 text-2xl font-medium tracking-tight text-charcoal">
+          <h2 className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground">
             {value}
           </h2>
         </div>
-        <div className={`flex h-8 w-8 items-center justify-center rounded-md ${accent || 'bg-paper-mist text-fog'}`}>
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${accent || 'bg-accent text-muted-foreground'}`}>
           {icon}
         </div>
       </CardContent>
