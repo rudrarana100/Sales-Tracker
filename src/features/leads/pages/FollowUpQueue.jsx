@@ -115,18 +115,16 @@ export default function FollowUpQueue() {
     }
   }
   function sendWhatsapp() {
-  if (!lead.phone) {
-    alert("No phone number found.");
-    return;
-  }
+    if (!lead.phone) {
+      alert("No phone number found.");
+      return;
+    }
 
+    let phone = lead.phone.replace(/\D/g, "");
 
+    if (phone.length === 10) phone = "91" + phone;
 
-  let phone = lead.phone.replace(/\D/g, "");
-
-  if (phone.length === 10) phone = "91" + phone;
-
-  const msg = `Hi ${lead.contact_person || ""},
+    const msg = `Hi ${lead.contact_person || ""},
 
 Great speaking with you today!
 
@@ -136,11 +134,59 @@ We help businesses build modern websites that increase trust and help generate m
 
 Would love to show you a few examples on a quick Google Meet whenever you're free.`;
 
-  window.open(
-    `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
-    "_blank"
-  );
-}
+    window.open(
+      `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
+      "_blank",
+    );
+  }
+
+  const saveCallbackFollowUp = async () => {
+    if (!callbackDate || !callbackTime) {
+      alert("Please select a date and time.");
+      return;
+    }
+
+    const followUpDate = `${callbackDate}T${callbackTime}:00`;
+
+    try {
+      await updateLead(lead.id, {
+        follow_up_date: followUpDate,
+      });
+
+      await createFollowUp({
+        lead_id: lead.id,
+        type: "call",
+        title:
+          callbackReason === "gatekeeper"
+            ? "Gatekeeper Follow-up"
+            : "Callback Requested",
+        notes: callbackNote,
+        scheduled_date: callbackDate,
+        scheduled_time: callbackTime,
+        priority: "medium",
+        status: "pending",
+      });
+
+      await addActivity({
+        lead_id: lead.id,
+        activity_type: "callback",
+        description:
+          callbackReason === "gatekeeper"
+            ? `Gatekeeper Follow-up Scheduled. ${callbackNote}`
+            : `Callback Requested. ${callbackNote}`,
+      });
+
+      setShowCallbackForm(false);
+      setCallbackDate("");
+      setCallbackTime("");
+      setCallbackNote("");
+
+      await finishCurrentFollowUp();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save follow-up.");
+    }
+  };
 
   async function saveMeeting() {
     try {
@@ -219,7 +265,9 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center text-muted-foreground">Loading...</div>
+      <div className="flex h-64 items-center justify-center text-muted-foreground">
+        Loading...
+      </div>
     );
   }
 
@@ -230,7 +278,7 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
           title="Today's Calling Queue"
           description="Focus on one follow-up at a time."
           action={
-            <Button variant="outline" onClick={() => navigate("/followups")}>
+            <Button variant="outline" onClick={() => navigate("/follow-ups")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Exit Queue
             </Button>
@@ -238,9 +286,13 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
         />
 
         <div className="premium-card p-12 text-center">
-          <h2 className="text-2xl font-semibold text-foreground">You're all caught up</h2>
+          <h2 className="text-2xl font-semibold text-foreground">
+            You're all caught up
+          </h2>
 
-          <p className="mt-2 text-muted-foreground">No follow-ups scheduled for today.</p>
+          <p className="mt-2 text-muted-foreground">
+            No follow-ups scheduled for today.
+          </p>
         </div>
       </div>
     );
@@ -255,7 +307,7 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
         title="Today's Calling Queue"
         description="Focus on one follow-up at a time."
         action={
-          <Button variant="outline" onClick={() => navigate("/followups")}>
+          <Button variant="outline" onClick={() => navigate("/follow-ups")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Exit Queue
           </Button>
@@ -281,17 +333,23 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
 
           <div>
             <p className="text-xs text-muted-foreground">Time</p>
-            <p className="font-medium text-foreground">{followUp.scheduled_time || "--"}</p>
+            <p className="font-medium text-foreground">
+              {followUp.scheduled_time || "--"}
+            </p>
           </div>
 
           <div>
             <p className="text-xs text-muted-foreground">Contact Person</p>
-            <p className="font-medium text-foreground">{lead.contact_person || "--"}</p>
+            <p className="font-medium text-foreground">
+              {lead.contact_person || "--"}
+            </p>
           </div>
 
           <div>
             <p className="text-xs text-muted-foreground">Date</p>
-            <p className="font-medium text-foreground">{followUp.scheduled_date}</p>
+            <p className="font-medium text-foreground">
+              {followUp.scheduled_date}
+            </p>
           </div>
         </div>
 
@@ -414,10 +472,10 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
               <Button
                 className="w-full"
                 onClick={() => {
-  sendWhatsapp();
-  setShowInterestedActions(false);
-  setShowFollowUpModal(true);
-}}
+                  sendWhatsapp();
+                  setShowInterestedActions(false);
+                  setShowFollowUpModal(true);
+                }}
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Send WhatsApp
@@ -460,45 +518,92 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
         )}
 
         {showMeetingForm && (
-  <Card className="mt-5 premium-card">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2 text-sm font-medium">
-        <Video className="h-4 w-4" /> Book Google Meet
-      </CardTitle>
-    </CardHeader>
+          <Card className="mt-5 premium-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Video className="h-4 w-4" /> Book Google Meet
+              </CardTitle>
+            </CardHeader>
 
-    <CardContent className="space-y-3">
-      <Input
-        type="date"
-        value={meetingDate}
-        onChange={(e) => setMeetingDate(e.target.value)}
-      />
+            <CardContent className="space-y-3">
+              <Input
+                type="date"
+                value={meetingDate}
+                onChange={(e) => setMeetingDate(e.target.value)}
+              />
 
-      <Input
-        type="time"
-        value={meetingTime}
-        onChange={(e) => setMeetingTime(e.target.value)}
-      />
+              <Input
+                type="time"
+                value={meetingTime}
+                onChange={(e) => setMeetingTime(e.target.value)}
+              />
 
-      <div className="flex gap-2">
-        <Button onClick={saveMeeting}>
-          Create Meet
-        </Button>
+              <div className="flex gap-2">
+                <Button onClick={saveMeeting}>Create Meet</Button>
 
-        <Button
-          variant="outline"
-          onClick={() => {
-            setShowMeetingForm(false);
-            setMeetingDate("");
-            setMeetingTime("");
-          }}
-        >
-          Cancel
-        </Button>
-      </div>
-    </CardContent>
-  </Card>
-)}
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowMeetingForm(false);
+                    setMeetingDate("");
+                    setMeetingTime("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {showCallbackForm && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>
+                {callbackReason === "gatekeeper"
+                  ? "Gatekeeper Follow-up"
+                  : "Callback Requested"}
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              <Input
+                type="date"
+                value={callbackDate}
+                onChange={(e) => setCallbackDate(e.target.value)}
+              />
+
+              <Input
+                type="time"
+                value={callbackTime}
+                onChange={(e) => setCallbackTime(e.target.value)}
+              />
+
+              <textarea
+                className="min-h-24 w-full rounded-lg border p-2"
+                placeholder="Notes..."
+                value={callbackNote}
+                onChange={(e) => setCallbackNote(e.target.value)}
+              />
+
+              <div className="flex gap-2">
+                <Button onClick={saveCallbackFollowUp}>Save Follow-up</Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCallbackForm(false);
+                    setCallbackDate("");
+                    setCallbackTime("");
+                    setCallbackNote("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="mt-8 flex justify-end"></div>
       </div>
