@@ -10,8 +10,8 @@ export default function QuickActionsCard({
   };
 
   return (
-    <div className="premium-card p-6">
-      <h2 className="mb-4 text-sm font-medium text-foreground">Quick Actions</h2>
+    <div className="card-hairline p-6">
+      <h2 className="mb-4 text-sm font-medium text-card-foreground">Quick Actions</h2>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Button variant="outline" size="sm" className="justify-start gap-2" onClick={copyPhone}>
           <Phone className="h-4 w-4" /> Copy Phone

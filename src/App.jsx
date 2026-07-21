@@ -4,21 +4,11 @@ import AllLeadsPage from "./features/leads/pages/AllLeadsPage";
 import LeadDetailPage from "./features/leads/pages/LeadDetailPage";
 import FollowUpsPage from "./features/leads/pages/FollowUpsPage";
 import { Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
-import { testBackend } from "./features/leads/api/backendApi";
 import PipelinePage from "./features/leads/pages/PipelinePage";
 import AppLayout from "./components/layout/AppLayout";
 import FollowUpQueue from "./features/leads/pages/FollowUpQueue";
 
 function App() {
-  useEffect(() => {
-    async function checkBackend() {
-      const data = await testBackend();
-      console.log(data);
-    }
-
-    checkBackend();
-  }, []);
   return (
     <AppLayout>
       <Routes>

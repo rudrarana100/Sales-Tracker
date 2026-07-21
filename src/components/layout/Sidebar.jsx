@@ -21,13 +21,13 @@ const menu = [
 export default function Sidebar({ collapsed, onToggle }) {
   return (
     <aside
-      className={`flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+      className={`flex flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
         collapsed ? "w-[--sidebar-collapsed-width]" : "w-[--sidebar-width]"
       }`}
     >
       <div className="flex h-14 items-center border-b border-sidebar-border px-4">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-xs font-bold">
             S
           </div>
           <div className={`transition-opacity duration-200 ${collapsed ? "opacity-0 invisible w-0" : "opacity-100 visible"}`}>
@@ -47,10 +47,10 @@ export default function Sidebar({ collapsed, onToggle }) {
               end={item.path === "/"}
               className={({ isActive }) =>
                 [
-                  "flex h-9 items-center rounded-lg text-sm font-medium transition-all duration-150",
+                  "flex h-9 items-center rounded-xl text-sm font-medium transition-all duration-150",
                   collapsed ? "justify-center px-0 mx-auto w-9" : "gap-3 px-3",
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
                     : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 ].join(" ")
               }
@@ -70,7 +70,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           to="/settings"
           className={({ isActive }) =>
             [
-              "flex h-9 items-center rounded-lg text-sm font-medium transition-all duration-150",
+              "flex h-9 items-center rounded-xl text-sm font-medium transition-all duration-150",
               collapsed ? "justify-center px-0 mx-auto w-9" : "gap-3 px-3",
               isActive
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"

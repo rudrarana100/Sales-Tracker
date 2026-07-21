@@ -18,6 +18,7 @@ import {
   Building2,
   Calendar,
   Clock,
+  KanbanSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -149,36 +150,36 @@ function PipelinePage() {
               ...provided.draggableProps.style,
               transitionDuration: "0.08s",
             }}
-            className="mb-2 rounded-lg border bg-card p-4 shadow-card transition-all duration-200 hover:shadow-elevated hover:-translate-y-0.5"
+            className="mb-2 rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:shadow-md"
           >
-            <h4 className="mb-3 text-sm font-medium text-foreground">
+            <h4 className="mb-3 text-sm font-medium text-card-foreground">
               {lead.lead_name}
             </h4>
-            <div className="space-y-1 text-xs text-muted-foreground">
+            <div className="space-y-1.5 text-xs text-muted-foreground">
               <p className="flex items-center gap-1.5">
-                <User className="h-3 w-3" />
+                <User className="h-3 w-3 shrink-0" />
                 {lead.contact_person || "--"}
               </p>
               <p className="flex items-center gap-1.5">
-                <Phone className="h-3 w-3" />
+                <Phone className="h-3 w-3 shrink-0" />
                 {lead.phone}
               </p>
               <p className="flex items-center gap-1.5">
-                <Building2 className="h-3 w-3" />
+                <Building2 className="h-3 w-3 shrink-0" />
                 {lead.business_type || "--"}
               </p>
               <p className="flex items-center gap-1.5">
-                <Calendar className="h-3 w-3" />
+                <Calendar className="h-3 w-3 shrink-0" />
                 {lead.follow_up_date
                   ? new Date(lead.follow_up_date).toLocaleDateString("en-IN")
                   : "No Follow-up"}
               </p>
               <p className="flex items-center gap-1.5">
-                <Clock className="h-3 w-3" />
+                <Clock className="h-3 w-3 shrink-0" />
                 {lead.follow_up_time || "--"}
               </p>
             </div>
-            <hr className="my-3 border" />
+            <hr className="my-3 border-border" />
             <div className="flex flex-wrap gap-1">
               {[
                 {
@@ -241,13 +242,14 @@ function PipelinePage() {
 
   if (loading)
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-        Loading...
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
+        <p className="text-sm text-muted-foreground">Loading pipeline...</p>
       </div>
     );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Pipeline"
         description="Drag and drop leads to update their status."
@@ -259,7 +261,7 @@ function PipelinePage() {
           placeholder="Search by lead, contact or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 h-9 rounded-lg"
+          className="pl-9"
         />
       </div>
 
@@ -274,17 +276,18 @@ function PipelinePage() {
                   className={`flex w-[280px] min-w-[280px] flex-col rounded-xl border-t-4 bg-muted/50 p-3 ${color}`}
                 >
                   <div className="mb-3 flex items-center justify-between px-1">
-                    <h3 className="text-sm font-medium text-foreground">
+                    <h3 className="text-sm font-medium text-card-foreground">
                       {label}
                     </h3>
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-xs font-medium text-muted-foreground">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-muted text-xs font-medium text-muted-foreground">
                       {columns[key].length}
                     </span>
                   </div>
                   <div className="column-scroll flex-1 overflow-y-auto space-y-2 pr-1">
                     {columns[key].length === 0 ? (
-                      <div className="rounded-lg border border-dashed py-8 text-center text-xs text-muted-foreground">
-                        No deals
+                      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-8 text-center">
+                        <KanbanSquare className="mb-2 h-6 w-6 text-muted-foreground/30" />
+                        <p className="text-xs text-muted-foreground">No deals</p>
                       </div>
                     ) : (
                       columns[key].map((lead, index) =>

@@ -37,19 +37,13 @@ import {
 import { toast } from "sonner";
 
 const statusBadge = {
-  cold: { label: "Cold", class: "bg-accent text-muted-foreground" },
-  contacted: { label: "Contacted", class: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
-  warm: { label: "Warm", class: "bg-orange-500/10 text-orange-600 dark:text-orange-400" },
-  meeting_booked: {
-    label: "Meeting Booked",
-    class: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  },
-  proposal_sent: {
-    label: "Proposal Sent",
-    class: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-  },
-  closed_won: { label: "Closed Won", class: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
-  closed_lost: { label: "Closed Lost", class: "bg-red-500/10 text-red-600 dark:text-red-400" },
+  cold: { label: "Cold", class: "bg-paper text-fog border border-border" },
+  contacted: { label: "Contacted", class: "bg-paper text-graphite border border-border" },
+  warm: { label: "Warm", class: "bg-paper text-graphite border border-border font-medium" },
+  meeting_booked: { label: "Meeting", class: "bg-obsidian text-snow border border-obsidian" },
+  proposal_sent: { label: "Proposal", class: "bg-obsidian text-snow border border-obsidian" },
+  closed_won: { label: "Won", class: "bg-ember text-snow border border-ember" },
+  closed_lost: { label: "Lost", class: "bg-paper text-fog border border-border line-through" },
 };
 
 function CallSessionPage() {
@@ -304,19 +298,20 @@ function CallSessionPage() {
 
   if (loading)
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-        Loading...
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
+        <p className="text-sm text-muted-foreground">Loading call session...</p>
       </div>
     );
 
   if (coldLeads.length === 0) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="Call Session" />
-        <Card className="premium-card">
+      <div className="space-y-5">
+        <PageHeader title="Call Session" description="All caught up for today." />
+        <Card className="card-hairline">
           <CardContent className="flex flex-col items-center py-16">
-            <PhoneCall className="mb-4 h-12 w-12 text-emerald-500" />
-            <h2 className="text-xl font-semibold text-foreground">
+            <PhoneCall className="mb-4 h-12 w-12 text-muted-foreground/30" />
+            <h2 className="text-xl font-semibold text-card-foreground">
               Session Complete
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">No cold leads remaining.</p>
@@ -329,13 +324,13 @@ function CallSessionPage() {
   const si = statusBadge[currentLead.status] || statusBadge.cold;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Call Session"
         description={`Lead ${currentIndex} of ${totalCold}`}
       />
 
-      <Card className="premium-card">
+      <Card className="card-hairline">
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div>
@@ -462,7 +457,7 @@ function CallSessionPage() {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
-          <Card className="premium-card">
+          <Card className="card-hairline">
             <CardHeader className="border-b px-5 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Clock className="h-4 w-4" /> Previous Interaction
@@ -508,7 +503,7 @@ function CallSessionPage() {
             </CardContent>
           </Card>
 
-          <Card className="premium-card">
+          <Card className="card-hairline">
             <CardHeader className="border-b px-5 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <FileText className="h-4 w-4" /> Recent Notes
@@ -535,7 +530,7 @@ function CallSessionPage() {
             </CardContent>
           </Card>
 
-          <Card className="premium-card">
+          <Card className="card-hairline">
             <CardHeader className="border-b px-5 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Activity className="h-4 w-4" /> Recent Activity
@@ -564,7 +559,7 @@ function CallSessionPage() {
         </div>
 
         <div className="space-y-3">
-          <Card className="premium-card">
+          <Card className="card-hairline">
             <CardHeader className="border-b px-5 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Phone className="h-4 w-4" /> Call Outcome
@@ -573,43 +568,12 @@ function CallSessionPage() {
             <CardContent className="p-5">
               <div className="space-y-1.5">
                 {[
-                  {
-                    icon: PhoneOff,
-                    label: "No Answer",
-                    action: "no_answer",
-                    color: "",
-                  },
-                  {
-                    icon: Ban,
-                    label: "Invalid Number",
-                    action: "invalid_number",
-                    color: "text-red-500",
-                  },
-                  {
-                    icon: Shield,
-                    label: "Gatekeeper",
-                    action: "gatekeeper",
-                    color: "text-amber-500",
-                  },
-                  {
-                    icon: CalendarCheck,
-                    label: "Callback Requested",
-                    action: "callback_requested",
-                    color: "text-blue-500",
-                  },
-                  {
-                    icon: ThumbsDown,
-                    label: "Not Interested",
-                    action: "not_interested",
-                    color: "text-red-500",
-                  },
-                  {
-                    icon: ThumbsUp,
-                    label: "Interested",
-                    action: "interested",
-                    color: "text-emerald-500",
-                    extra: "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10",
-                  },
+                  { icon: PhoneOff, label: "No Answer", action: "no_answer" },
+                  { icon: Ban, label: "Invalid Number", action: "invalid_number" },
+                  { icon: Shield, label: "Gatekeeper", action: "gatekeeper" },
+                  { icon: CalendarCheck, label: "Callback Requested", action: "callback_requested" },
+                  { icon: ThumbsDown, label: "Not Interested", action: "not_interested" },
+                  { icon: ThumbsUp, label: "Interested", action: "interested", extra: "border-obsidian text-obsidian dark:border-snow dark:text-snow" },
                 ].map((btn) => (
                   <Button
                     key={btn.action}
@@ -617,7 +581,7 @@ function CallSessionPage() {
                     className={`w-full justify-start gap-2 ${btn.extra || ""}`}
                     onClick={() => handleOutcome(btn.action)}
                   >
-                    <btn.icon className={`h-4 w-4 ${btn.color}`} />
+                    <btn.icon className="h-4 w-4 text-muted-foreground" />
                     {btn.label}
                   </Button>
                 ))}
@@ -633,9 +597,9 @@ function CallSessionPage() {
           </Card>
 
           {showCallbackForm && (
-            <Card className="premium-card border-blue-500/30">
+            <Card className="card-hairline">
               <CardHeader className="border-b px-5 py-4">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <Calendar className="h-4 w-4" /> Schedule Callback
                 </CardTitle>
               </CardHeader>
@@ -672,9 +636,9 @@ function CallSessionPage() {
           )}
 
           {showMeetingForm && (
-            <Card className="premium-card border-purple-500/30">
+            <Card className="card-hairline">
               <CardHeader className="border-b px-5 py-4">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-600 dark:text-purple-400">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <Video className="h-4 w-4" /> Book Google Meet
                 </CardTitle>
               </CardHeader>
@@ -706,9 +670,9 @@ function CallSessionPage() {
           )}
 
           {showInterestedActions && (
-            <Card className="premium-card border-emerald-500/30">
+            <Card className="card-hairline">
               <CardHeader className="border-b px-5 py-4">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <ThumbsUp className="h-4 w-4" /> Prospect Interested
                 </CardTitle>
               </CardHeader>

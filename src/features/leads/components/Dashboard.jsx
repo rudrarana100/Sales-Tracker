@@ -46,7 +46,7 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Dashboard"
         description="Today's sales activity overview."
@@ -81,7 +81,6 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
           title="Overdue"
           value={overdueCount}
           icon={<Calendar className="h-4 w-4" />}
-          accent="bg-red-500/10 text-red-500"
         />
 
         <StatCard
@@ -92,19 +91,19 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
       </div>
 
       <SectionCard title="Quick Actions">
-        <div className="flex flex-wrap gap-3">
-          <Button variant="outline" onClick={() => navigate("/leads")}>
-            <Users className="mr-2 h-4 w-4" />
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate("/leads")}>
+            <Users className="mr-1.5 h-4 w-4" />
             View All Leads
           </Button>
 
-          <Button onClick={onStartCalling}>
-            <Phone className="mr-2 h-4 w-4" />
+          <Button size="sm" onClick={onStartCalling}>
+            <Phone className="mr-1.5 h-4 w-4" />
             Start Calling
           </Button>
 
-          <Button variant="outline" onClick={onImportClick}>
-            <Upload className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={onImportClick}>
+            <Upload className="mr-1.5 h-4 w-4" />
             Import CSV
           </Button>
         </div>
@@ -114,8 +113,9 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
         <div className="xl:col-span-3">
           <SectionCard title="Today's Follow-ups">
             {todayTasks.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
-                Nothing scheduled today.
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <Calendar className="mb-2 h-8 w-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Nothing scheduled today.</p>
               </div>
             ) : (
               <div className="space-y-1.5">
@@ -125,17 +125,17 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
                   return (
                     <div
                       key={followUp.id}
-                      className="flex items-center justify-between rounded-lg border px-4 py-2.5 transition hover:bg-accent"
+                      className="flex items-center justify-between rounded-xl border border-border px-4 py-3 transition-colors hover:bg-muted/50"
                     >
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {lead.lead_name}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {lead?.lead_name}
                         </p>
 
-                        <p className="text-xs text-muted-foreground">{followUp.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{followUp.title}</p>
                       </div>
 
-                      <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                      <span className="shrink-0 rounded-lg bg-paper border border-border px-2.5 py-0.5 text-xs font-medium text-fog">
                         {followUp.scheduled_time || "--:--"}
                       </span>
                     </div>
@@ -149,8 +149,9 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
         <div className="xl:col-span-2">
           <SectionCard title="Overdue Follow-ups">
             {overdueFollowUps.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
-                You're all caught up.
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <Calendar className="mb-2 h-8 w-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">You're all caught up.</p>
               </div>
             ) : (
               <div className="space-y-1.5">
@@ -160,13 +161,13 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
                   return (
                     <div
                       key={followUp.id}
-                      className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-2.5"
+                      className="rounded-xl border border-border bg-paper px-4 py-3"
                     >
                       <p className="text-sm font-medium text-foreground">
-                        {lead.lead_name}
+                        {lead?.lead_name}
                       </p>
 
-                      <p className="mt-0.5 text-xs text-red-500">
+                      <p className="mt-0.5 text-xs text-fog">
                         {followUp.title} was due on {followUp.scheduled_date}
                       </p>
                     </div>

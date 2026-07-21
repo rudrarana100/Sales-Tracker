@@ -12,6 +12,7 @@ function LeadForm({ onLeadAdded }) {
   const [website, setWebsite] = useState("");
   const [email, setEmail] = useState("");
   const [googleMapsLink, setGoogleMapsLink] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const leadNameRef = useRef(null);
   async function handleSubmit(e) {
@@ -47,6 +48,8 @@ function LeadForm({ onLeadAdded }) {
       return;
     }
 
+    setSubmitting(true);
+
     try {
       const { phoneExists, emailExists } = await leadExists(
         phone.trim(),
@@ -79,15 +82,6 @@ function LeadForm({ onLeadAdded }) {
         status: "cold",
       });
 
-      // Uncomment this after importing addActivity
-      /*
-    await addActivity({
-      lead_id: newLead[0].id,
-      activity_type: "lead_created",
-      description: "Lead created",
-    });
-    */
-
       setLeadName("");
       setPhone("");
       setContactPerson("");
@@ -99,7 +93,7 @@ function LeadForm({ onLeadAdded }) {
       onLeadAdded();
       leadNameRef.current.focus();
 
-      console.log("Lead Added!");
+      toast.success("Lead added!");
     } catch (error) {
       console.error(error);
 
@@ -109,12 +103,14 @@ function LeadForm({ onLeadAdded }) {
       }
 
       toast.error("Something went wrong.");
+    } finally {
+      setSubmitting(false);
     }
   }
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 gap-5 md:grid-cols-2"
+      className="grid grid-cols-1 gap-4 md:grid-cols-2"
     >
       <Input
         ref={leadNameRef}
@@ -171,9 +167,9 @@ function LeadForm({ onLeadAdded }) {
         className="md:col-span-2"
       />
 
-      <div className="md:col-span-2 flex justify-end pt-2">
-        <Button type="submit" className="rounded-xl px-8">
-          Add Lead
+      <div className="md:col-span-2 flex justify-end pt-1">
+        <Button type="submit" disabled={submitting} className="px-8">
+          {submitting ? "Adding..." : "Add Lead"}
         </Button>
       </div>
     </form>

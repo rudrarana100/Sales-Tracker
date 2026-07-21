@@ -5,21 +5,21 @@ export default function ScheduleCard({
   lead, setShowFollowUpForm, setFollowUpDate, setFollowUpTime, setShowMeetingForm,
 }) {
   return (
-    <div className="premium-card p-6">
-      <h2 className="mb-4 text-sm font-medium text-foreground">Next Action</h2>
+    <div className="card-hairline p-6">
+      <h2 className="mb-4 text-sm font-medium text-card-foreground">Next Action</h2>
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <CalendarDays size={16} className="text-muted-foreground" />
+          <CalendarDays size={16} className="text-muted-foreground shrink-0" />
           <div>
             <p className="text-xs text-muted-foreground">Follow-up Date</p>
-            <p className="text-sm font-medium text-foreground">{lead.follow_up_date || "--"}</p>
+            <p className="text-sm font-medium text-card-foreground">{lead.follow_up_date || "--"}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Clock size={16} className="text-muted-foreground" />
+          <Clock size={16} className="text-muted-foreground shrink-0" />
           <div>
             <p className="text-xs text-muted-foreground">Follow-up Time</p>
-            <p className="text-sm font-medium text-foreground">{lead.follow_up_time || "--"}</p>
+            <p className="text-sm font-medium text-card-foreground">{lead.follow_up_time || "--"}</p>
           </div>
         </div>
         <div className="flex gap-2 pt-2">

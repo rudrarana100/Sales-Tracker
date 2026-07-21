@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Upload, Download, FileSpreadsheet } from "lucide-react";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 
 const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
   const [rows, setRows] = useState([]);
@@ -82,7 +82,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
       {rows.length > 0 && (
         <SectionCard title="Import Leads">
           <div className="space-y-3">
-            <div className="rounded-lg border">
+            <div className="rounded-xl border border-border overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>

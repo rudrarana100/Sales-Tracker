@@ -16,7 +16,7 @@ function TableHeader({ className, ...props }) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b border-ash", className)}
+      className={cn("[&_tr]:border-b border-border", className)}
       {...props} />
   );
 }
@@ -34,7 +34,7 @@ function TableFooter({ className, ...props }) {
   return (
     <tfoot
       data-slot="table-footer"
-      className={cn("border-t border-ash bg-paper-mist font-medium [&>tr]:last:border-b-0", className)}
+      className={cn("border-t border-border bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
       {...props} />
   );
 }
@@ -44,7 +44,7 @@ function TableRow({ className, ...props }) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b border-ash transition-colors hover:bg-paper-mist",
+        "border-b border-border transition-colors hover:bg-muted/50",
         className
       )}
       {...props} />
@@ -56,7 +56,7 @@ function TableHead({ className, ...props }) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-9 px-3 text-left align-middle text-xs font-medium uppercase tracking-wider text-fog",
+        "h-10 px-4 text-left align-middle text-xs font-medium uppercase tracking-wider text-muted-foreground",
         className
       )}
       {...props} />
@@ -68,7 +68,7 @@ function TableCell({ className, ...props }) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-3 align-middle text-sm text-charcoal",
+        "p-4 align-middle text-sm text-card-foreground",
         className
       )}
       {...props} />
@@ -79,7 +79,7 @@ function TableCaption({ className, ...props }) {
   return (
     <caption
       data-slot="table-caption"
-      className={cn("mt-3 text-xs text-fog", className)}
+      className={cn("mt-3 text-xs text-muted-foreground", className)}
       {...props} />
   );
 }

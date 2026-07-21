@@ -226,7 +226,11 @@ function LeadDetailPage() {
   }
 
 if (!lead) {
-  return <LeadDetailSkeleton />;
+  return (
+    <div className="mx-auto max-w-3xl">
+      <LeadDetailSkeleton />
+    </div>
+  );
 }
 
   return (
@@ -247,8 +251,8 @@ if (!lead) {
       />
 
       {showMeetingForm && (
-        <Card className="premium-card border-ring/20">
-          <CardHeader className="flex flex-row items-center justify-between border-b px-5 py-4">
+        <Card className="card-hairline border-ring/30">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Video className="h-4 w-4 text-ring" />
               Book Google Meet
@@ -290,8 +294,8 @@ if (!lead) {
       )}
 
       {showFollowUpForm && (
-        <Card className="premium-card">
-          <CardHeader className="flex flex-row items-center justify-between border-b px-5 py-4">
+        <Card className="card-hairline">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Calendar className="h-4 w-4" />
               Schedule Follow-up

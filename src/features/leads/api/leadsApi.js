@@ -16,16 +16,11 @@ export async function createLead(lead) {
     .insert([lead])
     .select();
 
-  console.log("Insert data:", data);
-  console.log("Insert error:", error);
-
   if (error) throw error;
 
   return data;
 }
 export async function updateLead(id, updates) {
-  console.log("updateLead received id:", id);
-
   const { data, error } = await supabase
     .from("leads")
     .update(updates)

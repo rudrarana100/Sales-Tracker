@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getFollowUps, completeFollowUp } from "../api/followUpsApi";
 import { addActivity } from "../api/activitiesApi";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import {
@@ -266,35 +267,38 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center text-muted-foreground">
-        Loading...
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
+        <p className="text-sm text-muted-foreground">Loading queue...</p>
       </div>
     );
   }
 
   if (queue.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <PageHeader
           title="Today's Calling Queue"
           description="Focus on one follow-up at a time."
           action={
-            <Button variant="outline" onClick={() => navigate("/follow-ups")}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
+            <Button variant="outline" size="sm" onClick={() => navigate("/follow-ups")}>
+              <ArrowLeft className="mr-1.5 h-4 w-4" />
               Exit Queue
             </Button>
           }
         />
 
-        <div className="premium-card p-12 text-center">
-          <h2 className="text-2xl font-semibold text-foreground">
-            You're all caught up
-          </h2>
-
-          <p className="mt-2 text-muted-foreground">
-            No follow-ups scheduled for today.
-          </p>
-        </div>
+        <Card className="card-hairline">
+          <CardContent className="flex flex-col items-center py-16">
+            <Calendar className="mb-4 h-12 w-12 text-muted-foreground/30" />
+            <h2 className="text-xl font-semibold text-card-foreground">
+              You're all caught up
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              No follow-ups scheduled for today.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -303,19 +307,19 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
   const lead = followUp.leads;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Today's Calling Queue"
         description="Focus on one follow-up at a time."
         action={
-          <Button variant="outline" onClick={() => navigate("/follow-ups")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={() => navigate("/follow-ups")}>
+            <ArrowLeft className="mr-1.5 h-4 w-4" />
             Exit Queue
           </Button>
         }
       />
 
-      <div className="premium-card p-8">
+      <div className="card-hairline p-8">
         <p className="text-sm text-muted-foreground">
           Follow-up {currentIndex + 1} of {queue.length}
         </p>
@@ -408,7 +412,7 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
           </Button>
         </div>
 
-        <Card className="mt-8 premium-card">
+        <Card className="mt-8 card-hairline">
           <CardHeader>
             <CardTitle className="text-sm font-medium">Call Outcome</CardTitle>
           </CardHeader>
@@ -442,7 +446,7 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
             </Button>
 
             <Button
-              className="w-full justify-start border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+              className="w-full justify-start"
               variant="outline"
               onClick={() => handleOutcome("interested")}
             >
@@ -461,12 +465,12 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
           </CardContent>
         </Card>
 
-        {showInterestedActions && (
-          <Card className="mt-5 premium-card border-emerald-500/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                <ThumbsUp className="h-4 w-4" /> Prospect Interested
-              </CardTitle>
+          {showInterestedActions && (
+            <Card className="mt-5 card-hairline">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                  <ThumbsUp className="h-4 w-4" /> Prospect Interested
+                </CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-2">
@@ -519,7 +523,7 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
         )}
 
         {showMeetingForm && (
-          <Card className="mt-5 premium-card">
+          <Card className="mt-5 card-hairline">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Video className="h-4 w-4" /> Book Google Meet
@@ -580,11 +584,11 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
                 onChange={(e) => setCallbackTime(e.target.value)}
               />
 
-              <textarea
-                className="min-h-24 w-full rounded-lg border p-2"
+              <Textarea
                 placeholder="Notes..."
                 value={callbackNote}
                 onChange={(e) => setCallbackNote(e.target.value)}
+                className="min-h-24 resize-none"
               />
 
               <div className="flex gap-2">

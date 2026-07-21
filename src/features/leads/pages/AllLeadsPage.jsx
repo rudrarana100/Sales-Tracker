@@ -33,7 +33,6 @@ function AllLeadsPage() {
     fetchLeads();
   }, []);
 
-  // Sync URL -> Search Input
   useEffect(() => {
     const query = searchParams.get("search") || "";
     setSearchTerm(query);
@@ -65,7 +64,7 @@ function AllLeadsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Leads"
         description="Manage and organize all your prospects."
@@ -85,12 +84,12 @@ function AllLeadsPage() {
             placeholder="Search leads..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="h-9 rounded-lg pl-9"
+            className="pl-9"
           />
         </div>
 
         <select
-          className="h-9 rounded-lg border bg-background px-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
+          className="h-9 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
