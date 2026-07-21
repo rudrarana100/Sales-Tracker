@@ -3,6 +3,17 @@ import { addNote, getNotes, deleteNote } from "../api/notesApi";
 import { addActivity } from "../api/activitiesApi";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 function NotesPanel({ leadId, onNoteAdded }) {
   const [notes, setNotes] = useState([]);
@@ -26,7 +37,11 @@ function NotesPanel({ leadId, onNoteAdded }) {
     if (!newNote.trim()) return;
     try {
       await addNote({ lead_id: leadId, content: newNote.trim() });
-      await addActivity({ lead_id: leadId, activity_type: "note", description: newNote });
+      await addActivity({
+        lead_id: leadId,
+        activity_type: "note",
+        description: newNote,
+      });
       onNoteAdded?.();
       setNewNote("");
       fetchNotes();
@@ -35,16 +50,25 @@ function NotesPanel({ leadId, onNoteAdded }) {
     }
   }
 
-  async function handleDelete(note) {
-    try {
-      await deleteNote(note.id);
-      await addActivity({ lead_id: leadId, activity_type: "note_deleted", description: `Deleted note: "${note.content}"` });
-      fetchNotes();
-      onNoteAdded?.();
-    } catch (error) {
-      console.error(error);
-    }
+async function handleDelete(note) {
+  try {
+    await deleteNote(note.id);
+
+    await addActivity({
+      lead_id: leadId,
+      activity_type: "note_deleted",
+      description: `Deleted note: "${note.content}"`,
+    });
+
+    toast.success("Note deleted");
+
+    fetchNotes();
+    onNoteAdded?.();
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to delete note");
   }
+}
 
   return (
     <div className="space-y-3">
@@ -67,16 +91,47 @@ function NotesPanel({ leadId, onNoteAdded }) {
       ) : (
         <div className="space-y-2">
           {notes.map((note) => (
-            <div key={note.id} className="flex items-start justify-between rounded-lg border bg-muted/50 px-4 py-3">
+            <div
+              key={note.id}
+              className="flex items-start justify-between rounded-lg border bg-muted/50 px-4 py-3"
+            >
               <div>
                 <p className="text-sm text-foreground">{note.content}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {new Date(note.created_at).toLocaleString()}
                 </p>
               </div>
-              <Button size="icon-xs" variant="ghost" onClick={() => handleDelete(note)} className="text-muted-foreground hover:text-destructive shrink-0">
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size="icon-xs"
+                    variant="ghost"
+                    className="text-muted-foreground hover:text-destructive shrink-0"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </AlertDialogTrigger>
+
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Note?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This note will be
+                      permanently deleted.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleDelete(note)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           ))}
         </div>

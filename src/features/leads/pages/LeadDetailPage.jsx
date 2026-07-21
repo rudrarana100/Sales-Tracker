@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, Calendar, X, Check } from "lucide-react";
 import { toast } from "sonner";
+import LeadDetailSkeleton from "@/components/loaders/LeadDetailSkeleton";
 
 function LeadDetailPage() {
   const { id } = useParams();
@@ -224,13 +225,9 @@ function LeadDetailPage() {
     );
   }
 
-  if (!lead) {
-    return (
-      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-        Loading...
-      </div>
-    );
-  }
+if (!lead) {
+  return <LeadDetailSkeleton />;
+}
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">

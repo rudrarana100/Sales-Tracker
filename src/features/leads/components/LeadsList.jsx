@@ -13,16 +13,31 @@ const statusStyles = {
   closed_lost: "bg-red-500/10 text-red-600 dark:text-red-400",
 };
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 function LeadsList({ leads, onStatusChange }) {
   const navigate = useNavigate();
 
   async function handleDelete(lead) {
     try {
-      if (!window.confirm(`Are you sure you want to delete "${lead.lead_name}"`)) return;
       await deleteLead(lead.id);
+
+      toast.success("Lead deleted successfully");
+
       await onStatusChange();
     } catch (error) {
       console.error(error);
+      toast.error("Failed to delete lead");
     }
   }
 
@@ -30,7 +45,9 @@ function LeadsList({ leads, onStatusChange }) {
     return (
       <div className="rounded-lg border border-dashed py-12 text-center">
         <p className="text-sm font-medium text-foreground">No Leads Found</p>
-        <p className="mt-1 text-xs text-muted-foreground">Try changing your search or filter.</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Try changing your search or filter.
+        </p>
       </div>
     );
   }
@@ -50,7 +67,9 @@ function LeadsList({ leads, onStatusChange }) {
               >
                 {lead.lead_name}
               </h3>
-              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusStyles[lead.status] || 'bg-accent text-muted-foreground'}`}>
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusStyles[lead.status] || "bg-accent text-muted-foreground"}`}
+              >
                 {lead.status.replace("_", " ")}
               </span>
             </div>
@@ -72,15 +91,39 @@ function LeadsList({ leads, onStatusChange }) {
             >
               <ExternalLink className="h-4 w-4" />
             </Button>
-            <Button
-              size="icon-xs"
-              variant="ghost"
-              onClick={() => handleDelete(lead)}
-              title="Delete"
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="icon-xs"
+                  variant="ghost"
+                  title="Delete"
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Lead?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    the lead and its associated data.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                  <AlertDialogAction
+                    onClick={() => handleDelete(lead)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       ))}
