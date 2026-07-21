@@ -23,6 +23,7 @@ import {
   Calendar,
   AlertTriangle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const statusStyles = {
   cold: "bg-accent text-muted-foreground",
@@ -73,7 +74,7 @@ function FollowUpsPage() {
       await fetchFollowUps();
     } catch (error) {
       console.error(error);
-      alert("Failed to complete follow-up.");
+      toast.error("Failed to complete follow-up.");
     }
   }
   async function handleSkip(followUp) {
@@ -93,7 +94,7 @@ function FollowUpsPage() {
       await fetchFollowUps();
     } catch (error) {
       console.error(error);
-      alert("Failed to skip follow-up.");
+      toast.error("Failed to skip follow-up.");
     }
   }
   if (loading)

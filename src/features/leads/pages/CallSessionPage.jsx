@@ -34,6 +34,7 @@ import {
   FileText,
   XCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const statusBadge = {
   cold: { label: "Cold", class: "bg-accent text-muted-foreground" },
@@ -181,7 +182,7 @@ function CallSessionPage() {
 
   function sendWhatsapp() {
     if (!currentLead.phone) {
-      alert("No phone number found.");
+      toast.warning("No phone number found.");
       return;
     }
     let phone = currentLead.phone.replace(/\D/g, "");
@@ -201,7 +202,7 @@ function CallSessionPage() {
   async function saveCallback() {
     try {
       if (!callbackDate || !callbackTime) {
-        alert("Please select both date and time.");
+        toast.warning("Please select both date and time.");
         return;
       }
       await updateLead(currentLead.id, {
@@ -256,7 +257,7 @@ function CallSessionPage() {
   async function saveMeeting() {
     try {
       if (!meetingDate || !meetingTime) {
-        alert("Please select both date and time.");
+        toast.warning("Please select both date and time.");
         return;
       }
       const start = new Date(`${meetingDate}T${meetingTime}`);
@@ -424,7 +425,7 @@ function CallSessionPage() {
                 label: "Email",
                 onClick: () => {
                   if (!currentLead.email) {
-                    alert("No email found.");
+                    toast.warning("No email found.");
                     return;
                   }
 
@@ -439,7 +440,7 @@ function CallSessionPage() {
                 label: "Copy Phone",
                 onClick: () => {
                   navigator.clipboard.writeText(currentLead.phone);
-                  alert("Phone copied!");
+                  toast.success("Phone copied!");
                 },
               },
               { icon: MessageCircle, label: "WhatsApp", onClick: sendWhatsapp },

@@ -19,6 +19,7 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const columnConfig = [
   { key: "contacted", label: "Contacted", color: "border-t-blue-500" },
@@ -212,7 +213,7 @@ function PipelinePage() {
                   title: "Copy Phone",
                   onClick: () => {
                     navigator.clipboard.writeText(lead.phone);
-                    alert("Phone copied!");
+                    toast.success("Phone copied!");
                   },
                 },
                 {

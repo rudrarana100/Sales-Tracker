@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { createLead, leadExists } from "../api/leadsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 function LeadForm({ onLeadAdded }) {
   const [leadName, setLeadName] = useState("");
@@ -17,32 +18,32 @@ function LeadForm({ onLeadAdded }) {
     e.preventDefault();
 
     if (!leadName.trim()) {
-      alert("Lead name is required.");
+      toast.warning("Lead name is required.");
       return;
     }
 
     if (leadName.trim().length < 2) {
-      alert("Lead name must be at least 2 characters.");
+      toast.warning("Lead name must be at least 2 characters.");
       return;
     }
 
     if (!phone.trim()) {
-      alert("Phone number is required.");
+      toast.warning("Phone number is required.");
       return;
     }
 
     if (!/^\d{10}$/.test(phone)) {
-      alert("Please enter a valid 10-digit phone number.");
+      toast.warning("Please enter a valid 10-digit phone number.");
       return;
     }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert("Please enter a valid email address.");
+      toast.warning("Please enter a valid email address.");
       return;
     }
 
     if (website && !/^(https?:\/\/|www\.)\S+\.\S+$/.test(website)) {
-      alert("Please enter a valid website.");
+      toast.warning("Please enter a valid website.");
       return;
     }
 
@@ -53,17 +54,17 @@ function LeadForm({ onLeadAdded }) {
       );
 
       if (phoneExists && emailExists) {
-        alert("A lead with this phone number and email already exists.");
+        toast.warning("A lead with this phone number and email already exists.");
         return;
       }
 
       if (phoneExists) {
-        alert("Phone number already exists.");
+        toast.warning("Phone number already exists.");
         return;
       }
 
       if (emailExists) {
-        alert("Email already exists.");
+        toast.warning("Email already exists.");
         return;
       }
       const newLead = await createLead({
@@ -103,11 +104,11 @@ function LeadForm({ onLeadAdded }) {
       console.error(error);
 
       if (error.code === "23505") {
-        alert("Duplicate lead detected.");
+        toast.error("Duplicate lead detected.");
         return;
       }
 
-      alert("Something went wrong.");
+      toast.error("Something went wrong.");
     }
   }
   return (

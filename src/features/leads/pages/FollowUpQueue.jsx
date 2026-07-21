@@ -23,6 +23,7 @@ import { updateLead } from "../api/leadsApi";
 import { createFollowUp } from "../api/followUpsApi";
 import { createGoogleMeet } from "@/utils/meetingUtils";
 import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
+import { toast } from "sonner";
 
 export default function FollowUpQueue() {
   const navigate = useNavigate();
@@ -116,7 +117,7 @@ export default function FollowUpQueue() {
   }
   function sendWhatsapp() {
     if (!lead.phone) {
-      alert("No phone number found.");
+      toast.warning("No phone number found.");
       return;
     }
 
@@ -142,7 +143,7 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
 
   const saveCallbackFollowUp = async () => {
     if (!callbackDate || !callbackTime) {
-      alert("Please select a date and time.");
+      toast.warning("Please select a date and time.");
       return;
     }
 
@@ -184,14 +185,14 @@ Would love to show you a few examples on a quick Google Meet whenever you're fre
       await finishCurrentFollowUp();
     } catch (err) {
       console.error(err);
-      alert("Failed to save follow-up.");
+      toast.error("Failed to save follow-up.");
     }
   };
 
   async function saveMeeting() {
     try {
       if (!meetingDate || !meetingTime) {
-        alert("Please select both date and time.");
+        toast.warning("Please select both date and time.");
         return;
       }
       const start = new Date(`${meetingDate}T${meetingTime}`);

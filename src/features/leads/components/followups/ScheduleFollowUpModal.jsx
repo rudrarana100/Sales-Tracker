@@ -40,7 +40,7 @@ function ScheduleFollowUpModal({
 
 async function handleSave() {
   if (!date) {
-    alert("Please select a follow-up date.");
+    toast.warning("Please select a follow-up date.");
     return;
   }
 
@@ -72,7 +72,7 @@ async function handleSave() {
     onClose();
   } catch (error) {
     console.error(error);
-    alert(
+    toast.error(
       followUp
         ? "Failed to update follow-up."
         : "Failed to create follow-up."

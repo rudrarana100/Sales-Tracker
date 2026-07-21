@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, Calendar, X, Check } from "lucide-react";
+import { toast } from "sonner";
 
 function LeadDetailPage() {
   const { id } = useParams();
@@ -118,7 +119,7 @@ function LeadDetailPage() {
   async function saveMeeting() {
     try {
       if (!meetingDate || !meetingTime) {
-        alert("Please select both date and time.");
+        toast.warning("Please select both date and time.");
         return;
       }
       const start = new Date(`${meetingDate}T${meetingTime}`);
@@ -165,13 +166,13 @@ function LeadDetailPage() {
       setShowMeetingForm(false);
     } catch (error) {
       console.error(error);
-      alert("Failed to create meeting.");
+      toast.error("Failed to create meeting.");
     }
   }
 
   function sendMeetingConfirmation(meetLink) {
     if (!lead.phone) {
-      alert("No phone number found.");
+      toast.warning("No phone number found.");
       return;
     }
     let phone = lead.phone.replace(/\D/g, "");
@@ -198,13 +199,13 @@ function LeadDetailPage() {
   function copyPhone() {
     if (!lead.phone) return;
     navigator.clipboard.writeText(lead.phone);
-    alert("Phone copied!");
+    toast.success("Phone copied!");
   }
 
   function copyWebsite() {
     if (!lead.website) return;
     navigator.clipboard.writeText(lead.website);
-    alert("Website copied!");
+    toast.success("Website copied!");
   }
 
   function sendEmail() {
