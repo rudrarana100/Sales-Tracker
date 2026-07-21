@@ -10,6 +10,9 @@ import {
   ArrowRight,
   Upload,
   Users,
+  Clock,
+  AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -44,45 +47,41 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
     );
   const overdueCount = overdueFollowUps.length;
 
-
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Dashboard"
         description="Today's sales activity overview."
         action={
-          <Button size="sm" onClick={onStartCalling}>
+          <Button onClick={onStartCalling}>
+            <Sparkles className="h-4 w-4" />
             Resume Calling
             <ArrowRight className="h-4 w-4" />
           </Button>
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         <StatCard
           title="Total Leads"
           value={leads.length}
           icon={<Users className="h-4 w-4" />}
         />
-
         <StatCard
-          title="Cold Leads"
+          title="Cold Calls"
           value={coldCallsRemaining}
           icon={<Phone className="h-4 w-4" />}
         />
-
         <StatCard
-          title="Today's Follow-ups"
+          title="Follow-ups Today"
           value={followUpsToday}
           icon={<Calendar className="h-4 w-4" />}
         />
-
         <StatCard
           title="Overdue"
           value={overdueCount}
-          icon={<Calendar className="h-4 w-4" />}
+          icon={<AlertTriangle className="h-4 w-4" />}
         />
-
         <StatCard
           title="Meetings Today"
           value={meetingsToday}
@@ -92,50 +91,48 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
 
       <SectionCard title="Quick Actions">
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate("/leads")}>
-            <Users className="mr-1.5 h-4 w-4" />
+          <Button variant="outline" onClick={() => navigate("/leads")}>
+            <Users className="h-4 w-4" />
             View All Leads
           </Button>
-
-          <Button size="sm" onClick={onStartCalling}>
-            <Phone className="mr-1.5 h-4 w-4" />
+          <Button onClick={onStartCalling}>
+            <Phone className="h-4 w-4" />
             Start Calling
           </Button>
-
-          <Button variant="outline" size="sm" onClick={onImportClick}>
-            <Upload className="mr-1.5 h-4 w-4" />
+          <Button variant="outline" onClick={onImportClick}>
+            <Upload className="h-4 w-4" />
             Import CSV
           </Button>
         </div>
       </SectionCard>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
         <div className="xl:col-span-3">
           <SectionCard title="Today's Follow-ups">
             {todayTasks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <Calendar className="mb-2 h-8 w-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Nothing scheduled today.</p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                  <Calendar className="h-6 w-6 text-muted-foreground/60" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Nothing scheduled today</p>
+                <p className="mt-1 text-xs text-muted-foreground">You have a clear calendar. Enjoy the quiet.</p>
               </div>
             ) : (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {todayTasks.map((followUp) => {
                   const lead = followUp.leads;
-
                   return (
                     <div
                       key={followUp.id}
-                      className="flex items-center justify-between rounded-xl border border-border px-4 py-3 transition-colors hover:bg-muted/50"
+                      className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-3.5 transition-all duration-200 hover:shadow-subtle hover:bg-muted/30"
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">
                           {lead?.lead_name}
                         </p>
-
-                        <p className="text-xs text-muted-foreground truncate">{followUp.title}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground truncate">{followUp.title}</p>
                       </div>
-
-                      <span className="shrink-0 rounded-lg bg-paper border border-border px-2.5 py-0.5 text-xs font-medium text-fog">
+                      <span className="shrink-0 rounded-xl bg-muted px-3 py-1 text-xs font-medium text-muted-foreground border border-border/50">
                         {followUp.scheduled_time || "--:--"}
                       </span>
                     </div>
@@ -149,26 +146,30 @@ function Dashboard({ leads, followUps, onStartCalling, onImportClick }) {
         <div className="xl:col-span-2">
           <SectionCard title="Overdue Follow-ups">
             {overdueFollowUps.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <Calendar className="mb-2 h-8 w-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">You're all caught up.</p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                  <Clock className="h-6 w-6 text-muted-foreground/60" />
+                </div>
+                <p className="text-sm font-medium text-foreground">You're all caught up</p>
+                <p className="mt-1 text-xs text-muted-foreground">No overdue follow-ups. Great job!</p>
               </div>
             ) : (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {overdueFollowUps.map((followUp) => {
                   const lead = followUp.leads;
-
                   return (
                     <div
                       key={followUp.id}
-                      className="rounded-xl border border-border bg-paper px-4 py-3"
+                      className="rounded-xl border border-border bg-card px-5 py-3.5 transition-all duration-200 hover:shadow-subtle"
                     >
-                      <p className="text-sm font-medium text-foreground">
-                        {lead?.lead_name}
-                      </p>
-
-                      <p className="mt-0.5 text-xs text-fog">
-                        {followUp.title} was due on {followUp.scheduled_date}
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-destructive shrink-0" />
+                        <p className="text-sm font-medium text-foreground">
+                          {lead?.lead_name}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground pl-4">
+                        {followUp.title} &middot; Due {followUp.scheduled_date}
                       </p>
                     </div>
                   );

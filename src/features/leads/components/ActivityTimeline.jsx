@@ -41,7 +41,9 @@ function ActivityTimeline({ leadId, refreshTrigger }) {
   if (activities.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <Calendar className="mb-2 h-6 w-6 text-muted-foreground/40" />
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
+          <Calendar className="h-5 w-5 text-muted-foreground/60" />
+        </div>
         <p className="text-sm text-muted-foreground">No activity yet.</p>
       </div>
     );
@@ -56,8 +58,8 @@ function ActivityTimeline({ leadId, refreshTrigger }) {
         return (
           <div key={activity.id} className="flex gap-3">
             <div className="flex flex-col items-center">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted">
-                <Icon className="h-3 w-3 text-muted-foreground" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted">
+                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
               {!isLast && <div className="mt-1 w-px flex-1 bg-border" />}
             </div>

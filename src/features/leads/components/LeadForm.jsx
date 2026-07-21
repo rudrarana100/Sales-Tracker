@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { createLead, leadExists } from "../api/leadsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 function LeadForm({ onLeadAdded }) {
@@ -15,6 +16,7 @@ function LeadForm({ onLeadAdded }) {
   const [submitting, setSubmitting] = useState(false);
 
   const leadNameRef = useRef(null);
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -70,6 +72,7 @@ function LeadForm({ onLeadAdded }) {
         toast.warning("Email already exists.");
         return;
       }
+
       const newLead = await createLead({
         lead_name: leadName.trim(),
         phone: phone.trim(),
@@ -96,79 +99,89 @@ function LeadForm({ onLeadAdded }) {
       toast.success("Lead added!");
     } catch (error) {
       console.error(error);
-
       if (error.code === "23505") {
         toast.error("Duplicate lead detected.");
         return;
       }
-
       toast.error("Something went wrong.");
     } finally {
       setSubmitting(false);
     }
   }
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="grid grid-cols-1 gap-4 md:grid-cols-2"
-    >
-      <Input
-        ref={leadNameRef}
-        type="text"
-        placeholder="Lead Name *"
-        value={leadName}
-        onChange={(e) => setLeadName(e.target.value)}
-      />
-
-      <Input
-        type="tel"
-        placeholder="Phone Number *"
-        value={phone}
-        onChange={(e) => {
-          const value = e.target.value.replace(/\D/g, "");
-          setPhone(value);
-        }}
-        maxLength={10}
-      />
-
-      <Input
-        type="text"
-        placeholder="Contact Person"
-        value={contactPerson}
-        onChange={(e) => setContactPerson(e.target.value)}
-      />
-
-      <Input
-        type="text"
-        placeholder="Business Type"
-        value={businessType}
-        onChange={(e) => setBusinessType(e.target.value)}
-      />
-
-      <Input
-        type="text"
-        placeholder="Website"
-        value={website}
-        onChange={(e) => setWebsite(e.target.value)}
-      />
-
-      <Input
-        type="text"
-        placeholder="Google Maps Link"
-        value={googleMapsLink}
-        onChange={(e) => setGoogleMapsLink(e.target.value)}
-      />
-
-      <Input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="md:col-span-2"
-      />
-
-      <div className="md:col-span-2 flex justify-end pt-1">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-foreground/80">Lead Name *</label>
+        <Input
+          ref={leadNameRef}
+          type="text"
+          placeholder="e.g. Acme Corp"
+          value={leadName}
+          onChange={(e) => setLeadName(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-foreground/80">Phone Number *</label>
+        <Input
+          type="tel"
+          placeholder="e.g. 9876543210"
+          value={phone}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, "");
+            setPhone(value);
+          }}
+          maxLength={10}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-foreground/80">Contact Person</label>
+        <Input
+          type="text"
+          placeholder="e.g. John Doe"
+          value={contactPerson}
+          onChange={(e) => setContactPerson(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-foreground/80">Business Type</label>
+        <Input
+          type="text"
+          placeholder="e.g. IT Services"
+          value={businessType}
+          onChange={(e) => setBusinessType(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-foreground/80">Website</label>
+        <Input
+          type="text"
+          placeholder="e.g. https://example.com"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-foreground/80">Google Maps Link</label>
+        <Input
+          type="text"
+          placeholder="Paste Google Maps URL"
+          value={googleMapsLink}
+          onChange={(e) => setGoogleMapsLink(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5 md:col-span-2">
+        <label className="text-xs font-medium text-foreground/80">Email</label>
+        <Input
+          type="email"
+          placeholder="e.g. john@acme.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+      <div className="md:col-span-2 flex justify-end pt-2">
         <Button type="submit" disabled={submitting} className="px-8">
+          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {submitting ? "Adding..." : "Add Lead"}
         </Button>
       </div>

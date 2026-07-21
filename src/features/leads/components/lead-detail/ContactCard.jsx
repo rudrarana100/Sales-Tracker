@@ -2,7 +2,7 @@ import { Globe, Mail, MapPin, Phone, User, Briefcase } from "lucide-react";
 
 export default function ContactCard({ lead }) {
   const Item = ({ icon: Icon, label, value, link }) => (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-all duration-200 hover:shadow-subtle">
       <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
@@ -18,7 +18,7 @@ export default function ContactCard({ lead }) {
   );
 
   return (
-    <div className="card-hairline p-6">
+    <div className="card-premium p-6">
       <h2 className="mb-4 text-sm font-medium text-card-foreground">Contact Information</h2>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Item icon={User} label="Contact Person" value={lead.contact_person} />

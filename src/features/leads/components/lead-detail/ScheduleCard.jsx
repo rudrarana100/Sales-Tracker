@@ -5,7 +5,7 @@ export default function ScheduleCard({
   lead, setShowFollowUpForm, setFollowUpDate, setFollowUpTime, setShowMeetingForm,
 }) {
   return (
-    <div className="card-hairline p-6">
+    <div className="card-premium p-6">
       <h2 className="mb-4 text-sm font-medium text-card-foreground">Next Action</h2>
       <div className="space-y-3">
         <div className="flex items-center gap-3">

@@ -33,17 +33,18 @@ import {
   Activity,
   FileText,
   XCircle,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const statusBadge = {
-  cold: { label: "Cold", class: "bg-paper text-fog border border-border" },
-  contacted: { label: "Contacted", class: "bg-paper text-graphite border border-border" },
-  warm: { label: "Warm", class: "bg-paper text-graphite border border-border font-medium" },
-  meeting_booked: { label: "Meeting", class: "bg-obsidian text-snow border border-obsidian" },
-  proposal_sent: { label: "Proposal", class: "bg-obsidian text-snow border border-obsidian" },
-  closed_won: { label: "Won", class: "bg-ember text-snow border border-ember" },
-  closed_lost: { label: "Lost", class: "bg-paper text-fog border border-border line-through" },
+  cold: { label: "Cold", class: "bg-muted text-muted-foreground border border-border/50" },
+  contacted: { label: "Contacted", class: "bg-muted text-foreground border border-border/50" },
+  warm: { label: "Warm", class: "bg-primary text-primary-foreground border-0" },
+  meeting_booked: { label: "Meeting", class: "bg-primary text-primary-foreground border-0" },
+  proposal_sent: { label: "Proposal", class: "bg-primary text-primary-foreground border-0" },
+  closed_won: { label: "Won", class: "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-white border-0" },
+  closed_lost: { label: "Lost", class: "bg-muted text-muted-foreground/60 border border-border/50 line-through" },
 };
 
 function CallSessionPage() {
@@ -62,6 +63,7 @@ function CallSessionPage() {
   const [callbackNote, setCallbackNote] = useState("");
   const [callbackReason, setCallbackReason] = useState("");
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
+  const [saving, setSaving] = useState(false);
   const coldLeads = leads.filter(
     (l) => l.status === "cold" && !skippedLeadIds.includes(l.id),
   );
@@ -135,20 +137,17 @@ function CallSessionPage() {
       }
 
       const config = outcomeConfig[outcome];
-
       const updates = {
         status: config.status,
         last_outcome: outcome,
         last_contact_date: new Date().toISOString().split("T")[0],
       };
 
-
       await updateLead(currentLead.id, updates);
 
       if (outcome === "no_answer") {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-
         await createFollowUp({
           lead_id: currentLead.id,
           type: "call",
@@ -199,6 +198,7 @@ function CallSessionPage() {
         toast.warning("Please select both date and time.");
         return;
       }
+      setSaving(true);
       await updateLead(currentLead.id, {
         status: "contacted",
         last_outcome: "callback_requested",
@@ -206,35 +206,23 @@ function CallSessionPage() {
       });
       await createFollowUp({
         lead_id: currentLead.id,
-
         type: "call",
-
-        title:
-          callbackReason === "gatekeeper" ? "Gatekeeper Follow-up" : "Callback",
-
+        title: callbackReason === "gatekeeper" ? "Gatekeeper Follow-up" : "Callback",
         notes: callbackNote,
-
         scheduled_date: callbackDate,
-
         scheduled_time: callbackTime,
-
         priority: "medium",
-
         status: "pending",
       });
       if (callbackNote.trim()) {
-        await addNote({
-          lead_id: currentLead.id,
-          content: callbackNote.trim(),
-        });
+        await addNote({ lead_id: currentLead.id, content: callbackNote.trim() });
       }
       await addActivity({
         lead_id: currentLead.id,
         activity_type: "callback",
-        description:
-          callbackReason === "gatekeeper"
-            ? `Reached gatekeeper. Callback scheduled for ${callbackDate} at ${callbackTime}`
-            : `Callback scheduled for ${callbackDate} at ${callbackTime}`,
+        description: callbackReason === "gatekeeper"
+          ? `Reached gatekeeper. Callback scheduled for ${callbackDate} at ${callbackTime}`
+          : `Callback scheduled for ${callbackDate} at ${callbackTime}`,
       });
       setSkippedLeadIds((prev) => [...prev, currentLead.id]);
       setShowCallbackForm(false);
@@ -245,6 +233,8 @@ function CallSessionPage() {
       await fetchLeads();
     } catch (error) {
       console.error(error);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -254,6 +244,7 @@ function CallSessionPage() {
         toast.warning("Please select both date and time.");
         return;
       }
+      setSaving(true);
       const start = new Date(`${meetingDate}T${meetingTime}`);
       const end = new Date(start.getTime() + 30 * 60 * 1000);
       const meetLink = await createGoogleMeet(
@@ -268,7 +259,6 @@ function CallSessionPage() {
         last_contact_date: new Date().toISOString().split("T")[0],
         meeting_link: meetLink,
       });
-
       await addActivity({
         lead_id: currentLead.id,
         activity_type: "meeting",
@@ -282,6 +272,8 @@ function CallSessionPage() {
       await fetchLeads();
     } catch (error) {
       console.error(error);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -296,24 +288,32 @@ function CallSessionPage() {
     );
   }
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
-        <p className="text-sm text-muted-foreground">Loading call session...</p>
+      <div className="space-y-6">
+        <PageHeader title="Call Session" description="Sequential cold calling workflow." />
+        <div className="h-48 rounded-2xl bg-muted animate-skeleton-pulse" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="h-40 rounded-2xl bg-muted animate-skeleton-pulse" />
+            <div className="h-40 rounded-2xl bg-muted animate-skeleton-pulse" />
+          </div>
+          <div className="h-64 rounded-2xl bg-muted animate-skeleton-pulse" />
+        </div>
       </div>
     );
+  }
 
   if (coldLeads.length === 0) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         <PageHeader title="Call Session" description="All caught up for today." />
-        <Card className="card-hairline">
+        <Card>
           <CardContent className="flex flex-col items-center py-16">
-            <PhoneCall className="mb-4 h-12 w-12 text-muted-foreground/30" />
-            <h2 className="text-xl font-semibold text-card-foreground">
-              Session Complete
-            </h2>
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+              <PhoneCall className="h-6 w-6 text-muted-foreground/60" />
+            </div>
+            <h2 className="text-xl font-semibold text-card-foreground">Session Complete</h2>
             <p className="mt-1 text-sm text-muted-foreground">No cold leads remaining.</p>
           </CardContent>
         </Card>
@@ -324,13 +324,13 @@ function CallSessionPage() {
   const si = statusBadge[currentLead.status] || statusBadge.cold;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Call Session"
         description={`Lead ${currentIndex} of ${totalCold}`}
       />
 
-      <Card className="card-hairline">
+      <Card>
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div>
@@ -342,48 +342,31 @@ function CallSessionPage() {
                 <span className="text-xs text-muted-foreground">
                   Last:{" "}
                   {currentLead.last_contact_date
-                    ? new Date(
-                        currentLead.last_contact_date,
-                      ).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
+                    ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", {
+                        day: "numeric", month: "short",
                       })
                     : "Never"}
                 </span>
               </div>
             </div>
-            <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-muted-foreground">
+            <span className="rounded-2xl bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
               {currentIndex}/{totalCold}
             </span>
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              {
-                icon: User,
-                label: "Contact",
-                value: currentLead.contact_person,
-              },
+              { icon: User, label: "Contact", value: currentLead.contact_person },
               { icon: Phone, label: "Phone", value: currentLead.phone },
               { icon: Mail, label: "Email", value: currentLead.email },
               { icon: Globe, label: "Website", value: currentLead.website },
-              {
-                icon: MapPin,
-                label: "Business",
-                value: currentLead.business_type,
-              },
-              {
-                icon: Calendar,
-                label: "Follow-up",
-                value: currentLead.follow_up_date
-                  ? `${new Date(currentLead.follow_up_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} ${currentLead.follow_up_time || ""}`
-                  : "--",
+              { icon: MapPin, label: "Business", value: currentLead.business_type },
+              { icon: Calendar, label: "Follow-up", value: currentLead.follow_up_date
+                ? `${new Date(currentLead.follow_up_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} ${currentLead.follow_up_time || ""}`
+                : "--",
               },
             ].map((item, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5"
-              >
+              <div key={i} className="flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 transition-all duration-200 hover:shadow-subtle">
                 <item.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">{item.label}</p>
@@ -397,56 +380,27 @@ function CallSessionPage() {
 
           <div className="mt-5 flex flex-wrap gap-1.5">
             {[
-              {
-                icon: Globe,
-                label: "Website",
-                onClick: () => {
-                  if (!currentLead.website) return;
-                  let u = currentLead.website;
-                  if (!u.startsWith("http")) u = "https://" + u;
-                  window.open(u, "_blank");
-                },
-              },
-              {
-                icon: MapPin,
-                label: "Maps",
-                onClick: () => {
-                  if (!currentLead.google_maps_link) return;
-                  window.open(currentLead.google_maps_link, "_blank");
-                },
-              },
-              {
-                icon: Mail,
-                label: "Email",
-                onClick: () => {
-                  if (!currentLead.email) {
-                    toast.warning("No email found.");
-                    return;
-                  }
-
-                  window.open(
-                    `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentLead.email)}`,
-                    "_blank",
-                  );
-                },
-              },
-              {
-                icon: Copy,
-                label: "Copy Phone",
-                onClick: () => {
-                  navigator.clipboard.writeText(currentLead.phone);
-                  toast.success("Phone copied!");
-                },
-              },
+              { icon: Globe, label: "Website", onClick: () => {
+                if (!currentLead.website) return;
+                let u = currentLead.website;
+                if (!u.startsWith("http")) u = "https://" + u;
+                window.open(u, "_blank");
+              }},
+              { icon: MapPin, label: "Maps", onClick: () => {
+                if (!currentLead.google_maps_link) return;
+                window.open(currentLead.google_maps_link, "_blank");
+              }},
+              { icon: Mail, label: "Email", onClick: () => {
+                if (!currentLead.email) { toast.warning("No email found."); return; }
+                window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentLead.email)}`, "_blank");
+              }},
+              { icon: Copy, label: "Copy Phone", onClick: () => {
+                navigator.clipboard.writeText(currentLead.phone);
+                toast.success("Phone copied!");
+              }},
               { icon: MessageCircle, label: "WhatsApp", onClick: sendWhatsapp },
             ].map((btn, i) => (
-              <Button
-                key={i}
-                size="sm"
-                variant="outline"
-                className="gap-1.5"
-                onClick={btn.onClick}
-              >
+              <Button key={i} size="sm" variant="outline" className="gap-1.5" onClick={btn.onClick}>
                 <btn.icon className="h-4 w-4" />
                 {btn.label}
               </Button>
@@ -455,21 +409,19 @@ function CallSessionPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <div className="space-y-5 lg:col-span-2">
-          <Card className="card-hairline">
-            <CardHeader className="border-b px-5 py-4">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <Card>
+            <CardHeader className="border-b border-border px-6 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Clock className="h-4 w-4" /> Previous Interaction
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-5">
+            <CardContent className="p-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge className={`mt-0.5 ${si.class} rounded-full`}>
-                    {si.label}
-                  </Badge>
+                  <Badge className={`mt-0.5 ${si.class} rounded-full`}>{si.label}</Badge>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Last Outcome</p>
@@ -481,13 +433,7 @@ function CallSessionPage() {
                   <p className="text-xs text-muted-foreground">Last Contact</p>
                   <p className="mt-0.5 text-sm text-foreground">
                     {currentLead.last_contact_date
-                      ? new Date(
-                          currentLead.last_contact_date,
-                        ).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })
+                      ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
                       : "--"}
                   </p>
                 </div>
@@ -503,22 +449,24 @@ function CallSessionPage() {
             </CardContent>
           </Card>
 
-          <Card className="card-hairline">
-            <CardHeader className="border-b px-5 py-4">
+          <Card>
+            <CardHeader className="border-b border-border px-6 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <FileText className="h-4 w-4" /> Recent Notes
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-5">
+            <CardContent className="p-6">
               {notes.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No notes available.</p>
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
+                    <FileText className="h-5 w-5 text-muted-foreground/60" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">No notes available.</p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {notes.map((note) => (
-                    <div
-                      key={note.id}
-                      className="rounded-lg border bg-muted/50 px-4 py-3"
-                    >
+                    <div key={note.id} className="rounded-xl border bg-card px-4 py-3">
                       <p className="text-sm text-foreground">{note.content}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {new Date(note.created_at).toLocaleDateString("en-IN")}
@@ -530,15 +478,20 @@ function CallSessionPage() {
             </CardContent>
           </Card>
 
-          <Card className="card-hairline">
-            <CardHeader className="border-b px-5 py-4">
+          <Card>
+            <CardHeader className="border-b border-border px-6 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Activity className="h-4 w-4" /> Recent Activity
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-5">
+            <CardContent className="p-6">
               {activities.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No activity found.</p>
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
+                    <Activity className="h-5 w-5 text-muted-foreground/60" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">No activity found.</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {activities.map((a) => (
@@ -559,13 +512,13 @@ function CallSessionPage() {
         </div>
 
         <div className="space-y-3">
-          <Card className="card-hairline">
-            <CardHeader className="border-b px-5 py-4">
+          <Card>
+            <CardHeader className="border-b border-border px-6 py-4">
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <Phone className="h-4 w-4" /> Call Outcome
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-5">
+            <CardContent className="p-6">
               <div className="space-y-1.5">
                 {[
                   { icon: PhoneOff, label: "No Answer", action: "no_answer" },
@@ -573,7 +526,7 @@ function CallSessionPage() {
                   { icon: Shield, label: "Gatekeeper", action: "gatekeeper" },
                   { icon: CalendarCheck, label: "Callback Requested", action: "callback_requested" },
                   { icon: ThumbsDown, label: "Not Interested", action: "not_interested" },
-                  { icon: ThumbsUp, label: "Interested", action: "interested", extra: "border-obsidian text-obsidian dark:border-snow dark:text-snow" },
+                  { icon: ThumbsUp, label: "Interested", action: "interested", extra: "border-primary text-primary dark:border-primary dark:text-primary" },
                 ].map((btn) => (
                   <Button
                     key={btn.action}
@@ -585,11 +538,7 @@ function CallSessionPage() {
                     {btn.label}
                   </Button>
                 ))}
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2"
-                  onClick={skipLead}
-                >
+                <Button variant="ghost" className="w-full justify-start gap-2" onClick={skipLead}>
                   <SkipForward className="h-4 w-4 text-muted-foreground" /> Skip Lead
                 </Button>
               </div>
@@ -597,113 +546,63 @@ function CallSessionPage() {
           </Card>
 
           {showCallbackForm && (
-            <Card className="card-hairline">
-              <CardHeader className="border-b px-5 py-4">
+            <Card>
+              <CardHeader className="border-b border-border px-6 py-4">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <Calendar className="h-4 w-4" /> Schedule Callback
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2.5 p-5">
-                <Input
-                  type="date"
-                  value={callbackDate}
-                  onChange={(e) => setCallbackDate(e.target.value)}
-                />
-                <Input
-                  type="time"
-                  value={callbackTime}
-                  onChange={(e) => setCallbackTime(e.target.value)}
-                />
-                <Input
-                  placeholder="Notes"
-                  value={callbackNote}
-                  onChange={(e) => setCallbackNote(e.target.value)}
-                />
+              <CardContent className="space-y-2.5 p-6">
+                <Input type="date" value={callbackDate} onChange={(e) => setCallbackDate(e.target.value)} />
+                <Input type="time" value={callbackTime} onChange={(e) => setCallbackTime(e.target.value)} />
+                <Input placeholder="Notes" value={callbackNote} onChange={(e) => setCallbackNote(e.target.value)} />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={saveCallback} className="flex-1">
-                    <CalendarCheck className="h-4 w-4" /> Save
+                  <Button size="sm" onClick={saveCallback} className="flex-1" disabled={saving}>
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarCheck className="h-4 w-4" />}
+                    {saving ? "Saving..." : "Save"}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setShowCallbackForm(false)}
-                  >
-                    Cancel
-                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setShowCallbackForm(false)}>Cancel</Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
           {showMeetingForm && (
-            <Card className="card-hairline">
-              <CardHeader className="border-b px-5 py-4">
+            <Card>
+              <CardHeader className="border-b border-border px-6 py-4">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <Video className="h-4 w-4" /> Book Google Meet
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2.5 p-5">
-                <Input
-                  type="date"
-                  value={meetingDate}
-                  onChange={(e) => setMeetingDate(e.target.value)}
-                />
-                <Input
-                  type="time"
-                  value={meetingTime}
-                  onChange={(e) => setMeetingTime(e.target.value)}
-                />
+              <CardContent className="space-y-2.5 p-6">
+                <Input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} />
+                <Input type="time" value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={saveMeeting} className="flex-1">
-                    <Video className="h-4 w-4" /> Confirm
+                  <Button size="sm" onClick={saveMeeting} className="flex-1" disabled={saving}>
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                    {saving ? "Creating..." : "Confirm"}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setShowMeetingForm(false)}
-                  >
-                    Cancel
-                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setShowMeetingForm(false)}>Cancel</Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
           {showInterestedActions && (
-            <Card className="card-hairline">
-              <CardHeader className="border-b px-5 py-4">
+            <Card>
+              <CardHeader className="border-b border-border px-6 py-4">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <ThumbsUp className="h-4 w-4" /> Prospect Interested
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-1.5 p-5">
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
-                    sendWhatsapp();
-                    markInterested();
-                  }}
-                >
+              <CardContent className="space-y-1.5 p-6">
+                <Button size="sm" className="w-full" onClick={() => { sendWhatsapp(); markInterested(); }}>
                   <MessageCircle className="h-4 w-4" /> Send WhatsApp
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setShowInterestedActions(false);
-                    setShowMeetingForm(true);
-                  }}
-                >
+                <Button size="sm" variant="outline" className="w-full" onClick={() => { setShowInterestedActions(false); setShowMeetingForm(true); }}>
                   <Video className="h-4 w-4" /> Book Google Meet
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() => setShowInterestedActions(false)}
-                >
+                <Button size="sm" variant="ghost" className="w-full" onClick={() => setShowInterestedActions(false)}>
                   <XCircle className="h-4 w-4" /> Skip
                 </Button>
               </CardContent>
@@ -711,6 +610,7 @@ function CallSessionPage() {
           )}
         </div>
       </div>
+
       <ScheduleFollowUpModal
         open={showFollowUpModal}
         lead={currentLead}
@@ -721,19 +621,13 @@ function CallSessionPage() {
             last_outcome: "interested",
             last_contact_date: new Date().toISOString().split("T")[0],
           });
-
           await addActivity({
             lead_id: currentLead.id,
             activity_type: "status_change",
             description: "Lead marked as Interested",
           });
-
-
           setSkippedLeadIds((prev) => [...prev, currentLead.id]);
-
-
           await fetchLeads();
-
         }}
       />
     </div>

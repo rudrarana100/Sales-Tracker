@@ -11,18 +11,17 @@ function RecentActivity() {
       const data = await getRecentActivities();
       setActivities(data);
     }
-
     load();
   }, []);
 
-  const displayedActivities = expanded
-    ? activities
-    : activities.slice(0, 3);
+  const displayedActivities = expanded ? activities : activities.slice(0, 3);
 
   if (activities.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <Activity className="mb-2 h-6 w-6 text-muted-foreground/40" />
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
+          <Activity className="h-5 w-5 text-muted-foreground/60" />
+        </div>
         <p className="text-sm text-muted-foreground">No recent activity.</p>
       </div>
     );
@@ -33,16 +32,13 @@ function RecentActivity() {
       {displayedActivities.map((activity) => (
         <div
           key={activity.id}
-          className="rounded-xl border border-border px-4 py-3 transition-colors hover:bg-muted/50"
+          className="rounded-2xl border border-border bg-card px-5 py-3.5 transition-all duration-200 hover:shadow-subtle"
         >
           <p className="text-sm text-card-foreground">
-            <span className="font-medium">
-              {activity.leads?.lead_name}
-            </span>
+            <span className="font-medium">{activity.leads?.lead_name}</span>
             {" — "}
             {activity.description}
           </p>
-
           <p className="mt-0.5 text-xs text-muted-foreground">
             {new Date(activity.created_at).toLocaleString()}
           </p>
@@ -52,7 +48,7 @@ function RecentActivity() {
       {activities.length > 3 && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:shadow-subtle"
         >
           {expanded ? (
             <>

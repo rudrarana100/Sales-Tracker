@@ -110,3 +110,24 @@ export async function getFollowUps() {
   return data;
 }
 
+export async function getDealByLeadId(leadId) {
+  const { data, error } = await supabase
+    .from("deals")
+    .select("*")
+    .eq("lead_id", leadId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function createDeal(deal) {
+  const { data, error } = await supabase
+    .from("deals")
+    .insert([deal])
+    .select();
+
+  if (error) throw error;
+  return data;
+}
+

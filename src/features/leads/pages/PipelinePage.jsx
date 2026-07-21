@@ -7,28 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import PageHeader from "@/components/common/PageHeader";
 import {
-  Globe,
-  MapPin,
-  MessageCircle,
-  Copy,
-  ExternalLink,
-  Search,
-  User,
-  Phone,
-  Building2,
-  Calendar,
-  Clock,
-  KanbanSquare,
+  Globe, MapPin, MessageCircle, Copy, ExternalLink, Search,
+  User, Phone, Building2, Calendar, Clock, KanbanSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const columnConfig = [
-  { key: "contacted", label: "Contacted", color: "border-t-blue-500" },
-  { key: "warm", label: "Warm", color: "border-t-amber-500" },
-  { key: "meeting_booked", label: "Meeting", color: "border-t-purple-500" },
-  { key: "proposal_sent", label: "Proposal", color: "border-t-indigo-500" },
-  { key: "closed_won", label: "Won", color: "border-t-emerald-500" },
-  { key: "closed_lost", label: "Lost", color: "border-t-red-500" },
+  { key: "contacted", label: "Contacted", color: "border-t-blue-500/50" },
+  { key: "warm", label: "Warm", color: "border-t-amber-500/50" },
+  { key: "meeting_booked", label: "Meeting", color: "border-t-purple-500/50" },
+  { key: "proposal_sent", label: "Proposal", color: "border-t-indigo-500/50" },
+  { key: "closed_won", label: "Won", color: "border-t-emerald-500/50" },
+  { key: "closed_lost", label: "Lost", color: "border-t-red-500/50" },
 ];
 
 function PipelinePage() {
@@ -37,9 +27,7 @@ function PipelinePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
+  useEffect(() => { fetchLeads(); }, []);
 
   async function fetchLeads() {
     try {
@@ -52,62 +40,25 @@ function PipelinePage() {
     }
   }
 
-  function reorderKanban(leads, draggableId, destinationStatus) {
-    const movedLead = leads.find((lead) => String(lead.id) === draggableId);
-
-    if (!movedLead) return leads;
-
-    const remaining = leads.filter((lead) => String(lead.id) !== draggableId);
-
-    return [
-      {
-        ...movedLead,
-        status: destinationStatus,
-      },
-      ...remaining,
-    ];
-  }
-
   async function handleDragEnd(result) {
     const { source, destination, draggableId } = result;
-
-    if (!destination || source.droppableId === destination.droppableId) {
-      return;
-    }
+    if (!destination || source.droppableId === destination.droppableId) return;
 
     const labels = {
-      cold: "Cold",
-      contacted: "Contacted",
-      warm: "Warm",
-      meeting_booked: "Meeting Booked",
-      proposal_sent: "Proposal Sent",
-      closed_won: "Closed Won",
-      closed_lost: "Closed Lost",
+      cold: "Cold", contacted: "Contacted", warm: "Warm",
+      meeting_booked: "Meeting Booked", proposal_sent: "Proposal Sent",
+      closed_won: "Closed Won", closed_lost: "Closed Lost",
     };
 
     const previousLeads = [...leads];
-
     const movedLead = leads.find((lead) => String(lead.id) === draggableId);
-
     if (!movedLead) return;
-
     const remaining = leads.filter((lead) => String(lead.id) !== draggableId);
-
-    const updatedLeads = [
-      {
-        ...movedLead,
-        status: destination.droppableId,
-      },
-      ...remaining,
-    ];
-
+    const updatedLeads = [{ ...movedLead, status: destination.droppableId }, ...remaining];
     setLeads(updatedLeads);
 
     try {
-      await updateLead(draggableId, {
-        status: destination.droppableId,
-      });
-
+      await updateLead(draggableId, { status: destination.droppableId });
       await addActivity({
         lead_id: draggableId,
         activity_type: "status_change",
@@ -115,7 +66,6 @@ function PipelinePage() {
       });
     } catch (error) {
       console.error(error);
-
       setLeads(previousLeads);
     }
   }
@@ -141,7 +91,7 @@ function PipelinePage() {
   function renderLeadCard(lead, index) {
     return (
       <Draggable draggableId={String(lead.id)} index={index} key={lead.id}>
-        {(provided) => (
+        {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.draggableProps}
@@ -150,9 +100,11 @@ function PipelinePage() {
               ...provided.draggableProps.style,
               transitionDuration: "0.08s",
             }}
-            className="mb-2 rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:shadow-md"
+            className={`mb-2 rounded-2xl border bg-card p-4 transition-all duration-200 ${
+              snapshot.isDragging ? "shadow-lg border-foreground/20 rotate-2" : "border-border shadow-subtle hover:shadow-md"
+            }`}
           >
-            <h4 className="mb-3 text-sm font-medium text-card-foreground">
+            <h4 className="mb-3 text-sm font-semibold text-card-foreground">
               {lead.lead_name}
             </h4>
             <div className="space-y-1.5 text-xs text-muted-foreground">
@@ -182,54 +134,28 @@ function PipelinePage() {
             <hr className="my-3 border-border" />
             <div className="flex flex-wrap gap-1">
               {[
-                {
-                  icon: Globe,
-                  title: "Website",
-                  onClick: () => {
-                    if (!lead.website) return;
-                    let u = lead.website;
-                    if (!u.startsWith("http")) u = "https://" + u;
-                    window.open(u, "_blank");
-                  },
-                },
-                {
-                  icon: MapPin,
-                  title: "Maps",
-                  onClick: () => {
-                    if (!lead.google_maps_link) return;
-                    window.open(lead.google_maps_link, "_blank");
-                  },
-                },
-                {
-                  icon: MessageCircle,
-                  title: "WhatsApp",
-                  onClick: () => {
-                    let p = lead.phone.replace(/\D/g, "");
-                    if (p.length === 10) p = "91" + p;
-                    window.open(`https://wa.me/${p}`, "_blank");
-                  },
-                },
-                {
-                  icon: Copy,
-                  title: "Copy Phone",
-                  onClick: () => {
-                    navigator.clipboard.writeText(lead.phone);
-                    toast.success("Phone copied!");
-                  },
-                },
-                {
-                  icon: ExternalLink,
-                  title: "Open Lead",
-                  onClick: () => navigate(`/leads/${lead.id}`),
-                },
+                { icon: Globe, title: "Website", onClick: () => {
+                  if (!lead.website) return;
+                  let u = lead.website;
+                  if (!u.startsWith("http")) u = "https://" + u;
+                  window.open(u, "_blank");
+                }},
+                { icon: MapPin, title: "Maps", onClick: () => {
+                  if (!lead.google_maps_link) return;
+                  window.open(lead.google_maps_link, "_blank");
+                }},
+                { icon: MessageCircle, title: "WhatsApp", onClick: () => {
+                  let p = lead.phone.replace(/\D/g, "");
+                  if (p.length === 10) p = "91" + p;
+                  window.open(`https://wa.me/${p}`, "_blank");
+                }},
+                { icon: Copy, title: "Copy Phone", onClick: () => {
+                  navigator.clipboard.writeText(lead.phone);
+                  toast.success("Phone copied!");
+                }},
+                { icon: ExternalLink, title: "Open Lead", onClick: () => navigate(`/leads/${lead.id}`) },
               ].map((btn, i) => (
-                <Button
-                  key={i}
-                  size="icon-xs"
-                  variant="outline"
-                  title={btn.title}
-                  onClick={btn.onClick}
-                >
+                <Button key={i} size="icon" variant="outline" title={btn.title} onClick={btn.onClick}>
                   <btn.icon className="h-3 w-3" />
                 </Button>
               ))}
@@ -240,20 +166,22 @@ function PipelinePage() {
     );
   }
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
-        <p className="text-sm text-muted-foreground">Loading pipeline...</p>
+      <div className="space-y-6">
+        <PageHeader title="Pipeline" description="Drag and drop leads to update their status." />
+        <div className="flex gap-4 overflow-x-auto">
+          {[1,2,3,4,5,6].map((i) => (
+            <div key={i} className="w-[280px] min-w-[280px] h-96 rounded-2xl bg-muted animate-skeleton-pulse" />
+          ))}
+        </div>
       </div>
     );
+  }
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        title="Pipeline"
-        description="Drag and drop leads to update their status."
-      />
+    <div className="space-y-6">
+      <PageHeader title="Pipeline" description="Drag and drop leads to update their status." />
 
       <div className="relative max-w-xs">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -261,19 +189,21 @@ function PipelinePage() {
           placeholder="Search by lead, contact or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
+          className="pl-9 rounded-2xl"
         />
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-       <div className="kanban-scroll flex h-[calc(100vh-180px)] gap-4 overflow-x-auto overflow-y-hidden pb-2">
+        <div className="kanban-scroll flex h-[calc(100vh-200px)] gap-4 overflow-x-auto overflow-y-hidden pb-2">
           {columnConfig.map(({ key, label, color }) => (
             <Droppable droppableId={key} key={key}>
-              {(provided) => (
+              {(provided, snapshot) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`flex w-[280px] min-w-[280px] flex-col rounded-xl border-t-4 bg-muted/50 p-3 ${color}`}
+                  className={`flex w-[280px] min-w-[280px] flex-col rounded-2xl border-t-4 bg-muted/50 p-3 transition-all duration-200 ${
+                    snapshot.isDraggingOver ? "bg-accent/50 border-foreground/20" : color
+                  }`}
                 >
                   <div className="mb-3 flex items-center justify-between px-1">
                     <h3 className="text-sm font-medium text-card-foreground">
@@ -285,16 +215,13 @@ function PipelinePage() {
                   </div>
                   <div className="column-scroll flex-1 overflow-y-auto space-y-2 pr-1">
                     {columns[key].length === 0 ? (
-                      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-8 text-center">
+                      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-10 text-center">
                         <KanbanSquare className="mb-2 h-6 w-6 text-muted-foreground/30" />
                         <p className="text-xs text-muted-foreground">No deals</p>
                       </div>
                     ) : (
-                      columns[key].map((lead, index) =>
-                        renderLeadCard(lead, index),
-                      )
+                      columns[key].map((lead, index) => renderLeadCard(lead, index))
                     )}
-
                     {provided.placeholder}
                   </div>
                 </div>

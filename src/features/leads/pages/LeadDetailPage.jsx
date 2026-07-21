@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getLeadById, updateLead } from "../api/leadsApi";
-
+import { getLeadById, updateLead, getDealByLeadId, createDeal } from "../api/leadsApi";
 import ActivityTimeline from "../components/ActivityTimeline";
 import NotesPanel from "../components/NotesPanel";
 import { addActivity } from "../api/activitiesApi";
@@ -15,7 +14,7 @@ import TimelineCard from "../components/lead-detail/TimelineCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Video, Calendar, X, Check } from "lucide-react";
+import { Video, Calendar, X, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import LeadDetailSkeleton from "@/components/loaders/LeadDetailSkeleton";
 
@@ -30,6 +29,7 @@ function LeadDetailPage() {
   const [showMeetingForm, setShowMeetingForm] = useState(false);
   const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchLead();
@@ -85,35 +85,40 @@ function LeadDetailPage() {
   }
 
   async function saveFollowUp() {
+    if (!followUpDate) {
+      toast.warning("Please select a date.");
+      return;
+    }
+    setSaving(true);
     try {
       await updateLead(lead.id, {
         follow_up_date: followUpDate,
         follow_up_time: followUpTime,
       });
       const formattedDate = new Date(followUpDate).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
+        day: "numeric", month: "short", year: "numeric",
       });
-      const formattedTime = new Date(
-        `2000-01-01T${followUpTime}`,
-      ).toLocaleTimeString("en-IN", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
+      const formattedTime = followUpTime
+        ? new Date(`2000-01-01T${followUpTime}`).toLocaleTimeString("en-IN", {
+            hour: "numeric", minute: "2-digit", hour12: true,
+          })
+        : "";
       await addActivity({
         lead_id: lead.id,
         activity_type: "follow_up",
-        description: `Follow-up scheduled for ${formattedDate} at ${formattedTime}`,
+        description: `Follow-up scheduled for ${formattedDate}${formattedTime ? ` at ${formattedTime}` : ""}`,
       });
       await fetchLead();
       setTimelineRefresh((prev) => prev + 1);
       setFollowUpDate("");
       setFollowUpTime("");
       setShowFollowUpForm(false);
+      toast.success("Follow-up saved");
     } catch (error) {
       console.error(error);
+      toast.error("Failed to save follow-up");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -123,6 +128,7 @@ function LeadDetailPage() {
         toast.warning("Please select both date and time.");
         return;
       }
+      setSaving(true);
       const start = new Date(`${meetingDate}T${meetingTime}`);
       const end = new Date(start.getTime() + 30 * 60 * 1000);
       const meetLink = await createGoogleMeet(
@@ -144,16 +150,10 @@ function LeadDetailPage() {
       });
       sendMeetingConfirmation(meetLink);
       const formattedDate = new Date(meetingDate).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
+        day: "numeric", month: "short", year: "numeric",
       });
-      const formattedTime = new Date(
-        `2000-01-01T${meetingTime}`,
-      ).toLocaleTimeString("en-IN", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
+      const formattedTime = new Date(`2000-01-01T${meetingTime}`).toLocaleTimeString("en-IN", {
+        hour: "numeric", minute: "2-digit", hour12: true,
       });
       await addActivity({
         lead_id: lead.id,
@@ -165,9 +165,12 @@ function LeadDetailPage() {
       setMeetingDate("");
       setMeetingTime("");
       setShowMeetingForm(false);
+      toast.success("Meeting created!");
     } catch (error) {
       console.error(error);
       toast.error("Failed to create meeting.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -179,16 +182,10 @@ function LeadDetailPage() {
     let phone = lead.phone.replace(/\D/g, "");
     if (phone.length === 10) phone = "91" + phone;
     const formattedDate = new Date(meetingDate).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
+      day: "numeric", month: "long", year: "numeric",
     });
-    const formattedTime = new Date(
-      `2000-01-01T${meetingTime}`,
-    ).toLocaleTimeString("en-IN", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
+    const formattedTime = new Date(`2000-01-01T${meetingTime}`).toLocaleTimeString("en-IN", {
+      hour: "numeric", minute: "2-digit", hour12: true,
     });
     const message = `Hi ${lead.contact_person || lead.lead_name},\n\nGreat speaking with you!\n\nOur Google Meet has been scheduled.\n\n📅 Date: ${formattedDate}\n🕒 Time: ${formattedTime}\n\nMeeting Link:\n${meetLink}\n\nLooking forward to speaking with you.\n\n- Rudra\nBuiltStack`;
     window.open(
@@ -234,7 +231,7 @@ if (!lead) {
 }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-3xl space-y-6">
       <LeadHeader
         lead={lead}
         navigate={navigate}
@@ -251,21 +248,21 @@ if (!lead) {
       />
 
       {showMeetingForm && (
-        <Card className="card-hairline border-ring/30">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-border">
+        <Card className="border-ring/20">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border px-6 py-4">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Video className="h-4 w-4 text-ring" />
               Book Google Meet
             </CardTitle>
             <Button
-              size="icon-xs"
+              size="icon"
               variant="ghost"
               onClick={() => setShowMeetingForm(false)}
             >
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3 p-5">
+          <CardContent className="space-y-3 p-6">
             <Input
               type="date"
               value={meetingDate}
@@ -277,9 +274,9 @@ if (!lead) {
               onChange={(e) => setMeetingTime(e.target.value)}
             />
             <div className="flex gap-2">
-              <Button size="sm" onClick={saveMeeting}>
-                <Check className="h-4 w-4" />
-                Create Meeting
+              <Button size="sm" onClick={saveMeeting} disabled={saving}>
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                {saving ? "Creating..." : "Create Meeting"}
               </Button>
               <Button
                 size="sm"
@@ -294,21 +291,21 @@ if (!lead) {
       )}
 
       {showFollowUpForm && (
-        <Card className="card-hairline">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-border">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border px-6 py-4">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Calendar className="h-4 w-4" />
               Schedule Follow-up
             </CardTitle>
             <Button
-              size="icon-xs"
+              size="icon"
               variant="ghost"
               onClick={() => setShowFollowUpForm(false)}
             >
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3 p-5">
+          <CardContent className="space-y-3 p-6">
             <Input
               type="date"
               value={followUpDate}
@@ -319,9 +316,9 @@ if (!lead) {
               value={followUpTime}
               onChange={(e) => setFollowUpTime(e.target.value)}
             />
-            <Button size="sm" onClick={saveFollowUp}>
-              <Check className="h-4 w-4" />
-              Save Follow-up
+            <Button size="sm" onClick={saveFollowUp} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              {saving ? "Saving..." : "Save Follow-up"}
             </Button>
           </CardContent>
         </Card>
@@ -335,7 +332,7 @@ if (!lead) {
         setShowMeetingForm={setShowMeetingForm}
       />
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <NotesCard
           leadId={lead.id}
           setTimelineRefresh={setTimelineRefresh}

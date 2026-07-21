@@ -3,18 +3,18 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 const statusStyles = {
-  cold: "bg-paper text-fog border border-border",
-  contacted: "bg-paper text-graphite border border-border",
-  warm: "bg-paper text-graphite border border-border font-medium",
-  meeting_booked: "bg-obsidian text-snow border border-obsidian",
-  proposal_sent: "bg-obsidian text-snow border border-obsidian",
-  closed_won: "bg-ember text-snow border border-ember",
-  closed_lost: "bg-paper text-fog border border-border line-through",
+  cold: "bg-muted text-muted-foreground border border-border/50",
+  contacted: "bg-muted text-foreground border border-border/50",
+  warm: "bg-primary text-primary-foreground border-0",
+  meeting_booked: "bg-primary text-primary-foreground border-0",
+  proposal_sent: "bg-primary text-primary-foreground border-0",
+  closed_won: "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-white border-0",
+  closed_lost: "bg-muted text-muted-foreground/60 border border-border/50 line-through",
 };
 
 export default function LeadHeader({ lead, navigate, handleLeadUpdate }) {
   return (
-    <div className="card-hairline p-6">
+    <div className="card-premium p-6">
       <Button
         variant="ghost"
         size="sm"
@@ -44,7 +44,7 @@ export default function LeadHeader({ lead, navigate, handleLeadUpdate }) {
         <select
           value={lead.status}
           onChange={(e) => handleLeadUpdate({ status: e.target.value })}
-          className="h-8 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
+          className="h-8 rounded-2xl border border-input bg-transparent px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/30"
         >
           <option value="cold">Cold</option>
           <option value="contacted">Contacted</option>
