@@ -180,10 +180,14 @@ function LeadForm({ onLeadAdded }) {
         />
       </div>
       <div className="md:col-span-2 flex justify-end pt-2">
-        <Button type="submit" disabled={submitting} className="px-8">
-          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {submitting ? "Adding..." : "Add Lead"}
-        </Button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+        >
+          {submitting && <Loader2 className="h-4 w-4 animate-spin text-blue-400" />}
+          <span>{submitting ? "Adding..." : "Add Lead"}</span>
+        </button>
       </div>
     </form>
   );

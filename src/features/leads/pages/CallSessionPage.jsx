@@ -3,10 +3,7 @@ import { getLeads, updateLead } from "../api/leadsApi";
 import { addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
 import { getActivities } from "../api/activitiesApi";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import SectionCard from "@/components/common/SectionCard";
 import PageHeader from "@/components/common/PageHeader";
 import { getNotes, addNote } from "../api/notesApi";
 import { createFollowUp } from "../api/followUpsApi";
@@ -32,19 +29,18 @@ import {
   Clock,
   Activity,
   FileText,
-  XCircle,
-  Loader2,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const statusBadge = {
-  cold: { label: "Cold", class: "bg-muted text-muted-foreground border border-border/50" },
-  contacted: { label: "Contacted", class: "bg-muted text-foreground border border-border/50" },
-  warm: { label: "Warm", class: "bg-primary text-primary-foreground border-0" },
-  meeting_booked: { label: "Meeting", class: "bg-primary text-primary-foreground border-0" },
-  proposal_sent: { label: "Proposal", class: "bg-primary text-primary-foreground border-0" },
-  closed_won: { label: "Won", class: "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-white border-0" },
-  closed_lost: { label: "Lost", class: "bg-muted text-muted-foreground/60 border border-border/50 line-through" },
+  cold: { label: "Cold", class: "bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700" },
+  contacted: { label: "Contacted", class: "bg-blue-50 text-blue-700 border border-blue-200/70 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900" },
+  warm: { label: "Warm", class: "bg-amber-50 text-amber-700 border border-amber-200/70 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900" },
+  meeting_booked: { label: "Meeting", class: "bg-purple-50 text-purple-700 border border-purple-200/70 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900" },
+  proposal_sent: { label: "Proposal", class: "bg-indigo-50 text-indigo-700 border border-indigo-200/70 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-900" },
+  closed_won: { label: "Won", class: "bg-emerald-50 text-emerald-700 border border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900" },
+  closed_lost: { label: "Lost", class: "bg-rose-50 text-rose-700 border border-rose-200/70 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 line-through" },
 };
 
 function CallSessionPage() {
@@ -64,6 +60,7 @@ function CallSessionPage() {
   const [callbackReason, setCallbackReason] = useState("");
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [saving, setSaving] = useState(false);
+
   const coldLeads = leads.filter(
     (l) => l.status === "cold" && !skippedLeadIds.includes(l.id),
   );
@@ -98,7 +95,7 @@ function CallSessionPage() {
   }, [currentLead]);
 
   function skipLead() {
-    setSkippedLeadIds((p) => [...p, currentLead.id]);
+    if (currentLead) setSkippedLeadIds((p) => [...p, currentLead.id]);
   }
 
   const outcomeConfig = {
@@ -180,7 +177,7 @@ function CallSessionPage() {
     }
     let phone = currentLead.phone.replace(/\D/g, "");
     if (phone.length === 10) phone = "91" + phone;
-    const msg = `Hi ${currentLead.contact_person || ""},\n    Great speaking with you today!\n\nAs discussed, here's some information about BuiltStack.\n\nWe help businesses build modern websites that increase trust and help generate more leads.\n\nWould love to show you a few examples on a quick Google Meet whenever you're free.`;
+    const msg = `Hi ${currentLead.contact_person || ""},\nGreat speaking with you today!`;
     window.open(
       `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
       "_blank",
@@ -281,24 +278,20 @@ function CallSessionPage() {
     if (!currentLead.phone) return;
     let phone = currentLead.phone.replace(/\D/g, "");
     if (phone.length === 10) phone = "91" + phone;
-    const msg = `Hi ${currentLead.contact_person || currentLead.lead_name},\n\nGreat speaking with you today!\n\nOur Google Meet has been scheduled.\n\n📅 Date: ${new Date(meetingDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}\n🕒 Time: ${meetingTime}\n\nMeeting Link:\n${meetLink}\n\nLooking forward to speaking with you.\n\n- Rudra\nBuiltStack`;
-    window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
-      "_blank",
-    );
+    const msg = `Hi ${currentLead.contact_person || currentLead.lead_name},\n\nOur Google Meet has been scheduled.\n📅 Date: ${meetingDate}\n🕒 Time: ${meetingTime}\nLink: ${meetLink}`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
   }
 
   if (loading) {
     return (
       <div className="space-y-6">
         <PageHeader title="Call Session" description="Sequential cold calling workflow." />
-        <div className="h-48 rounded-2xl bg-muted animate-skeleton-pulse" />
+        <div className="h-48 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <div className="h-40 rounded-2xl bg-muted animate-skeleton-pulse" />
-            <div className="h-40 rounded-2xl bg-muted animate-skeleton-pulse" />
+            <div className="h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
           </div>
-          <div className="h-64 rounded-2xl bg-muted animate-skeleton-pulse" />
+          <div className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
         </div>
       </div>
     );
@@ -308,15 +301,13 @@ function CallSessionPage() {
     return (
       <div className="space-y-6">
         <PageHeader title="Call Session" description="All caught up for today." />
-        <Card>
-          <CardContent className="flex flex-col items-center py-16">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
-              <PhoneCall className="h-6 w-6 text-muted-foreground/60" />
-            </div>
-            <h2 className="text-xl font-semibold text-card-foreground">Session Complete</h2>
-            <p className="mt-1 text-sm text-muted-foreground">No cold leads remaining.</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-12 text-center flex flex-col items-center justify-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400">
+            <PhoneCall className="h-6 w-6 text-blue-500" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Session Complete</h2>
+          <p className="mt-0.5 text-xs text-slate-400">No cold leads remaining to call.</p>
+        </div>
       </div>
     );
   }
@@ -330,283 +321,220 @@ function CallSessionPage() {
         description={`Lead ${currentIndex} of ${totalCold}`}
       />
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">
-                {currentLead.lead_name}
-              </h2>
-              <div className="mt-1.5 flex items-center gap-3">
-                <Badge className={`${si.class} rounded-full`}>{si.label}</Badge>
-                <span className="text-xs text-muted-foreground">
-                  Last:{" "}
-                  {currentLead.last_contact_date
-                    ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", {
-                        day: "numeric", month: "short",
-                      })
-                    : "Never"}
-                </span>
-              </div>
+      {/* Main Active Lead Card */}
+      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] space-y-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+              {currentLead.lead_name}
+            </h2>
+            <div className="mt-1 flex items-center gap-3">
+              <span className={`inline-flex items-center rounded-lg px-2.5 py-0.5 text-[10px] font-bold capitalize ${si.class}`}>
+                {si.label}
+              </span>
+              <span className="text-xs font-semibold text-slate-400">
+                Last Contact: {currentLead.last_contact_date ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Never"}
+              </span>
             </div>
-            <span className="rounded-2xl bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-              {currentIndex}/{totalCold}
-            </span>
           </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { icon: User, label: "Contact", value: currentLead.contact_person },
-              { icon: Phone, label: "Phone", value: currentLead.phone },
-              { icon: Mail, label: "Email", value: currentLead.email },
-              { icon: Globe, label: "Website", value: currentLead.website },
-              { icon: MapPin, label: "Business", value: currentLead.business_type },
-              { icon: Calendar, label: "Follow-up", value: currentLead.follow_up_date
-                ? `${new Date(currentLead.follow_up_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} ${currentLead.follow_up_time || ""}`
-                : "--",
-              },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 transition-all duration-200 hover:shadow-subtle">
-                <item.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">{item.label}</p>
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {item.value || "--"}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-1.5">
-            {[
-              { icon: Globe, label: "Website", onClick: () => {
-                if (!currentLead.website) return;
-                let u = currentLead.website;
-                if (!u.startsWith("http")) u = "https://" + u;
-                window.open(u, "_blank");
-              }},
-              { icon: MapPin, label: "Maps", onClick: () => {
-                if (!currentLead.google_maps_link) return;
-                window.open(currentLead.google_maps_link, "_blank");
-              }},
-              { icon: Mail, label: "Email", onClick: () => {
-                if (!currentLead.email) { toast.warning("No email found."); return; }
-                window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentLead.email)}`, "_blank");
-              }},
-              { icon: Copy, label: "Copy Phone", onClick: () => {
-                navigator.clipboard.writeText(currentLead.phone);
-                toast.success("Phone copied!");
-              }},
-              { icon: MessageCircle, label: "WhatsApp", onClick: sendWhatsapp },
-            ].map((btn, i) => (
-              <Button key={i} size="sm" variant="outline" className="gap-1.5" onClick={btn.onClick}>
-                <btn.icon className="h-4 w-4" />
-                {btn.label}
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <Card>
-            <CardHeader className="border-b border-border px-6 py-4">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                <Clock className="h-4 w-4" /> Previous Interaction
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge className={`mt-0.5 ${si.class} rounded-full`}>{si.label}</Badge>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Last Outcome</p>
-                  <p className="mt-0.5 text-sm font-medium capitalize text-foreground">
-                    {currentLead.last_outcome?.replace(/_/g, " ") || "--"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Last Contact</p>
-                  <p className="mt-0.5 text-sm text-foreground">
-                    {currentLead.last_contact_date
-                      ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-                      : "--"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Next Follow-up</p>
-                  <p className="mt-0.5 text-sm text-foreground">
-                    {currentLead.follow_up_date
-                      ? `${new Date(currentLead.follow_up_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} ${currentLead.follow_up_time || ""}`
-                      : "--"}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="border-b border-border px-6 py-4">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                <FileText className="h-4 w-4" /> Recent Notes
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              {notes.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
-                    <FileText className="h-5 w-5 text-muted-foreground/60" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">No notes available.</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {notes.map((note) => (
-                    <div key={note.id} className="rounded-xl border bg-card px-4 py-3">
-                      <p className="text-sm text-foreground">{note.content}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {new Date(note.created_at).toLocaleDateString("en-IN")}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="border-b border-border px-6 py-4">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                <Activity className="h-4 w-4" /> Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              {activities.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
-                    <Activity className="h-5 w-5 text-muted-foreground/60" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">No activity found.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {activities.map((a) => (
-                    <div key={a.id} className="flex items-start gap-3">
-                      <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-ring" />
-                      <div>
-                        <p className="text-sm text-foreground">{a.description}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(a.created_at).toLocaleString("en-IN")}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <span className="rounded-xl bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-bold text-slate-700 dark:text-slate-300">
+            {currentIndex} / {totalCold}
+          </span>
         </div>
 
-        <div className="space-y-3">
-          <Card>
-            <CardHeader className="border-b border-border px-6 py-4">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                <Phone className="h-4 w-4" /> Call Outcome
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-1.5">
-                {[
-                  { icon: PhoneOff, label: "No Answer", action: "no_answer" },
-                  { icon: Ban, label: "Invalid Number", action: "invalid_number" },
-                  { icon: Shield, label: "Gatekeeper", action: "gatekeeper" },
-                  { icon: CalendarCheck, label: "Callback Requested", action: "callback_requested" },
-                  { icon: ThumbsDown, label: "Not Interested", action: "not_interested" },
-                  { icon: ThumbsUp, label: "Interested", action: "interested", extra: "border-primary text-primary dark:border-primary dark:text-primary" },
-                ].map((btn) => (
-                  <Button
-                    key={btn.action}
-                    variant="outline"
-                    className={`w-full justify-start gap-2 ${btn.extra || ""}`}
-                    onClick={() => handleOutcome(btn.action)}
-                  >
-                    <btn.icon className="h-4 w-4 text-muted-foreground" />
-                    {btn.label}
-                  </Button>
-                ))}
-                <Button variant="ghost" className="w-full justify-start gap-2" onClick={skipLead}>
-                  <SkipForward className="h-4 w-4 text-muted-foreground" /> Skip Lead
-                </Button>
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 pt-1">
+          {[
+            { icon: User, label: "Contact Person", value: currentLead.contact_person },
+            { icon: Phone, label: "Phone Number", value: currentLead.phone },
+            { icon: Mail, label: "Email", value: currentLead.email },
+            { icon: Globe, label: "Website", value: currentLead.website },
+            { icon: MapPin, label: "Business Type", value: currentLead.business_type },
+            { icon: Calendar, label: "Follow-up", value: currentLead.follow_up_date ? `${currentLead.follow_up_date} ${currentLead.follow_up_time || ""}` : "--" },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-3">
+              <item.icon className="h-4 w-4 text-slate-400 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{item.label}</p>
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">{item.value || "--"}</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick Link Buttons */}
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          {[
+            { icon: Globe, label: "Website", onClick: () => {
+              if (!currentLead.website) return;
+              let u = currentLead.website;
+              if (!u.startsWith("http")) u = "https://" + u;
+              window.open(u, "_blank");
+            }},
+            { icon: MapPin, label: "Maps", onClick: () => {
+              if (!currentLead.google_maps_link) return;
+              window.open(currentLead.google_maps_link, "_blank");
+            }},
+            { icon: Mail, label: "Email", onClick: () => {
+              if (!currentLead.email) { toast.warning("No email found."); return; }
+              window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentLead.email)}`, "_blank");
+            }},
+            { icon: Copy, label: "Copy Phone", onClick: () => {
+              navigator.clipboard.writeText(currentLead.phone);
+              toast.success("Phone copied!");
+            }},
+            { icon: MessageCircle, label: "WhatsApp", onClick: sendWhatsapp },
+          ].map((btn, i) => (
+            <button
+              key={i}
+              onClick={btn.onClick}
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all"
+            >
+              <btn.icon className="h-3.5 w-3.5 text-slate-400" />
+              <span>{btn.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Left 2 columns: Previous notes & Activity */}
+        <div className="space-y-6 lg:col-span-2">
+          <SectionCard title={<span className="flex items-center gap-2"><Clock className="h-4 w-4 text-blue-500" /> Previous Interaction</span>}>
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <p className="text-[10px] font-bold uppercase text-slate-400">Status</p>
+                <span className={`inline-flex items-center rounded-lg px-2.5 py-0.5 text-[10px] font-bold capitalize mt-1 ${si.class}`}>{si.label}</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase text-slate-400">Last Outcome</p>
+                <p className="mt-1 font-semibold text-slate-800 dark:text-slate-100 capitalize">{currentLead.last_outcome?.replace(/_/g, " ") || "--"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase text-slate-400">Last Contact</p>
+                <p className="mt-1 text-slate-700 dark:text-slate-300">{currentLead.last_contact_date ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN") : "--"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase text-slate-400">Next Follow-up</p>
+                <p className="mt-1 text-slate-700 dark:text-slate-300">{currentLead.follow_up_date || "--"}</p>
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard title={<span className="flex items-center gap-2"><FileText className="h-4 w-4 text-purple-500" /> Recent Notes</span>}>
+            {notes.length === 0 ? (
+              <p className="text-xs text-slate-400 py-4 text-center">No notes available.</p>
+            ) : (
+              <div className="space-y-2">
+                {notes.map((note) => (
+                  <div key={note.id} className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-3">
+                    <p className="text-xs text-slate-800 dark:text-slate-200 font-medium">{note.content}</p>
+                    <p className="mt-1 text-[10px] text-slate-400">{new Date(note.created_at).toLocaleDateString("en-IN")}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard title={<span className="flex items-center gap-2"><Activity className="h-4 w-4 text-emerald-500" /> Recent Activity</span>}>
+            {activities.length === 0 ? (
+              <p className="text-xs text-slate-400 py-4 text-center">No activity recorded.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {activities.map((a) => (
+                  <div key={a.id} className="flex items-start gap-2.5 text-xs">
+                    <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                    <div>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200">{a.description}</p>
+                      <p className="text-[10px] text-slate-400">{new Date(a.created_at).toLocaleString("en-IN")}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+        {/* Right 1 column: Outcomes Panel */}
+        <div className="space-y-4">
+          <SectionCard title={<span className="flex items-center gap-2"><Phone className="h-4 w-4 text-blue-500" /> Call Outcome</span>}>
+            <div className="space-y-2">
+              {[
+                { icon: PhoneOff, label: "No Answer", action: "no_answer" },
+                { icon: Ban, label: "Invalid Number", action: "invalid_number" },
+                { icon: Shield, label: "Gatekeeper", action: "gatekeeper" },
+                { icon: CalendarCheck, label: "Callback Requested", action: "callback_requested" },
+                { icon: ThumbsDown, label: "Not Interested", action: "not_interested" },
+                { icon: ThumbsUp, label: "Interested", action: "interested", primary: true },
+              ].map((btn) => (
+                <button
+                  key={btn.action}
+                  onClick={() => handleOutcome(btn.action)}
+                  className={`w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all border ${
+                    btn.primary
+                      ? "bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 border-transparent shadow-xs"
+                      : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <btn.icon className="h-3.5 w-3.5 text-slate-400" />
+                    <span>{btn.label}</span>
+                  </span>
+                  <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                </button>
+              ))}
+              <button
+                onClick={skipLead}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all mt-2"
+              >
+                <SkipForward className="h-3.5 w-3.5" /> Skip Lead
+              </button>
+            </div>
+          </SectionCard>
 
           {showCallbackForm && (
-            <Card>
-              <CardHeader className="border-b border-border px-6 py-4">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                  <Calendar className="h-4 w-4" /> Schedule Callback
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2.5 p-6">
-                <Input type="date" value={callbackDate} onChange={(e) => setCallbackDate(e.target.value)} />
-                <Input type="time" value={callbackTime} onChange={(e) => setCallbackTime(e.target.value)} />
-                <Input placeholder="Notes" value={callbackNote} onChange={(e) => setCallbackNote(e.target.value)} />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={saveCallback} className="flex-1" disabled={saving}>
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarCheck className="h-4 w-4" />}
-                    {saving ? "Saving..." : "Save"}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setShowCallbackForm(false)}>Cancel</Button>
+            <SectionCard title="Schedule Callback">
+              <div className="space-y-2.5">
+                <input type="date" value={callbackDate} onChange={(e) => setCallbackDate(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200" />
+                <input type="time" value={callbackTime} onChange={(e) => setCallbackTime(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200" />
+                <input placeholder="Notes" value={callbackNote} onChange={(e) => setCallbackNote(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200" />
+                <div className="flex gap-2 pt-1">
+                  <button onClick={saveCallback} disabled={saving} className="flex-1 rounded-xl bg-slate-900 text-white py-2 text-xs font-bold">
+                    {saving ? "Saving..." : "Save Callback"}
+                  </button>
+                  <button onClick={() => setShowCallbackForm(false)} className="rounded-xl border border-slate-200 px-3 text-xs font-semibold">Cancel</button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </SectionCard>
           )}
 
           {showMeetingForm && (
-            <Card>
-              <CardHeader className="border-b border-border px-6 py-4">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                  <Video className="h-4 w-4" /> Book Google Meet
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2.5 p-6">
-                <Input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} />
-                <Input type="time" value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={saveMeeting} className="flex-1" disabled={saving}>
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
-                    {saving ? "Creating..." : "Confirm"}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setShowMeetingForm(false)}>Cancel</Button>
+            <SectionCard title="Book Google Meet">
+              <div className="space-y-2.5">
+                <input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200" />
+                <input type="time" value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200" />
+                <div className="flex gap-2 pt-1">
+                  <button onClick={saveMeeting} disabled={saving} className="flex-1 rounded-xl bg-blue-600 text-white py-2 text-xs font-bold">
+                    {saving ? "Creating..." : "Confirm Meeting"}
+                  </button>
+                  <button onClick={() => setShowMeetingForm(false)} className="rounded-xl border border-slate-200 px-3 text-xs font-semibold">Cancel</button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </SectionCard>
           )}
 
           {showInterestedActions && (
-            <Card>
-              <CardHeader className="border-b border-border px-6 py-4">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                  <ThumbsUp className="h-4 w-4" /> Prospect Interested
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1.5 p-6">
-                <Button size="sm" className="w-full" onClick={() => { sendWhatsapp(); markInterested(); }}>
-                  <MessageCircle className="h-4 w-4" /> Send WhatsApp
-                </Button>
-                <Button size="sm" variant="outline" className="w-full" onClick={() => { setShowInterestedActions(false); setShowMeetingForm(true); }}>
-                  <Video className="h-4 w-4" /> Book Google Meet
-                </Button>
-                <Button size="sm" variant="ghost" className="w-full" onClick={() => setShowInterestedActions(false)}>
-                  <XCircle className="h-4 w-4" /> Skip
-                </Button>
-              </CardContent>
-            </Card>
+            <SectionCard title="Prospect Interested">
+              <div className="space-y-2">
+                <button onClick={() => { sendWhatsapp(); markInterested(); }} className="w-full rounded-xl bg-emerald-600 text-white py-2 text-xs font-bold flex items-center justify-center gap-1.5">
+                  <MessageCircle className="h-3.5 w-3.5" /> Send WhatsApp
+                </button>
+                <button onClick={() => { setShowInterestedActions(false); setShowMeetingForm(true); }} className="w-full rounded-xl border border-slate-200 py-2 text-xs font-bold flex items-center justify-center gap-1.5">
+                  <Video className="h-3.5 w-3.5" /> Book Google Meet
+                </button>
+                <button onClick={() => setShowInterestedActions(false)} className="w-full text-xs text-slate-400 py-1 font-semibold">Cancel</button>
+              </div>
+            </SectionCard>
           )}
         </div>
       </div>
@@ -635,3 +563,4 @@ function CallSessionPage() {
 }
 
 export default CallSessionPage;
+

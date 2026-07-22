@@ -63,32 +63,35 @@ function AllLeadsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Leads"
-        description="Manage and organize all your prospects."
+        title="Leads Management"
+        description="Manage and organize all your prospects and deals."
         action={
-          <Button onClick={() => setShowForm(!showForm)}>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 text-xs font-bold shadow-sm transition-all"
+          >
             <Plus className="h-4 w-4" />
-            Add Lead
-          </Button>
+            <span>Add Lead</span>
+          </button>
         }
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
+          <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+          <input
             placeholder="Search leads..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="pl-9 rounded-2xl"
+            className="h-9.5 w-full rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 shadow-xs focus:outline-none focus:ring-1 focus:ring-slate-900 transition-all"
           />
         </div>
         <select
-          className="h-9 rounded-2xl border border-input bg-transparent px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/30"
+          className="h-9.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs outline-none focus:ring-1 focus:ring-slate-900"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
-          <option value="all">All Status</option>
+          <option value="all">All Statuses</option>
           <option value="cold">Cold</option>
           <option value="contacted">Contacted</option>
           <option value="warm">Warm</option>
@@ -100,7 +103,7 @@ function AllLeadsPage() {
       </div>
 
       {showForm && (
-        <SectionCard title={<span className="flex items-center gap-2"><UserPlus className="h-4 w-4" />Add New Lead</span>}>
+        <SectionCard title={<span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200"><UserPlus className="h-4 w-4 text-blue-500" />Add New Lead</span>}>
           <LeadForm onLeadAdded={() => { fetchLeads(); setShowForm(false); }} />
         </SectionCard>
       )}

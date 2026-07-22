@@ -5,9 +5,6 @@ import {
   skipFollowUp,
 } from "../api/followUpsApi";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import SectionCard from "@/components/common/SectionCard";
 import { addActivity } from "../api/activitiesApi";
 import PageHeader from "@/components/common/PageHeader";
@@ -23,17 +20,20 @@ import {
   Calendar,
   AlertTriangle,
   CalendarDays,
+  CheckCircle2,
+  RotateCcw,
+  SkipForward,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const statusStyles = {
-  cold: "bg-muted text-muted-foreground border border-border/50",
-  contacted: "bg-muted text-foreground border border-border/50",
-  warm: "bg-primary text-primary-foreground border-0",
-  meeting_booked: "bg-primary text-primary-foreground border-0",
-  proposal_sent: "bg-primary text-primary-foreground border-0",
-  closed_won: "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-white border-0",
-  closed_lost: "bg-muted text-muted-foreground/60 border border-border/50 line-through",
+  cold: "bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+  contacted: "bg-blue-50 text-blue-700 border border-blue-200/70 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900",
+  warm: "bg-amber-50 text-amber-700 border border-amber-200/70 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900",
+  meeting_booked: "bg-purple-50 text-purple-700 border border-purple-200/70 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900",
+  proposal_sent: "bg-indigo-50 text-indigo-700 border border-indigo-200/70 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-900",
+  closed_won: "bg-emerald-50 text-emerald-700 border border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900",
+  closed_lost: "bg-rose-50 text-rose-700 border border-rose-200/70 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 line-through",
 };
 
 function FollowUpsPage() {
@@ -96,10 +96,10 @@ function FollowUpsPage() {
         <PageHeader title="Follow-ups" description="Manage your follow-up schedule." />
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[1,2,3,4].map((i) => (
-            <div key={i} className="h-24 rounded-2xl bg-muted animate-skeleton-pulse" />
+            <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
           ))}
         </div>
-        <div className="h-48 rounded-2xl bg-muted animate-skeleton-pulse" />
+        <div className="h-48 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
       </div>
     );
   }
@@ -136,70 +136,119 @@ function FollowUpsPage() {
   function renderLeadCard(followUp) {
     const lead = followUp.leads;
     return (
-      <Card key={followUp.id} className="card-premium-hover">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1.5 min-w-0 flex-1">
-              <h3 className="text-sm font-medium text-card-foreground">
+      <div key={followUp.id} className="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md transition-all duration-200">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div className="space-y-1.5 min-w-0 flex-1">
+            <div className="flex items-center gap-2.5">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 cursor-pointer truncate" onClick={() => navigate(`/leads/${lead?.id}`)}>
                 {lead?.lead_name}
               </h3>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  {lead?.contact_person || "--"}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  {lead?.phone}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {followUp.scheduled_time || "--"}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {followUp.scheduled_date}
-                </span>
-              </div>
-              <Badge className={`${statusStyles[lead?.status] || "bg-muted text-muted-foreground"} capitalize rounded-xl`}>
+              <span className={`inline-flex items-center rounded-lg px-2.5 py-0.5 text-[10px] font-bold capitalize ${statusStyles[lead?.status] || "bg-slate-100 text-slate-600"}`}>
                 {lead?.status?.replace(/_/g, " ") || "--"}
-              </Badge>
+              </span>
             </div>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400 pt-0.5">
+              <span className="flex items-center gap-1.5 font-medium">
+                <User className="h-3.5 w-3.5 text-slate-400" />
+                {lead?.contact_person || "--"}
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <Phone className="h-3.5 w-3.5 text-slate-400" />
+                {lead?.phone || "--"}
+              </span>
+              <span className="flex items-center gap-1.5 font-medium text-blue-600 dark:text-blue-400">
+                <Clock className="h-3.5 w-3.5" />
+                {followUp.scheduled_time || "--:--"}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                {followUp.scheduled_date}
+              </span>
+            </div>
+
+            {followUp.title && (
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl border border-slate-100 dark:border-slate-800 mt-1">
+                📌 {followUp.title}
+              </p>
+            )}
           </div>
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            <Button size="sm" variant="outline" onClick={() => {
-              if (!lead?.website) return;
-              let u = lead.website;
-              if (!u.startsWith("http")) u = "https://" + u;
-              window.open(u, "_blank");
-            }}>
-              <Globe className="h-3 w-3" /> Website
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => {
-              if (!lead?.google_maps_link) return;
-              window.open(lead.google_maps_link, "_blank");
-            }}>
-              <MapPin className="h-3 w-3" /> Maps
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => {
-              let p = (lead?.phone || "").replace(/\D/g, "");
-              if (p.length === 10) p = "91" + p;
-              window.open(`https://wa.me/${p}`, "_blank");
-            }}>
-              <MessageCircle className="h-3 w-3" /> WhatsApp
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => navigate(`/leads/${lead?.id}`)}>
-              <ExternalLink className="h-3 w-3" /> Open
-            </Button>
-            <Button size="sm" onClick={() => handleComplete(followUp)}>Complete</Button>
-            <Button size="sm" variant="outline" onClick={() => {
-              setEditingFollowUp(followUp);
-              setShowRescheduleModal(true);
-            }}>Reschedule</Button>
-            <Button size="sm" variant="secondary" onClick={() => handleSkip(followUp)}>Skip</Button>
+        </div>
+
+        <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          {/* External Links */}
+          <div className="flex items-center gap-1.5">
+            {lead?.website && (
+              <button
+                onClick={() => {
+                  let u = lead.website;
+                  if (!u.startsWith("http")) u = "https://" + u;
+                  window.open(u, "_blank");
+                }}
+                className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all"
+              >
+                <Globe className="h-3.5 w-3.5 text-slate-400" />
+                <span>Website</span>
+              </button>
+            )}
+            {lead?.google_maps_link && (
+              <button
+                onClick={() => window.open(lead.google_maps_link, "_blank")}
+                className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all"
+              >
+                <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                <span>Maps</span>
+              </button>
+            )}
+            <button
+              onClick={() => {
+                let p = (lead?.phone || "").replace(/\D/g, "");
+                if (p.length === 10) p = "91" + p;
+                window.open(`https://wa.me/${p}`, "_blank");
+              }}
+              className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              <span>WhatsApp</span>
+            </button>
+            <button
+              onClick={() => navigate(`/leads/${lead?.id}`)}
+              className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all"
+            >
+              <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+              <span>Open</span>
+            </button>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1.5 ml-auto">
+            <button
+              onClick={() => handleComplete(followUp)}
+              className="flex items-center gap-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-3 py-1 text-xs font-bold shadow-xs transition-all"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Complete</span>
+            </button>
+            <button
+              onClick={() => {
+                setEditingFollowUp(followUp);
+                setShowRescheduleModal(true);
+              }}
+              className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all"
+            >
+              <RotateCcw className="h-3.5 w-3.5 text-slate-400" />
+              <span>Reschedule</span>
+            </button>
+            <button
+              onClick={() => handleSkip(followUp)}
+              className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-200 transition-all"
+            >
+              <SkipForward className="h-3.5 w-3.5 text-slate-400" />
+              <span>Skip</span>
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -207,69 +256,66 @@ function FollowUpsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Follow-ups"
-        description="Manage your follow-up schedule."
+        description="Manage and track all scheduled follow-ups."
         action={
-          <Button onClick={() => navigate("/followups/queue")}>
-            Start Today's Follow-ups
-          </Button>
+          <button
+            onClick={() => navigate("/followups/queue")}
+            className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 text-xs font-bold shadow-xs transition-all"
+          >
+            <CalendarDays className="h-4 w-4 text-purple-400" />
+            <span>Start Today's Follow-ups</span>
+          </button>
         }
       />
 
+      {/* Metric Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: "Overdue", count: overdue.length, icon: AlertTriangle },
-          { label: "Today", count: todayFollowUps.length, icon: CalendarDays },
-          { label: "Tomorrow", count: tomorrowFollowUps.length, icon: Clock },
-          { label: "Upcoming", count: upcoming.length, icon: Calendar },
+          { label: "Overdue", count: overdue.length, icon: AlertTriangle, color: "text-rose-500 bg-rose-50 dark:bg-rose-950/40" },
+          { label: "Today", count: todayFollowUps.length, icon: CalendarDays, color: "text-purple-500 bg-purple-50 dark:bg-purple-950/40" },
+          { label: "Tomorrow", count: tomorrowFollowUps.length, icon: Clock, color: "text-blue-500 bg-blue-50 dark:bg-blue-950/40" },
+          { label: "Upcoming", count: upcoming.length, icon: Calendar, color: "text-slate-600 bg-slate-100 dark:bg-slate-800" },
         ].map((s) => (
-          <Card key={s.label} className="card-premium-hover">
-            <CardContent className="flex items-center justify-between p-5">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground/70">
-                  {s.label}
-                </p>
-                <h2 className="mt-1.5 text-2xl font-semibold tracking-tight text-card-foreground">
-                  {s.count}
-                </h2>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-                <s.icon className="h-4 w-4" />
-              </div>
-            </CardContent>
-          </Card>
+          <div key={s.label} className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-4 shadow-[0_2px_8px_rgba(15,23,42,0.03)] flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{s.label}</p>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{s.count}</h2>
+            </div>
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${s.color}`}>
+              <s.icon className="h-4.5 w-4.5" />
+            </div>
+          </div>
         ))}
       </div>
 
       {followUps.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
-              <CalendarDays className="h-6 w-6 text-muted-foreground/60" />
-            </div>
-            <p className="text-sm font-medium text-foreground">No follow-ups scheduled</p>
-            <p className="mt-1 text-xs text-muted-foreground">Schedule your first follow-up from a lead's detail page.</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-12 text-center flex flex-col items-center justify-center">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400">
+            <CalendarDays className="h-6 w-6" />
+          </div>
+          <p className="text-xs font-bold text-slate-800 dark:text-slate-200">No follow-ups scheduled</p>
+          <p className="mt-0.5 text-[11px] text-slate-400">Schedule your first follow-up from a lead's detail page.</p>
+        </div>
       ) : (
         <div className="space-y-6">
           {overdue.length > 0 && (
-            <SectionCard title={<span className="flex items-center gap-1.5"><AlertTriangle className="h-4 w-4 text-muted-foreground" /> Overdue ({overdue.length})</span>}>
-              <div className="space-y-2">{overdue.map(renderLeadCard)}</div>
+            <SectionCard title={<span className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold"><AlertTriangle className="h-4 w-4" /> Overdue ({overdue.length})</span>}>
+              <div className="space-y-3">{overdue.map(renderLeadCard)}</div>
             </SectionCard>
           )}
           {todayFollowUps.length > 0 && (
-            <SectionCard title={<span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4 text-muted-foreground" /> Today ({todayFollowUps.length})</span>}>
-              <div className="space-y-2">{todayFollowUps.map(renderLeadCard)}</div>
+            <SectionCard title={<span className="flex items-center gap-2 font-bold"><CalendarDays className="h-4 w-4 text-purple-500" /> Today ({todayFollowUps.length})</span>}>
+              <div className="space-y-3">{todayFollowUps.map(renderLeadCard)}</div>
             </SectionCard>
           )}
           {tomorrowFollowUps.length > 0 && (
-            <SectionCard title={<span className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-muted-foreground" /> Tomorrow ({tomorrowFollowUps.length})</span>}>
-              <div className="space-y-2">{tomorrowFollowUps.map(renderLeadCard)}</div>
+            <SectionCard title={<span className="flex items-center gap-2 font-bold"><Clock className="h-4 w-4 text-blue-500" /> Tomorrow ({tomorrowFollowUps.length})</span>}>
+              <div className="space-y-3">{tomorrowFollowUps.map(renderLeadCard)}</div>
             </SectionCard>
           )}
           {upcoming.length > 0 && (
-            <SectionCard title={<span className="flex items-center gap-1.5"><Calendar className="h-4 w-4 text-muted-foreground" /> Upcoming ({upcoming.length})</span>}>
-              <div className="space-y-2">{upcoming.map(renderLeadCard)}</div>
+            <SectionCard title={<span className="flex items-center gap-2 font-bold"><Calendar className="h-4 w-4 text-slate-400" /> Upcoming ({upcoming.length})</span>}>
+              <div className="space-y-3">{upcoming.map(renderLeadCard)}</div>
             </SectionCard>
           )}
         </div>
@@ -290,3 +336,4 @@ function FollowUpsPage() {
 }
 
 export default FollowUpsPage;
+

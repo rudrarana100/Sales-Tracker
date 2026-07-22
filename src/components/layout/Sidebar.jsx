@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Users, Phone, CalendarDays, KanbanSquare, Settings,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Sparkles
 } from "lucide-react";
 
 const menu = [
@@ -15,21 +15,28 @@ const menu = [
 export default function Sidebar({ collapsed, onToggle }) {
   return (
     <aside
-      className={`flex flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-        collapsed ? "w-[--sidebar-collapsed-width]" : "w-[--sidebar-width]"
+      className={`flex flex-col border-r border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+        collapsed ? "w-[72px]" : "w-[240px]"
       }`}
     >
-      <div className="flex h-14 items-center border-b border-sidebar-border px-4">
+      {/* App Header */}
+      <div className="flex h-16 items-center border-b border-slate-100 dark:border-slate-800/80 px-4">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-sm font-bold">S</div>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white font-bold shadow-xs">
+            <Sparkles className="h-4.5 w-4.5 text-blue-400" />
+          </div>
           <div className={`transition-all duration-200 ${collapsed ? "opacity-0 invisible w-0" : "opacity-100 visible"}`}>
-            <h1 className="text-sm font-semibold leading-tight text-sidebar-foreground">SalesTracker</h1>
-            <p className="text-[10px] text-muted-foreground leading-tight">Outbound CRM</p>
+            <h1 className="text-sm font-bold leading-tight text-slate-900 dark:text-white">SalesTracker</h1>
+            <p className="text-[10px] font-medium text-slate-400 leading-tight">Outbound CRM</p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-4 sidebar-scroll">
+      {/* Navigation Menu */}
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4 sidebar-scroll">
+        {!collapsed && (
+          <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Navigation</p>
+        )}
         {menu.map((item) => {
           const Icon = item.icon;
           return (
@@ -39,11 +46,11 @@ export default function Sidebar({ collapsed, onToggle }) {
               end={item.path === "/"}
               className={({ isActive }) =>
                 [
-                  "flex h-9 items-center rounded-2xl text-sm font-medium transition-all duration-200",
-                  collapsed ? "justify-center px-0 mx-auto w-9" : "gap-3 px-3",
+                  "flex h-9.5 items-center rounded-xl text-xs font-semibold transition-all duration-150",
+                  collapsed ? "justify-center px-0 mx-auto w-9.5" : "gap-3 px-3",
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-subtle"
-                    : "text-muted-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+                    ? "bg-slate-900 text-white dark:bg-blue-600 dark:text-white shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white",
                 ].join(" ")
               }
               title={collapsed ? item.title : undefined}
@@ -57,16 +64,17 @@ export default function Sidebar({ collapsed, onToggle }) {
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-2">
+      {/* Settings Footer */}
+      <div className="border-t border-slate-100 dark:border-slate-800/80 p-2 space-y-1">
         <NavLink
           to="/settings"
           className={({ isActive }) =>
             [
-              "flex h-9 items-center rounded-2xl text-sm font-medium transition-all duration-200",
+              "flex h-9 items-center rounded-xl text-xs font-semibold transition-all duration-150",
               collapsed ? "justify-center px-0 mx-auto w-9" : "gap-3 px-3",
               isActive
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                : "text-muted-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+                ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white",
             ].join(" ")
           }
           title={collapsed ? "Settings" : undefined}
@@ -80,10 +88,12 @@ export default function Sidebar({ collapsed, onToggle }) {
 
       <button
         onClick={onToggle}
-        className="flex h-9 items-center justify-center border-t border-sidebar-border text-muted-foreground/60 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/60 transition-all duration-200"
+        className="flex h-8 items-center justify-center border-t border-slate-100 dark:border-slate-800/80 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200"
       >
-        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
       </button>
     </aside>
   );
 }
+
+
