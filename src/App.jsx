@@ -7,6 +7,7 @@ import { Routes, Route } from "react-router-dom";
 import PipelinePage from "./features/leads/pages/PipelinePage";
 import AppLayout from "./components/layout/AppLayout";
 import FollowUpQueue from "./features/leads/pages/FollowUpQueue";
+import SettingsPage from "./pages/SettingsPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/follow-ups" element={<FollowUpsPage />} />
         <Route path="/pipeline" element={<PipelinePage />} />
         <Route path="/followups/queue" element={<FollowUpQueue />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </AppLayout>
   );
