@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Users, Phone, CalendarDays, KanbanSquare, Settings,
-  ChevronLeft, ChevronRight, Sparkles
+  ChevronLeft, ChevronRight, Sparkles, CheckSquare, Calendar, UserPlus,
 } from "lucide-react";
 
 const menu = [
@@ -10,6 +10,9 @@ const menu = [
   { title: "Call Session", icon: Phone, path: "/call-session" },
   { title: "Follow-ups", icon: CalendarDays, path: "/follow-ups" },
   { title: "Pipeline", icon: KanbanSquare, path: "/pipeline" },
+  { title: "Tasks", icon: CheckSquare, path: "/tasks" },
+  { title: "Calendar", icon: Calendar, path: "/calendar" },
+  { title: "Team & Roles", icon: UserPlus, path: "/team" },
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
