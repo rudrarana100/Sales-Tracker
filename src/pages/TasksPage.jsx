@@ -14,7 +14,7 @@ import {
   Filter,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getTasks,  } from "@/features/leads/api/tasksApi";
+import { getTasks, createTask, updateTask, deleteTask } from "@/features/leads/api/tasksApi";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -173,7 +173,7 @@ async function handleCreateTask(e) {
               >
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   <button
-                    onClick={() => toggleTask(t.id)}
+                    onClick={() => toggleTask(t)}
                     className="mt-0.5 text-slate-400 hover:text-blue-600 transition-colors"
                   >
                     {t.completed ? (
