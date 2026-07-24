@@ -14,39 +14,11 @@ import {
   Filter,
 } from "lucide-react";
 import { toast } from "sonner";
-
-const INITIAL_TASKS = [
-  {
-    id: "task_1",
-    title: "Send customized proposals to warm leads",
-    assignee: "Rudra Rana",
-    dueDate: new Date().toISOString().split("T")[0],
-    priority: "high",
-    completed: false,
-  },
-  {
-    id: "task_2",
-    title: "Follow up with gatekeeper at Acme Corp",
-    assignee: "Alex Vance",
-    dueDate: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-    priority: "medium",
-    completed: false,
-  },
-  {
-    id: "task_3",
-    title: "Review Q3 Cold Call Session metrics",
-    assignee: "Rudra Rana",
-    dueDate: new Date(Date.now() - 86400000).toISOString().split("T")[0],
-    priority: "high",
-    completed: true,
-  },
-];
+import { getTasks,  } from "@/features/leads/api/tasksApi";
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState(() => {
-    const stored = localStorage.getItem("crm_tasks");
-    return stored ? JSON.parse(stored) : INITIAL_TASKS;
-  });
+  const [tasks, setTasks] = useState([]);
+const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState("");
@@ -54,38 +26,83 @@ export default function TasksPage() {
   const [dueDate, setDueDate] = useState(new Date().toISOString().split("T")[0]);
   const [priority, setPriority] = useState("medium");
 
-  useEffect(() => {
-    localStorage.setItem("crm_tasks", JSON.stringify(tasks));
-  }, [tasks]);
+  async function loadTasks() {
+  try {
+    setLoading(true);
+    const data = await getTasks();
+    setTasks(data);
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to load tasks");
+  } finally {
+    setLoading(false);
+  }
+}
+useEffect(() => {
+  loadTasks();
+}, []);                 
+async function toggleTask(task) {
+  try {
+    const updated = await updateTask(task.id, {
+      status: task.status === "completed" ? "pending" : "completed",
+      completed_at:
+        task.status === "completed"
+          ? null
+          : new Date().toISOString(),
+    });
 
-  function toggleTask(id) {
+
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+      prev.map((t) => (t.id === task.id ? updated : t))
     );
+
+    toast.success("Task updated");
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to update task");
   }
 
-  function deleteTask(id) {
+}
+async function deleteTask(id) {
+  try {
+    await deleteTaskApi(id);
+
     setTasks((prev) => prev.filter((t) => t.id !== id));
-    toast.success("Task removed");
-  }
 
-  function handleCreateTask(e) {
-    e.preventDefault();
-    if (!title.trim()) return;
-    const newTask = {
-      id: "task_" + Date.now(),
+    toast.success("Task deleted");
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to delete task");
+  }
+}
+async function handleCreateTask(e) {
+  e.preventDefault();
+
+  if (!title.trim()) return;
+
+  try {
+    const task = await createTask({
       title: title.trim(),
-      assignee,
-      dueDate,
+      assigned_to: assignee,
+      due_date: dueDate,
       priority,
-      completed: false,
-    };
-    setTasks((prev) => [newTask, ...prev]);
-    toast.success("Task created!");
-    setTitle("");
-    setShowModal(false);
-  }
+      status: "pending",
+    });
 
+    setTasks((prev) => [task, ...prev]);
+
+    toast.success("Task created!");
+
+    setTitle("");
+    setAssignee("Rudra Rana");
+    setPriority("medium");
+    setDueDate(new Date().toISOString().split("T")[0]);
+    setShowModal(false);
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to create task");
+  }
+}
   const todayStr = new Date().toISOString().split("T")[0];
 
   const filteredTasks = tasks.filter((t) => {
@@ -285,3 +302,4 @@ export default function TasksPage() {
     </div>
   );
 }
+
