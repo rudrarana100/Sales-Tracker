@@ -21,102 +21,98 @@ import {
   deleteTask as deleteTaskApi,
 } from "@/features/leads/api/tasksApi";
 
-
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
-const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState("");
-  const [assignee, setAssignee] = useState("Rudra Rana");
-  const [dueDate, setDueDate] = useState(new Date().toISOString().split("T")[0]);
+  const [dueDate, setDueDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [priority, setPriority] = useState("medium");
 
   async function loadTasks() {
-  try {
-    setLoading(true);
-    const data = await getTasks();
-    setTasks(data);
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to load tasks");
-  } finally {
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await getTasks();
+      setTasks(data);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load tasks");
+    } finally {
+      setLoading(false);
+    }
   }
-}
-useEffect(() => {
-  loadTasks();
-}, []);                 
-async function toggleTask(task) {
-  try {
-    const updated = await updateTask(task.id, {
-      status: task.status === "completed" ? "pending" : "completed",
-      completed_at:
-        task.status === "completed"
-          ? null
-          : new Date().toISOString(),
-    });
+  useEffect(() => {
+    loadTasks();
+  }, []);
+  async function toggleTask(task) {
+    try {
+      const updated = await updateTask(task.id, {
+        status: task.status === "completed" ? "pending" : "completed",
+        completed_at:
+          task.status === "completed" ? null : new Date().toISOString(),
+      });
 
-    await loadTasks();
+      await loadTasks();
 
-    toast.success("Task updated");
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to update task");
+      toast.success("Task updated");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update task");
+    }
   }
-}
 
-async function handleDeleteTask(id) {
-  try {
-    await deleteTaskApi(id);
+  async function handleDeleteTask(id) {
+    try {
+      await deleteTaskApi(id);
 
-    await loadTasks();
+      await loadTasks();
 
-    toast.success("Task deleted");
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to delete task");
+      toast.success("Task deleted");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete task");
+    }
   }
-}
 
-async function handleCreateTask(e) {
-  e.preventDefault();
+  async function handleCreateTask(e) {
+    e.preventDefault();
 
-  if (!title.trim()) return;
+    if (!title.trim()) return;
 
-  try {
-    const task = await createTask({
-      title: title.trim(),
-      assigned_to: assignee,
-      due_date: dueDate,
-      priority,
-      status: "pending",
-    });
+    try {
+      const task = await createTask({
+        title: title.trim(),
+        due_date: dueDate,
+        priority,
+        status: "pending",
+      });
 
-   await loadTasks();
+      await loadTasks();
 
-    toast.success("Task created!");
+      toast.success("Task created!");
 
-    setTitle("");
-    setAssignee("Rudra Rana");
-    setPriority("medium");
-    setDueDate(new Date().toISOString().split("T")[0]);
-    setShowModal(false);
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to create task");
+      setTitle("");
+      setPriority("medium");
+      setDueDate(new Date().toISOString().split("T")[0]);
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to create task");
+    }
   }
-}
 
-const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = new Date().toISOString().split("T")[0];
 
-const filteredTasks = tasks.filter((t) => {
-  if (filter === "today") return t.due_date === todayStr;
-  if (filter === "high") return t.priority === "high";
-  if (filter === "completed") return t.status === "completed";
-  if (filter === "pending") return t.status === "pending";
-  return true;
-});
+  const filteredTasks = tasks.filter((t) => {
+    if (filter === "today") return t.due_date === todayStr;
+    if (filter === "high") return t.priority === "high";
+    if (filter === "completed") return t.status === "completed";
+    if (filter === "pending") return t.status === "pending";
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -158,12 +154,23 @@ const filteredTasks = tasks.filter((t) => {
       </div>
 
       {/* Task Cards Container */}
-      <SectionCard title={<span className="flex items-center gap-2"><CheckSquare className="h-4 w-4 text-blue-500" /> Tasks List ({filteredTasks.length})</span>}>
+      <SectionCard
+        title={
+          <span className="flex items-center gap-2">
+            <CheckSquare className="h-4 w-4 text-blue-500" /> Tasks List (
+            {filteredTasks.length})
+          </span>
+        }
+      >
         {filteredTasks.length === 0 ? (
           <div className="py-12 text-center flex flex-col items-center">
             <CheckCircle2 className="h-8 w-8 text-slate-300 dark:text-slate-700 mb-2" />
-            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">No tasks found</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Change filters or create a new task above.</p>
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+              No tasks found
+            </p>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Change filters or create a new task above.
+            </p>
           </div>
         ) : (
           <div className="space-y-2.5">
@@ -171,7 +178,7 @@ const filteredTasks = tasks.filter((t) => {
               <div
                 key={t.id}
                 className={`flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all ${
-                  t.status === "completed" 
+                  t.status === "completed"
                     ? "bg-slate-50/50 dark:bg-slate-900/30 border-slate-200/50 dark:border-slate-800/50 opacity-60"
                     : "bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-[0_2px_6px_rgba(15,23,42,0.02)]"
                 }`}
@@ -188,7 +195,9 @@ const filteredTasks = tasks.filter((t) => {
                     )}
                   </button>
                   <div className="min-w-0 flex-1">
-                    <p className={`text-xs font-bold ${t.status === "completed" ? "line-through text-slate-400" : "text-slate-800 dark:text-slate-100"}`}>
+                    <p
+                      className={`text-xs font-bold ${t.status === "completed" ? "line-through text-slate-400" : "text-slate-800 dark:text-slate-100"}`}
+                    >
                       {t.title}
                     </p>
                     <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-400 mt-1">
@@ -200,11 +209,13 @@ const filteredTasks = tasks.filter((t) => {
                         <Calendar className="h-3 w-3" />
                         {t.due_date}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full font-bold uppercase ${
-                        t.priority === "high"
-                          ? "bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
-                          : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-full font-bold uppercase ${
+                          t.priority === "high"
+                            ? "bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                        }`}
+                      >
                         {t.priority} priority
                       </span>
                     </div>
@@ -229,15 +240,22 @@ const filteredTasks = tasks.filter((t) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
           <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Create New Task</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Create New Task
+              </h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <form onSubmit={handleCreateTask} className="space-y-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400">Task Title</label>
+                <label className="text-[10px] font-bold uppercase text-slate-400">
+                  Task Title
+                </label>
                 <input
                   type="text"
                   placeholder="Task title..."
@@ -245,24 +263,11 @@ const filteredTasks = tasks.filter((t) => {
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-slate-400">Assignee</label>
-                  <select
-                    value={assignee}
-                    onChange={(e) => setAssignee(e.target.value)}
-                    className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100"
-                  >
-                    <option value="Rudra Rana">Rudra Rana</option>
-                    <option value="Alex Vance">Alex Vance</option>
-                    <option value="Sarah Jenkins">Sarah Jenkins</option>
-                  </select>
-                </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-slate-400">Priority</label>
+                  <label className="text-[10px] font-bold uppercase text-slate-400">
+                    Priority
+                  </label>
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
@@ -276,7 +281,9 @@ const filteredTasks = tasks.filter((t) => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400">Due Date</label>
+                <label className="text-[10px] font-bold uppercase text-slate-400">
+                  Due Date
+                </label>
                 <input
                   type="date"
                   value={dueDate}
@@ -307,4 +314,3 @@ const filteredTasks = tasks.filter((t) => {
     </div>
   );
 }
-

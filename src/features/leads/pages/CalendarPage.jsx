@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import { getFollowUps } from "@/features/leads/api/followUpsApi";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function CalendarPage() {
@@ -25,8 +29,18 @@ export default function CalendarPage() {
   const month = currentDate.getMonth();
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const firstDayIndex = new Date(year, month, 1).getDay();
@@ -143,9 +157,13 @@ export default function CalendarPage() {
                 {dayNum ? (
                   <>
                     <div className="flex items-center justify-between">
-                      <span className={`flex h-5 w-5 items-center justify-center rounded-lg text-xs font-bold ${
-                        isToday ? "bg-blue-600 text-white" : "text-card-foreground"
-                      }`}>
+                      <span
+                        className={`flex h-5 w-5 items-center justify-center rounded-lg text-xs font-bold ${
+                          isToday
+                            ? "bg-blue-600 text-white"
+                            : "text-card-foreground"
+                        }`}
+                      >
                         {dayNum}
                       </span>
                       {events.length > 0 && (
@@ -160,9 +178,27 @@ export default function CalendarPage() {
                       {events.slice(0, 2).map((ev) => (
                         <div
                           key={ev.id}
-                          className="rounded-md bg-white dark:bg-slate-800 p-1 text-[9px] font-semibold border border-slate-200/60 dark:border-slate-700 truncate text-slate-800 dark:text-slate-200"
+                          onClick={() => navigate(`/leads/${ev.leads.id}`)}
+                          className="cursor-pointer rounded-md bg-white dark:bg-slate-800 p-1 text-[9px] font-semibold border border-slate-200/60 dark:border-slate-700 truncate hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all"
                         >
-                          📌 {ev.leads?.lead_name || "Follow-up"}
+                          <div className="flex items-center gap-1">
+                            <span
+                              className={`h-2 w-2 rounded-full ${
+                                ev.leads?.status === "new"
+                                  ? "bg-blue-500"
+                                  : ev.leads?.status === "contacted"
+                                    ? "bg-yellow-500"
+                                    : ev.leads?.status === "qualified"
+                                      ? "bg-orange-500"
+                                      : ev.leads?.status === "won"
+                                        ? "bg-green-500"
+                                        : ev.leads?.status === "lost"
+                                          ? "bg-red-500"
+                                          : "bg-slate-400"
+                              }`}
+                            />
+                            <span>{ev.leads?.lead_name || "Follow-up"}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
