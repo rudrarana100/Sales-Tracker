@@ -51,7 +51,6 @@ async function toggleTask(task) {
           : new Date().toISOString(),
     });
 
-
     setTasks((prev) =>
       prev.map((t) => (t.id === task.id ? updated : t))
     );
@@ -61,11 +60,11 @@ async function toggleTask(task) {
     console.error(err);
     toast.error("Failed to update task");
   }
-
 }
-async function deleteTask(id) {
+
+async function handleDeleteTask(id) {
   try {
-    await deleteTaskApi(id);
+    await deleteTask(id);
 
     setTasks((prev) => prev.filter((t) => t.id !== id));
 
@@ -75,6 +74,7 @@ async function deleteTask(id) {
     toast.error("Failed to delete task");
   }
 }
+
 async function handleCreateTask(e) {
   e.preventDefault();
 
@@ -103,15 +103,16 @@ async function handleCreateTask(e) {
     toast.error("Failed to create task");
   }
 }
-  const todayStr = new Date().toISOString().split("T")[0];
 
-  const filteredTasks = tasks.filter((t) => {
-    if (filter === "today") return t.dueDate === todayStr;
-    if (filter === "high") return t.priority === "high";
-    if (filter === "completed") return t.completed;
-    if (filter === "pending") return !t.completed;
-    return true;
-  });
+const todayStr = new Date().toISOString().split("T")[0];
+
+const filteredTasks = tasks.filter((t) => {
+  if (filter === "today") return t.due_date === todayStr;
+  if (filter === "high") return t.priority === "high";
+  if (filter === "completed") return t.status === "completed";
+  if (filter === "pending") return t.status === "pending";
+  return true;
+});
 
   return (
     <div className="space-y-6">
