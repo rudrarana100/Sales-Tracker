@@ -14,7 +14,13 @@ import {
   Filter,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getTasks, createTask, updateTask, deleteTask } from "@/features/leads/api/tasksApi";
+import {
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask as deleteTaskApi,
+} from "@/features/leads/api/tasksApi";
+
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -51,9 +57,7 @@ async function toggleTask(task) {
           : new Date().toISOString(),
     });
 
-    setTasks((prev) =>
-      prev.map((t) => (t.id === task.id ? updated : t))
-    );
+    await loadTasks();
 
     toast.success("Task updated");
   } catch (err) {
@@ -64,9 +68,9 @@ async function toggleTask(task) {
 
 async function handleDeleteTask(id) {
   try {
-    await deleteTask(id);
+    await deleteTaskApi(id);
 
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    await loadTasks();
 
     toast.success("Task deleted");
   } catch (err) {
@@ -89,7 +93,7 @@ async function handleCreateTask(e) {
       status: "pending",
     });
 
-    setTasks((prev) => [task, ...prev]);
+   await loadTasks();
 
     toast.success("Task created!");
 
@@ -167,7 +171,7 @@ const filteredTasks = tasks.filter((t) => {
               <div
                 key={t.id}
                 className={`flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all ${
-                  t.completed
+                  t.status === "completed" 
                     ? "bg-slate-50/50 dark:bg-slate-900/30 border-slate-200/50 dark:border-slate-800/50 opacity-60"
                     : "bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-[0_2px_6px_rgba(15,23,42,0.02)]"
                 }`}
@@ -177,24 +181,24 @@ const filteredTasks = tasks.filter((t) => {
                     onClick={() => toggleTask(t)}
                     className="mt-0.5 text-slate-400 hover:text-blue-600 transition-colors"
                   >
-                    {t.completed ? (
+                    {t.status === "completed" ? (
                       <CheckSquare className="h-4.5 w-4.5 text-emerald-500" />
                     ) : (
                       <Square className="h-4.5 w-4.5" />
                     )}
                   </button>
                   <div className="min-w-0 flex-1">
-                    <p className={`text-xs font-bold ${t.completed ? "line-through text-slate-400" : "text-slate-800 dark:text-slate-100"}`}>
+                    <p className={`text-xs font-bold ${t.status === "completed" ? "line-through text-slate-400" : "text-slate-800 dark:text-slate-100"}`}>
                       {t.title}
                     </p>
                     <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-400 mt-1">
                       <span className="flex items-center gap-1 font-semibold">
                         <User className="h-3 w-3" />
-                        {t.assignee}
+                        {t.assigned_to}
                       </span>
                       <span className="flex items-center gap-1 font-semibold">
                         <Calendar className="h-3 w-3" />
-                        {t.dueDate}
+                        {t.due_date}
                       </span>
                       <span className={`px-2 py-0.5 rounded-full font-bold uppercase ${
                         t.priority === "high"
@@ -208,7 +212,7 @@ const filteredTasks = tasks.filter((t) => {
                 </div>
 
                 <button
-                  onClick={() => deleteTask(t.id)}
+                  onClick={() => handleDeleteTask(t.id)}
                   className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors"
                   title="Delete Task"
                 >
