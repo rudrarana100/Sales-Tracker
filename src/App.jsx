@@ -11,7 +11,6 @@ import SettingsPage from "./features/leads/pages/SettingsPage";
 import LoginPage from "./features/leads/pages/LoginPage";
 import TasksPage from "./features/leads/pages/TasksPage";
 import CalendarPage from "./features/leads/pages/CalendarPage";
-import TeamManagementPage from "./features/leads/pages/TeamManagementPage";
 import { AuthProvider } from "./context/AuthContext";
 import { WorkspaceProvider } from "./context/WorkspaceContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -39,7 +38,6 @@ function App() {
                       <Route path="/followups/queue" element={<FollowUpQueue />} />
                       <Route path="/tasks" element={<TasksPage />} />
                       <Route path="/calendar" element={<CalendarPage />} />
-                      <Route path="/team" element={<TeamManagementPage />} />
                       <Route path="/settings" element={<SettingsPage />} />
                     </Routes>
                   </AppLayout>

@@ -12,7 +12,6 @@ const menu = [
   { title: "Pipeline", icon: KanbanSquare, path: "/pipeline" },
   { title: "Tasks", icon: CheckSquare, path: "/tasks" },
   { title: "Calendar", icon: Calendar, path: "/calendar" },
-  { title: "Team & Roles", icon: UserPlus, path: "/team" },
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
