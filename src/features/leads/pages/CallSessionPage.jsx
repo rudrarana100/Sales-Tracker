@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getLeads, updateLead } from "../api/leadsApi";
-import { addActivity } from "../api/activitiesApi";
+import { getActivities, addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
