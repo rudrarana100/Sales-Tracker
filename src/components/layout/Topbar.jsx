@@ -49,7 +49,7 @@ export default function Topbar({ onMenuToggle = () => {} }) {
 
 
         {/* Search input */}
-        <div className="relative hidden sm:block w-48 sm:w-64">
+        <div className="relative flex-1 min-w-[140px] max-w-[200px] xs:max-w-[240px] sm:w-64 sm:max-w-64">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
             value={search}

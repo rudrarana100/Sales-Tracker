@@ -1,7 +1,7 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Phone, CalendarDays, KanbanSquare, Settings,
-  ChevronLeft, ChevronRight, Sparkles, CheckSquare, Calendar, X,
+  ChevronLeft, ChevronRight, Sparkles, CheckSquare, Calendar, X, Search,
 } from "lucide-react";
 
 const menu = [
@@ -15,6 +15,8 @@ const menu = [
 ];
 
 export default function Sidebar({ collapsed, onToggle, onItemClick }) {
+  const navigate = useNavigate();
+
   return (
     <aside
       className={`flex flex-col h-full border-r border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
@@ -41,6 +43,26 @@ export default function Sidebar({ collapsed, onToggle, onItemClick }) {
           </button>
         )}
       </div>
+
+      {/* Search Input in Sidebar for Mobile */}
+      {!collapsed && (
+        <div className="p-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            <input
+              placeholder="Search leads..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.target.value.trim()) {
+                  navigate(`/leads?search=${encodeURIComponent(e.target.value.trim())}`);
+                  if (onItemClick) onItemClick();
+                  e.target.value = "";
+                }
+              }}
+              className="h-8.5 w-full rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 pl-8 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 transition-all"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Navigation Menu */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4 sidebar-scroll">
