@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Search, Moon, Sun, Menu, LogOut, User, Settings } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
-import WorkspaceSwitcher from "./WorkspaceSwitcher";
 import NotificationCenter from "../notifications/NotificationCenter";
 
 export default function Topbar({ onMenuToggle = () => {} }) {
@@ -39,7 +38,7 @@ export default function Topbar({ onMenuToggle = () => {} }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/70 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl px-4 lg:px-6">
-      {/* Left side: Mobile menu, Workspace Switcher & Search */}
+     
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuToggle}
@@ -48,7 +47,6 @@ export default function Topbar({ onMenuToggle = () => {} }) {
           <Menu className="h-4 w-4" />
         </button>
 
-        <WorkspaceSwitcher />
 
         {/* Search input */}
         <div className="relative hidden sm:block w-48 sm:w-64">

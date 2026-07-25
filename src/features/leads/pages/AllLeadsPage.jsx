@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getLeads } from "../api/leadsApi";
 import { useSearchParams } from "react-router-dom";
 import LeadForm from "../components/LeadForm";
 import LeadsList from "../components/LeadsList";
+import CsvImport from "../components/CsvImport";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
-import { Search, Plus, UserPlus } from "lucide-react";
+import { Search, Plus, UserPlus, Upload } from "lucide-react";
 
 function AllLeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -16,6 +17,8 @@ function AllLeadsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const csvImportRef = useRef(null);
 
   async function fetchLeads() {
     try {
@@ -28,8 +31,14 @@ function AllLeadsPage() {
     }
   }
 
-  useEffect(() => { fetchLeads(); }, []);
-  useEffect(() => { const query = searchParams.get("search") || ""; setSearchTerm(query); }, [searchParams]);
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  useEffect(() => {
+    const query = searchParams.get("search") || "";
+    setSearchTerm(query);
+  }, [searchParams]);
 
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch =
@@ -37,23 +46,34 @@ function AllLeadsPage() {
       lead.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || lead.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   function handleSearchChange(e) {
     const value = e.target.value;
     setSearchTerm(value);
-    if (value.trim()) { setSearchParams({ search: value }); } else { setSearchParams({}); }
+    if (value.trim()) {
+      setSearchParams({ search: value });
+    } else {
+      setSearchParams({});
+    }
   }
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Leads" description="Manage and organize all your prospects." />
+        <PageHeader
+          title="Leads"
+          description="Manage and organize all your prospects."
+        />
         <div className="space-y-3">
-          {[1,2,3,4,5].map((i) => (
-            <div key={i} className="h-16 rounded-2xl bg-muted animate-skeleton-pulse" />
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="h-16 rounded-2xl bg-muted animate-skeleton-pulse"
+            />
           ))}
         </div>
       </div>
@@ -66,15 +86,30 @@ function AllLeadsPage() {
         title="Leads Management"
         description="Manage and organize all your prospects and deals."
         action={
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 text-xs font-bold shadow-sm transition-all"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Lead</span>
-          </button>
+          <div className="flex items-center gap-2.5">
+            {/* Import CSV Button */}
+            <button
+              onClick={() => csvImportRef.current?.openFilePicker()}
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-800 dark:text-slate-200 px-3.5 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            >
+              <Upload className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+              <span>Import CSV</span>
+            </button>
+
+            {/* Add Lead Button */}
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="flex items-center gap-1.5 rounded-xl bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-500 text-white px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Lead</span>
+            </button>
+          </div>
         }
       />
+
+      {/* Hidden CsvImport Component Trigger */}
+      <CsvImport ref={csvImportRef} onImport={fetchLeads} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1 max-w-xs">
@@ -103,8 +138,20 @@ function AllLeadsPage() {
       </div>
 
       {showForm && (
-        <SectionCard title={<span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200"><UserPlus className="h-4 w-4 text-blue-500" />Add New Lead</span>}>
-          <LeadForm onLeadAdded={() => { fetchLeads(); setShowForm(false); }} />
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+              <UserPlus className="h-4 w-4 text-blue-500" />
+              Add New Lead
+            </span>
+          }
+        >
+          <LeadForm
+            onLeadAdded={() => {
+              fetchLeads();
+              setShowForm(false);
+            }}
+          />
         </SectionCard>
       )}
 
@@ -114,4 +161,5 @@ function AllLeadsPage() {
     </div>
   );
 }
+
 export default AllLeadsPage;

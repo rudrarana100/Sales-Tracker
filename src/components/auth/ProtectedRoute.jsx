@@ -1,11 +1,9 @@
 import { useAuth } from "@/context/AuthContext";
-import { useWorkspace } from "@/context/WorkspaceContext";
 import { Navigate } from "react-router-dom";
 import { ShieldAlert } from "lucide-react";
 
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
-  const { currentUserRole } = useWorkspace();
 
   if (loading) {
     return (

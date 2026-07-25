@@ -195,56 +195,50 @@ function PipelinePage() {
             </div>
 
             {/* Bottom Actions Bar */}
-            <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-1">
-              <div className="flex items-center gap-1">
-                {lead.website && (
-                  <button
-                    title="Website"
-                    onClick={() => {
-                      let u = lead.website;
-                      if (!u.startsWith("http")) u = "https://" + u;
-                      window.open(u, "_blank");
-                    }}
-                    className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <Globe className="h-3 w-3" />
-                  </button>
-                )}
-                {lead.google_maps_link && (
-                  <button
-                    title="Maps"
-                    onClick={() => window.open(lead.google_maps_link, "_blank")}
-                    className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <MapPin className="h-3 w-3" />
-                  </button>
-                )}
+            <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-start gap-1">
+              {lead.website && (
                 <button
-                  title="WhatsApp"
+                  title="Website"
                   onClick={() => {
-                    let p = (lead.phone || "").replace(/\D/g, "");
-                    if (p.length === 10) p = "91" + p;
-                    window.open(`https://wa.me/${p}`, "_blank");
-                  }}
-                  className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
-                >
-                  <MessageCircle className="h-3 w-3" />
-                </button>
-                <button
-                  title="Copy Phone"
-                  onClick={() => {
-                    navigator.clipboard.writeText(lead.phone);
-                    toast.success("Phone copied!");
+                    let u = lead.website;
+                    if (!u.startsWith("http")) u = "https://" + u;
+                    window.open(u, "_blank");
                   }}
                   className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
-                  <Copy className="h-3 w-3" />
+                  <Globe className="h-3 w-3" />
                 </button>
-              </div>
-
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                ID #{lead.id}
-              </span>
+              )}
+              {lead.google_maps_link && (
+                <button
+                  title="Maps"
+                  onClick={() => window.open(lead.google_maps_link, "_blank")}
+                  className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <MapPin className="h-3 w-3" />
+                </button>
+              )}
+              <button
+                title="WhatsApp"
+                onClick={() => {
+                  let p = (lead.phone || "").replace(/\D/g, "");
+                  if (p.length === 10) p = "91" + p;
+                  window.open(`https://wa.me/${p}`, "_blank");
+                }}
+                className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+              >
+                <MessageCircle className="h-3 w-3" />
+              </button>
+              <button
+                title="Copy Phone"
+                onClick={() => {
+                  navigator.clipboard.writeText(lead.phone);
+                  toast.success("Phone copied!");
+                }}
+                className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Copy className="h-3 w-3" />
+              </button>
             </div>
           </div>
         )}
@@ -356,5 +350,3 @@ function PipelinePage() {
 }
 
 export default PipelinePage;
-
-

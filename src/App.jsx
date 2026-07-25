@@ -12,7 +12,6 @@ import LoginPage from "./features/leads/pages/LoginPage";
 import TasksPage from "./features/leads/pages/TasksPage";
 import CalendarPage from "./features/leads/pages/CalendarPage";
 import { AuthProvider } from "./context/AuthContext";
-import { WorkspaceProvider } from "./context/WorkspaceContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 
@@ -20,7 +19,6 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <WorkspaceProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route
@@ -45,7 +43,6 @@ function App() {
               }
             />
           </Routes>
-        </WorkspaceProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

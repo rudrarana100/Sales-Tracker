@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
 import { useTheme } from "@/hooks/useTheme";
+import { getSettings, saveSettings } from "../api/settingsApi";
 import {
   User,
   Moon,
@@ -9,28 +10,74 @@ import {
   Phone,
   CheckCircle2,
   Save,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
+const DEFAULT_SETTINGS = {
+  user_name: "User",
+  company_name: "BuiltStack",
+  email: "user@builtstack.com",
+  phone: "+91 9876543210",
+  country_code: "91",
+  meet_duration: "30",
+  follow_up_delay: "1",
+};
+
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
-  const [userName, setUserName] = useState("Rudra Rana");
-  const [companyName, setCompanyName] = useState("BuiltStack");
-  const [email, setEmail] = useState("rudra@builtstack.com");
-  const [phone, setPhone] = useState("+91 9876543210");
-  const [countryCode, setCountryCode] = useState("91");
-  const [meetDuration, setMeetDuration] = useState("30");
-  const [followUpDelay, setFollowUpDelay] = useState("1");
-  const [notifications, setNotifications] = useState(true);
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  function handleSaveSettings(e) {
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const data = await getSettings();
+        if (data) {
+          setSettings((prev) => ({ ...prev, ...data }));
+        }
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+        toast.error("Failed to load settings from Supabase.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  const handleChange = (key, value) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  async function handleSaveSettings(e) {
     e.preventDefault();
     setSaving(true);
-    setTimeout(() => {
+
+    try {
+      await saveSettings(settings);
+      toast.success("Settings saved to Supabase!");
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error(error.message || "Failed to save settings.");
+    } finally {
       setSaving(false);
-      toast.success("Settings saved successfully!");
-    }, 400);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-4xl">
+        <PageHeader
+          title="Settings"
+          description="Manage your profile, CRM calling preferences, and theme."
+        />
+        <div className="h-64 rounded-2xl bg-slate-900 border border-slate-800 animate-pulse flex items-center justify-center">
+          <Loader2 className="h-6 w-6 text-slate-500 animate-spin" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -42,44 +89,58 @@ export default function SettingsPage() {
 
       <form onSubmit={handleSaveSettings} className="space-y-6">
         {/* Profile Settings */}
-        <SectionCard title={<span className="flex items-center gap-2"><User className="h-4 w-4 text-blue-500" /> Account Profile</span>}>
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <User className="h-4 w-4 text-blue-500" /> Account Profile
+            </span>
+          }
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Full Name</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Full Name
+              </label>
               <input
                 type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
+                value={settings.user_name || ""}
+                onChange={(e) => handleChange("user_name", e.target.value)}
                 className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Company Name</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Company Name
+              </label>
               <input
                 type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
+                value={settings.company_name || ""}
+                onChange={(e) => handleChange("company_name", e.target.value)}
                 className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Email Address</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Email Address
+              </label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={settings.email || ""}
+                onChange={(e) => handleChange("email", e.target.value)}
                 className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Phone Number</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Phone Number
+              </label>
               <input
                 type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                value={settings.phone || ""}
+                onChange={(e) => handleChange("phone", e.target.value)}
                 className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
               />
             </div>
@@ -87,24 +148,34 @@ export default function SettingsPage() {
         </SectionCard>
 
         {/* Calling & Meeting Preferences */}
-        <SectionCard title={<span className="flex items-center gap-2"><Phone className="h-4 w-4 text-emerald-500" /> Calling & Meeting Defaults</span>}>
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-emerald-500" /> Calling & Meeting Defaults
+            </span>
+          }
+        >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">WhatsApp Country Code</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                WhatsApp Country Code
+              </label>
               <input
                 type="text"
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
+                value={settings.country_code || "91"}
+                onChange={(e) => handleChange("country_code", e.target.value)}
                 className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Default Meet Duration</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Default Meet Duration
+              </label>
               <select
-                value={meetDuration}
-                onChange={(e) => setMeetDuration(e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+                value={settings.meet_duration || "30"}
+                onChange={(e) => handleChange("meet_duration", e.target.value)}
+                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500 cursor-pointer"
               >
                 <option value="15">15 Minutes</option>
                 <option value="30">30 Minutes</option>
@@ -114,11 +185,13 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">No Answer Follow-up</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                No Answer Follow-up
+              </label>
               <select
-                value={followUpDelay}
-                onChange={(e) => setFollowUpDelay(e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+                value={settings.follow_up_delay || "1"}
+                onChange={(e) => handleChange("follow_up_delay", e.target.value)}
+                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500 cursor-pointer"
               >
                 <option value="1">Next Day (+1 Day)</option>
                 <option value="2">In 2 Days (+2 Days)</option>
@@ -129,16 +202,26 @@ export default function SettingsPage() {
         </SectionCard>
 
         {/* Theme & Appearance */}
-        <SectionCard title={<span className="flex items-center gap-2"><Sun className="h-4 w-4 text-amber-500" /> Appearance & Theme</span>}>
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <Sun className="h-4 w-4 text-amber-500" /> Appearance & Theme
+            </span>
+          }
+        >
           <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
             <div>
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-100">Interface Theme Mode</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Switch between dark slate navy and crisp light mode.</p>
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                Interface Theme Mode
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Switch between dark slate navy and crisp light mode.
+              </p>
             </div>
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-xs"
+              className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-xs cursor-pointer"
             >
               {theme === "dark" ? (
                 <>
@@ -160,9 +243,13 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-5 py-2 text-xs font-bold shadow-xs transition-all"
+            className="flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
-            {saving ? <CheckCircle2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? (
+              <CheckCircle2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
             <span>{saving ? "Saving Changes..." : "Save Settings"}</span>
           </button>
         </div>
