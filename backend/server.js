@@ -10,7 +10,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://salestrackercrm.vercel.app"
+    ],
+    credentials: true,
   })
 );
 
@@ -26,11 +30,10 @@ app.get("/api/test", (req, res) => {
   });
 });
 
-const PORT = 5000;
-
 app.use("/auth", authRoutes);
 app.use("/calendar", calendarRoutes);
 
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
