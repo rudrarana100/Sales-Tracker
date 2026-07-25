@@ -1,131 +1,120 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const AuthContext = createContext();
-
-const MOCK_USER = {
-  id: "user_demo_123",
-  email: "rudra@builtstack.com",
-  user_metadata: {
-    full_name: "Rudra Rana",
-    avatar_url: "",
-    role: "admin",
-  },
-};
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem("auth_user");
-    return stored ? JSON.parse(stored) : MOCK_USER;
-  });
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 1. Get initial active session on load
     async function initAuth() {
       try {
-        if (supabase) {
-          const { data } = await supabase.auth.getSession();
-          if (data?.session?.user) {
-            setUser(data.session.user);
-          }
-        }
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setUser(session?.user ?? null);
       } catch (err) {
-        console.warn("Supabase auth session check fallback:", err);
+        console.error("Auth session init error:", err);
       } finally {
         setLoading(false);
       }
     }
+
     initAuth();
+
+    // 2. Listen to real-time auth state changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  // Real Supabase Login
   const login = async (email, password) => {
     setLoading(true);
     try {
-      if (supabase) {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (!error && data?.user) {
-          setUser(data.user);
-          localStorage.setItem("auth_user", JSON.stringify(data.user));
-          setLoading(false);
-          return { success: true };
-        }
-      }
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      setUser(data.user);
+      return data;
     } catch (err) {
-      console.warn("Supabase auth login fallback:", err);
+      console.error("Login failed:", err.message);
+      throw err; // Re-throw to allow LoginPage toast to display exact error
+    } finally {
+      setLoading(false);
     }
-    // Fallback demo user login
-    const newUser = {
-      id: "user_" + Date.now(),
-      email,
-      user_metadata: {
-        full_name: email.split("@")[0].replace(/\./g, " ").toUpperCase(),
-        role: "admin",
-      },
-    };
-    setUser(newUser);
-    localStorage.setItem("auth_user", JSON.stringify(newUser));
-    setLoading(false);
-    return { success: true };
   };
 
+  // Real Supabase Registration
   const register = async (fullName, email, password) => {
     setLoading(true);
     try {
-      if (supabase) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: fullName, role: "admin" } },
-        });
-        if (!error && data?.user) {
-          setUser(data.user);
-          localStorage.setItem("auth_user", JSON.stringify(data.user));
-          setLoading(false);
-          return { success: true };
-        }
-      }
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: "admin",
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      setUser(data.user);
+      return data;
     } catch (err) {
-      console.warn("Supabase auth register fallback:", err);
+      console.error("Registration failed:", err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-    const newUser = {
-      id: "user_" + Date.now(),
-      email,
-      user_metadata: { full_name: fullName, role: "admin" },
-    };
-    setUser(newUser);
-    localStorage.setItem("auth_user", JSON.stringify(newUser));
-    setLoading(false);
-    return { success: true };
   };
 
+  // Real Supabase Logout
   const logout = async () => {
     try {
-      if (supabase) {
-        await supabase.auth.signOut();
-      }
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     } catch (err) {
-      console.warn("Supabase signout fallback:", err);
+      console.error("Logout error:", err.message);
+    } finally {
+      setUser(null);
     }
-    setUser(null);
-    localStorage.removeItem("auth_user");
   };
 
-  const updateProfile = (updates) => {
-    setUser((prev) => {
-      const updated = {
-        ...prev,
-        user_metadata: {
-          ...prev?.user_metadata,
-          ...updates,
-        },
-      };
-      localStorage.setItem("auth_user", JSON.stringify(updated));
-      return updated;
-    });
+  // Sync profile metadata changes back to Supabase auth
+  const updateProfile = async (updates) => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: updates,
+      });
+
+      if (error) throw error;
+
+      setUser(data.user);
+      return data;
+    } catch (err) {
+      console.error("Update profile error:", err.message);
+      throw err;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, logout, updateProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );

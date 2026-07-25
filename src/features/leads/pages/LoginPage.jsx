@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Mail, Lock, User, ArrowRight, ShieldCheck } from "lucide-react";
+import { Sparkles, Mail, Lock, User, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -36,7 +36,7 @@ export default function LoginPage() {
       navigate("/");
     } catch (err) {
       console.error(err);
-      toast.error("Authentication failed. Please check your credentials.");
+      toast.error(err.message || "Authentication failed. Please check your credentials.");
     } finally {
       setSubmitting(false);
     }
@@ -61,7 +61,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setIsRegister(false)}
-              className={`py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 !isRegister
                   ? "bg-blue-600 text-white shadow-xs"
                   : "text-slate-400 hover:text-white"
@@ -72,7 +72,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setIsRegister(true)}
-              className={`py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 isRegister
                   ? "bg-blue-600 text-white shadow-xs"
                   : "text-slate-400 hover:text-white"
@@ -90,7 +90,8 @@ export default function LoginPage() {
                   <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                   <input
                     type="text"
-                    placeholder="Rudra Rana"
+                    required={isRegister}
+                    placeholder="User"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-800 bg-slate-900/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -105,6 +106,7 @@ export default function LoginPage() {
                 <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
                   type="email"
+                  required
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -119,6 +121,7 @@ export default function LoginPage() {
                 <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
                   type="password"
+                  required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -130,10 +133,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 mt-2"
+              className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer"
             >
-              <span>{submitting ? "Processing..." : isRegister ? "Create Account" : "Sign In to Dashboard"}</span>
-              <ArrowRight className="h-4 w-4" />
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <span>{isRegister ? "Create Account" : "Sign In to Dashboard"}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </form>
         </div>
