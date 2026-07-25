@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Users, Phone, CalendarDays, KanbanSquare, Settings,
-  ChevronLeft, ChevronRight, Sparkles, CheckSquare, Calendar, UserPlus,
+  ChevronLeft, ChevronRight, Sparkles, CheckSquare, Calendar, X,
 } from "lucide-react";
 
 const menu = [
@@ -14,15 +14,15 @@ const menu = [
   { title: "Calendar", icon: Calendar, path: "/calendar" },
 ];
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle, onItemClick }) {
   return (
     <aside
-      className={`flex flex-col border-r border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+      className={`flex flex-col h-full border-r border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
         collapsed ? "w-[72px]" : "w-[240px]"
       }`}
     >
       {/* App Header */}
-      <div className="flex h-16 items-center border-b border-slate-100 dark:border-slate-800/80 px-4">
+      <div className="flex h-16 items-center justify-between border-b border-slate-100 dark:border-slate-800/80 px-4">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white font-bold shadow-xs">
             <Sparkles className="h-4.5 w-4.5 text-blue-400" />
@@ -32,6 +32,14 @@ export default function Sidebar({ collapsed, onToggle }) {
             <p className="text-[10px] font-medium text-slate-400 leading-tight">Outbound CRM</p>
           </div>
         </div>
+        {onItemClick && (
+          <button
+            onClick={onItemClick}
+            className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Navigation Menu */}
@@ -46,6 +54,7 @@ export default function Sidebar({ collapsed, onToggle }) {
               key={item.path}
               to={item.path}
               end={item.path === "/"}
+              onClick={onItemClick}
               className={({ isActive }) =>
                 [
                   "flex h-9.5 items-center rounded-xl text-xs font-semibold transition-all duration-150",
@@ -70,6 +79,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       <div className="border-t border-slate-100 dark:border-slate-800/80 p-2 space-y-1">
         <NavLink
           to="/settings"
+          onClick={onItemClick}
           className={({ isActive }) =>
             [
               "flex h-9 items-center rounded-xl text-xs font-semibold transition-all duration-150",
@@ -90,7 +100,7 @@ export default function Sidebar({ collapsed, onToggle }) {
 
       <button
         onClick={onToggle}
-        className="flex h-8 items-center justify-center border-t border-slate-100 dark:border-slate-800/80 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200"
+        className="hidden md:flex h-8 items-center justify-center border-t border-slate-100 dark:border-slate-800/80 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200"
       >
         {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
       </button>
