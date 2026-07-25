@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { getLeads } from "../api/leadsApi";
 import { useSearchParams } from "react-router-dom";
+import LoadingState from "@/components/common/LoadingState";
 import LeadForm from "../components/LeadForm";
 import LeadsList from "../components/LeadsList";
 import CsvImport from "../components/CsvImport";
@@ -62,22 +63,7 @@ function AllLeadsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Leads"
-          description="Manage and organize all your prospects."
-        />
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="h-16 rounded-2xl bg-muted animate-skeleton-pulse"
-            />
-          ))}
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading prospects directory..." />;
   }
 
   return (

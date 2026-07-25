@@ -83,19 +83,19 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
       {/* Modal Popup Overlay */}
       {rows.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-4xl max-h-[85vh] flex flex-col rounded-2xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl overflow-hidden">
+          <div className="relative w-full max-w-4xl max-h-[85vh] flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl overflow-hidden">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4">
               <div>
-                <h3 className="text-base font-bold text-white">Preview Imported Leads</h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Preview Imported Leads</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Review your CSV data before importing to your workspace.
                 </p>
               </div>
               <button
                 onClick={handleClose}
-                className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer"
+                className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -103,25 +103,25 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
 
             {/* Modal Body (Scrollable Table) */}
             <div className="flex-1 overflow-y-auto p-6 space-y-3">
-              <div className="rounded-xl border border-slate-800 overflow-hidden">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                 <Table>
-                  <TableHeader className="bg-slate-800/60">
-                    <TableRow className="border-slate-800">
-                      <TableHead className="text-slate-400">Lead</TableHead>
-                      <TableHead className="text-slate-400">Contact</TableHead>
-                      <TableHead className="text-slate-400">Phone</TableHead>
-                      <TableHead className="text-slate-400">Email</TableHead>
-                      <TableHead className="text-slate-400">Status</TableHead>
+                  <TableHeader className="bg-slate-50 dark:bg-slate-800/60">
+                    <TableRow className="border-slate-200 dark:border-slate-800">
+                      <TableHead className="text-slate-500 dark:text-slate-400">Lead</TableHead>
+                      <TableHead className="text-slate-500 dark:text-slate-400">Contact</TableHead>
+                      <TableHead className="text-slate-500 dark:text-slate-400">Phone</TableHead>
+                      <TableHead className="text-slate-500 dark:text-slate-400">Email</TableHead>
+                      <TableHead className="text-slate-500 dark:text-slate-400">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {rows.slice(0, 10).map((row, index) => (
-                      <TableRow key={index} className="border-slate-800/60 hover:bg-slate-800/30">
-                        <TableCell className="font-bold text-white">{row.lead_name}</TableCell>
-                        <TableCell className="text-slate-300">{row.contact_person || "--"}</TableCell>
-                        <TableCell className="text-slate-300">{row.phone || "--"}</TableCell>
-                        <TableCell className="text-slate-400">{row.email || "--"}</TableCell>
-                        <TableCell className="capitalize text-blue-400 font-semibold">{row.status || "Cold"}</TableCell>
+                      <TableRow key={index} className="border-slate-100 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                        <TableCell className="font-bold text-slate-900 dark:text-white">{row.lead_name}</TableCell>
+                        <TableCell className="text-slate-700 dark:text-slate-300">{row.contact_person || "--"}</TableCell>
+                        <TableCell className="text-slate-700 dark:text-slate-300">{row.phone || "--"}</TableCell>
+                        <TableCell className="text-slate-500 dark:text-slate-400">{row.email || "--"}</TableCell>
+                        <TableCell className="capitalize text-blue-600 dark:text-blue-400 font-semibold">{row.status || "Cold"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -129,16 +129,16 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
               </div>
 
               {rows.length > 10 && (
-                <p className="text-xs text-slate-400 italic">
+                <p className="text-xs text-slate-500 dark:text-slate-400 italic">
                   Showing first 10 of {rows.length} leads...
                 </p>
               )}
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-between border-t border-slate-800 px-6 py-4 bg-slate-900/50">
-              <span className="text-xs font-semibold text-slate-400">
-                Total to import: <strong className="text-white">{rows.length}</strong> leads
+            <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-50/50 dark:bg-slate-900/50">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                Total to import: <strong className="text-slate-900 dark:text-white">{rows.length}</strong> leads
               </span>
 
               <div className="flex items-center gap-2.5">
@@ -148,7 +148,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
                   size="sm"
                   onClick={handleClose}
                   disabled={loading}
-                  className="rounded-xl border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 cursor-pointer"
+                  className="rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 cursor-pointer"
                 >
                   Cancel
                 </Button>

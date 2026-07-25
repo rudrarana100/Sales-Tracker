@@ -4,6 +4,7 @@ import { getLeads, updateLead } from "../api/leadsApi";
 import { addActivity } from "../api/activitiesApi";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
+import LoadingState from "@/components/common/LoadingState";
 import {
   Globe, MapPin, MessageCircle, Copy, ExternalLink, Search,
   Phone, Building2, Calendar, KanbanSquare, Plus,
@@ -247,16 +248,7 @@ function PipelinePage() {
   }
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Pipeline" description="Drag and drop deals across stages." />
-        <div className="flex gap-4 overflow-x-auto">
-          {[1,2,3,4,5,6].map((i) => (
-            <div key={i} className="w-[290px] min-w-[290px] h-[550px] rounded-2xl bg-card border border-border animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading deal pipeline..." />;
   }
 
   const activeDealsCount = leads.filter((l) => l.status !== "cold").length;

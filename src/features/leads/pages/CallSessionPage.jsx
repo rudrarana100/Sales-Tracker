@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { getLeads, updateLead } from "../api/leadsApi";
 import { addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
-import { getActivities } from "../api/activitiesApi";
-import SectionCard from "@/components/common/SectionCard";
 import PageHeader from "@/components/common/PageHeader";
+import SectionCard from "@/components/common/SectionCard";
+import LoadingState from "@/components/common/LoadingState";
 import { getNotes, addNote } from "../api/notesApi";
 import { createFollowUp } from "../api/followUpsApi";
 import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
@@ -292,30 +292,19 @@ function CallSessionPage() {
   }
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Call Session" description="Sequential cold calling workflow." />
-        <div className="h-48 rounded-2xl bg-slate-800 animate-pulse" />
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="h-40 rounded-2xl bg-slate-800 animate-pulse" />
-          </div>
-          <div className="h-64 rounded-2xl bg-slate-800 animate-pulse" />
-        </div>
-      </div>
-    );
+    return <LoadingState message="Preparing call session workspace..." />;
   }
 
   if (coldLeads.length === 0) {
     return (
       <div className="space-y-6">
         <PageHeader title="Call Session" description="All caught up for today." />
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 p-12 text-center flex flex-col items-center justify-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-slate-400">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-12 text-center flex flex-col items-center justify-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400">
             <PhoneCall className="h-6 w-6 text-blue-500" />
           </div>
-          <h2 className="text-lg font-bold text-slate-100">Session Complete</h2>
-          <p className="mt-0.5 text-xs text-slate-400">No cold leads remaining to call.</p>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Session Complete</h2>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">No cold leads remaining to call.</p>
         </div>
       </div>
     );
@@ -334,29 +323,29 @@ function CallSessionPage() {
       />
 
       {/* Main Active Lead Hero Card */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-xl space-y-4">
+      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-5 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold text-white tracking-tight">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {currentLead.lead_name}
               </h2>
               <span className={`inline-flex items-center rounded-lg px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${si.class}`}>
                 {si.label}
               </span>
             </div>
-            <p className="mt-1 text-xs text-slate-400">
-              Last Contacted: <span className="text-slate-200 font-medium">{currentLead.last_contact_date ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Never"}</span>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Last Contacted: <span className="text-slate-800 dark:text-slate-200 font-medium">{currentLead.last_contact_date ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Never"}</span>
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="rounded-xl bg-slate-800 border border-slate-700/60 px-3.5 py-1.5 text-xs font-bold text-slate-300">
+            <span className="rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
               {currentIndex} / {totalCold}
             </span>
             <button
               onClick={skipLead}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer"
             >
               <SkipForward className="h-3.5 w-3.5 text-slate-400" />
               <span>Skip</span>
@@ -564,34 +553,34 @@ function CallSessionPage() {
       {/* Schedule Callback Modal */}
       {showCallbackForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <CalendarCheck className="h-4 w-4 text-blue-400" />
+          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CalendarCheck className="h-4 w-4 text-blue-500 dark:text-blue-400" />
                 <span>{callbackReason === "gatekeeper" ? "Gatekeeper Follow-up" : "Schedule Callback"}</span>
               </h3>
-              <button onClick={() => setShowCallbackForm(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer">
+              <button onClick={() => setShowCallbackForm(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">Date</label>
-                <input type="date" value={callbackDate} onChange={(e) => setCallbackDate(e.target.value)} className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Date</label>
+                <input type="date" value={callbackDate} onChange={(e) => setCallbackDate(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">Time</label>
-                <input type="time" value={callbackTime} onChange={(e) => setCallbackTime(e.target.value)} className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Time</label>
+                <input type="time" value={callbackTime} onChange={(e) => setCallbackTime(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">Notes</label>
-                <input placeholder="Add context or notes..." value={callbackNote} onChange={(e) => setCallbackNote(e.target.value)} className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Notes</label>
+                <input placeholder="Add context or notes..." value={callbackNote} onChange={(e) => setCallbackNote(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-800">
-              <button onClick={() => setShowCallbackForm(false)} className="flex-1 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer">
+            <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button onClick={() => setShowCallbackForm(false)} className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer">
                 Cancel
               </button>
               <button onClick={saveCallback} disabled={saving} className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white py-2 text-xs font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer">
@@ -605,30 +594,30 @@ function CallSessionPage() {
       {/* Book Google Meet Modal */}
       {showMeetingForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Video className="h-4 w-4 text-purple-400" />
+          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Video className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 <span>Book Google Meet</span>
               </h3>
-              <button onClick={() => setShowMeetingForm(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer">
+              <button onClick={() => setShowMeetingForm(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">Date</label>
-                <input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Date</label>
+                <input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">Time</label>
-                <input type="time" value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Time</label>
+                <input type="time" value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-800">
-              <button onClick={() => setShowMeetingForm(false)} className="flex-1 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer">
+            <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button onClick={() => setShowMeetingForm(false)} className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer">
                 Cancel
               </button>
               <button onClick={saveMeeting} disabled={saving} className="flex-1 rounded-xl bg-purple-600 hover:bg-purple-500 text-white py-2 text-xs font-bold transition-all shadow-md shadow-purple-500/20 cursor-pointer">
@@ -642,13 +631,13 @@ function CallSessionPage() {
       {/* Prospect Interested Actions Modal */}
       {showInterestedActions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <ThumbsUp className="h-4 w-4 text-emerald-400" />
+          <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <ThumbsUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Prospect Interested</span>
               </h3>
-              <button onClick={() => setShowInterestedActions(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer">
+              <button onClick={() => setShowInterestedActions(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -659,18 +648,18 @@ function CallSessionPage() {
                 <span>Send WhatsApp</span>
               </button>
 
-              <button onClick={() => { setShowInterestedActions(false); setShowMeetingForm(true); }} className="w-full rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer">
-                <Video className="h-4 w-4 text-purple-400" />
+              <button onClick={() => { setShowInterestedActions(false); setShowMeetingForm(true); }} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer">
+                <Video className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 <span>Book Google Meet</span>
               </button>
 
-              <button onClick={markInterested} className="w-full rounded-xl border border-slate-700/60 bg-slate-800/40 hover:bg-slate-700/60 text-slate-300 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer">
-                <Calendar className="h-4 w-4 text-blue-400" />
+              <button onClick={markInterested} className="w-full rounded-xl border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer">
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <span>Schedule Follow-up</span>
               </button>
             </div>
 
-            <button onClick={() => setShowInterestedActions(false)} className="w-full text-xs text-slate-400 hover:text-slate-200 py-1 font-semibold transition-all cursor-pointer">
+            <button onClick={() => setShowInterestedActions(false)} className="w-full text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 py-1 font-semibold transition-all cursor-pointer">
               Cancel
             </button>
           </div>

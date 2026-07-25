@@ -1,5 +1,6 @@
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
+import LoadingState from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -311,21 +312,7 @@ export default function FollowUpQueue() {
   }
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Follow-up Session"
-          description="Sequential follow-up workflow."
-        />
-        <div className="h-48 rounded-2xl bg-slate-800 animate-pulse" />
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="h-40 rounded-2xl bg-slate-800 animate-pulse" />
-          </div>
-          <div className="h-64 rounded-2xl bg-slate-800 animate-pulse" />
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading follow-up queue..." />;
   }
 
   if (queue.length === 0) {
@@ -346,14 +333,14 @@ export default function FollowUpQueue() {
             </Button>
           }
         />
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 p-12 text-center flex flex-col items-center justify-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-slate-400">
-            <Calendar className="h-6 w-6 text-purple-400" />
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-12 text-center flex flex-col items-center justify-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400">
+            <Calendar className="h-6 w-6 text-purple-600 dark:text-purple-400" />
           </div>
-          <h2 className="text-lg font-bold text-slate-100">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
             You're all caught up!
           </h2>
-          <p className="mt-0.5 text-xs text-slate-400">
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
             No follow-ups scheduled for today.
           </p>
         </div>
@@ -377,7 +364,7 @@ export default function FollowUpQueue() {
             variant="outline"
             size="sm"
             onClick={() => navigate("/follow-ups")}
-            className="rounded-xl border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer"
+            className="rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer"
           >
             <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
             Exit Session
@@ -386,11 +373,11 @@ export default function FollowUpQueue() {
       />
 
       {/* Main Active Lead Hero Card */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-xl space-y-4">
+      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-5 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold text-white tracking-tight">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {lead?.lead_name}
               </h2>
               <span
@@ -400,19 +387,19 @@ export default function FollowUpQueue() {
               </span>
             </div>
             {followUp?.title && (
-              <p className="mt-1 text-xs text-purple-400 font-semibold flex items-center gap-1.5">
+              <p className="mt-1 text-xs text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1.5">
                 <span>📌 Task: {followUp.title}</span>
               </p>
             )}
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="rounded-xl bg-slate-800 border border-slate-700/60 px-3.5 py-1.5 text-xs font-bold text-slate-300">
+            <span className="rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
               {currentIndex + 1} / {queue.length}
             </span>
             <button
               onClick={skipCurrentFollowUp}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer"
             >
               <SkipForward className="h-3.5 w-3.5 text-slate-400" />
               <span>Skip</span>
@@ -747,10 +734,10 @@ export default function FollowUpQueue() {
       {/* Schedule Callback Modal */}
       {showCallbackForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <CalendarCheck className="h-4 w-4 text-blue-400" />
+          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CalendarCheck className="h-4 w-4 text-blue-500 dark:text-blue-400" />
                 <span>
                   {callbackReason === "gatekeeper"
                     ? "Gatekeeper Follow-up"
@@ -759,7 +746,7 @@ export default function FollowUpQueue() {
               </h3>
               <button
                 onClick={() => setShowCallbackForm(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer"
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -767,44 +754,44 @@ export default function FollowUpQueue() {
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
                   Date
                 </label>
                 <input
                   type="date"
                   value={callbackDate}
                   onChange={(e) => setCallbackDate(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
                   Time
                 </label>
                 <input
                   type="time"
                   value={callbackTime}
                   onChange={(e) => setCallbackTime(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
                   Notes
                 </label>
                 <input
                   placeholder="Add context or notes..."
                   value={callbackNote}
                   onChange={(e) => setCallbackNote(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-800">
+            <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => setShowCallbackForm(false)}
-                className="flex-1 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer"
+                className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -823,15 +810,15 @@ export default function FollowUpQueue() {
       {/* Book Google Meet Modal */}
       {showMeetingForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Video className="h-4 w-4 text-purple-400" />
+          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Video className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 <span>Book Google Meet</span>
               </h3>
               <button
                 onClick={() => setShowMeetingForm(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer"
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -839,33 +826,33 @@ export default function FollowUpQueue() {
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
                   Date
                 </label>
                 <input
                   type="date"
                   value={meetingDate}
                   onChange={(e) => setMeetingDate(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block">
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
                   Time
                 </label>
                 <input
                   type="time"
                   value={meetingTime}
                   onChange={(e) => setMeetingTime(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-800">
+            <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => setShowMeetingForm(false)}
-                className="flex-1 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer"
+                className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -884,15 +871,15 @@ export default function FollowUpQueue() {
       {/* Prospect Interested Actions Modal */}
       {showInterestedActions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <ThumbsUp className="h-4 w-4 text-emerald-400" />
+          <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <ThumbsUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Prospect Interested</span>
               </h3>
               <button
                 onClick={() => setShowInterestedActions(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer"
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>

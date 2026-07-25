@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
+import LoadingState from "@/components/common/LoadingState";
 import { useTheme } from "@/hooks/useTheme";
 import { getSettings, saveSettings } from "../api/settingsApi";
 import {
@@ -10,7 +11,6 @@ import {
   Phone,
   CheckCircle2,
   Save,
-  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -67,17 +67,7 @@ export default function SettingsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="space-y-6 max-w-4xl">
-        <PageHeader
-          title="Settings"
-          description="Manage your profile, CRM calling preferences, and theme."
-        />
-        <div className="h-64 rounded-2xl bg-slate-900 border border-slate-800 animate-pulse flex items-center justify-center">
-          <Loader2 className="h-6 w-6 text-slate-500 animate-spin" />
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading settings..." type="card" />;
   }
 
   return (
