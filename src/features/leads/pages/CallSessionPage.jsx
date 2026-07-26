@@ -8,7 +8,7 @@ import LoadingState from "@/components/common/LoadingState";
 import { getNotes, addNote } from "../api/notesApi";
 import { createFollowUp } from "../api/followUpsApi";
 import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
-import WhatsAppModal from "@/components/whatsapp/WhatsappModal";
+import WhatsAppModal from "@/components/whatsapp/whatsappModal";
 import {
   Phone,
   User,
