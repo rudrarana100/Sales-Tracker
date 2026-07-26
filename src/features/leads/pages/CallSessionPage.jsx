@@ -106,6 +106,71 @@ function CallSessionPage() {
     if (currentLead) setSkippedLeadIds((p) => [...p, currentLead.id]);
   }
 
+  // Keyboard Shortcuts Listener for Call Session
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+        return;
+      }
+
+      if (e.key === "Escape") {
+        setShowCallbackForm(false);
+        setShowMeetingForm(false);
+        setShowInterestedActions(false);
+        setShowFollowUpModal(false);
+        return;
+      }
+
+      if (showCallbackForm || showMeetingForm || showInterestedActions || showFollowUpModal) {
+        return;
+      }
+
+      switch (e.key) {
+        case "1":
+          e.preventDefault();
+          handleOutcome("no_answer");
+          break;
+        case "2":
+          e.preventDefault();
+          handleOutcome("invalid_number");
+          break;
+        case "3":
+          e.preventDefault();
+          handleOutcome("gatekeeper");
+          break;
+        case "4":
+          e.preventDefault();
+          handleOutcome("callback_requested");
+          break;
+        case "5":
+          e.preventDefault();
+          handleOutcome("not_interested");
+          break;
+        case "6":
+          e.preventDefault();
+          handleOutcome("interested");
+          break;
+        case "s":
+        case "S":
+        case "ArrowRight":
+          e.preventDefault();
+          skipLead();
+          break;
+        default:
+          break;
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    currentLead,
+    showCallbackForm,
+    showMeetingForm,
+    showInterestedActions,
+    showFollowUpModal,
+  ]);
+
   const outcomeConfig = {
     interested: { status: "warm" },
     no_answer: { status: "cold" },
@@ -286,7 +351,7 @@ function CallSessionPage() {
     if (!currentLead?.phone) return;
     let phone = currentLead.phone.replace(/\D/g, "");
     if (phone.length === 10) phone = "91" + phone;
-    const msg = `Hi ${currentLead.contact_person || currentLead.lead_name},\n\nOur Google Meet has been scheduled.\n📅 Date: ${meetingDate}\n🕒 Time: ${meetingTime}\nLink: ${meetLink}`;
+    const msg = `Hi ${currentLead.contact_person || currentLead.lead_name},\n\nOur Google Meet has been scheduled.\nDate: ${meetingDate}\nTime: ${meetingTime}\nLink: ${meetLink}`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
   }
 
@@ -352,7 +417,7 @@ function CallSessionPage() {
           </div>
         </div>
 
-        {/* Structured Grid Info (Light & Dark mode fixed) */}
+        {/* Structured Grid Info */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6 pt-1">
           {[
             { icon: User, label: "Contact", value: currentLead.contact_person },
@@ -372,7 +437,7 @@ function CallSessionPage() {
           ))}
         </div>
 
-        {/* Action Toolbar (Light & Dark mode fixed) */}
+        {/* Action Toolbar */}
         <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/80">
           {[
             { icon: Globe, label: "Website", onClick: () => {
@@ -409,69 +474,63 @@ function CallSessionPage() {
       </div>
 
       {/* Main 2-Column Split Layout */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-stretch">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
         {/* Left Column (2 cols): Context, History & Notes */}
-        <div className="space-y-6 lg:col-span-2 flex flex-col justify-between">
+        <div className="space-y-6 lg:col-span-2">
           
-          {/* Side-by-side equal height sub-grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            <div className="flex flex-col">
-              <SectionCard 
-                title={<span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider"><Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" /> Previous Interaction</span>}
-                className="flex-1 flex flex-col justify-between"
-              >
-                <div className="grid grid-cols-2 gap-4 text-xs py-1">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase text-slate-400">Status</p>
-                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold capitalize ${si.class}`}>{si.label}</span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase text-slate-400">Last Outcome</p>
-                    <p className="font-semibold text-slate-800 dark:text-slate-200 capitalize truncate">{currentLead.last_outcome?.replace(/_/g, " ") || "--"}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase text-slate-400">Last Contact</p>
-                    <p className="text-slate-700 dark:text-slate-300">{currentLead.last_contact_date ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN") : "--"}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase text-slate-400">Next Follow-up</p>
-                    <p className="text-slate-700 dark:text-slate-300">{currentLead.follow_up_date || "--"}</p>
-                  </div>
+          {/* Side-by-side sub-grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SectionCard 
+              title={<span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider"><Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" /> Previous Interaction</span>}
+            >
+              <div className="grid grid-cols-2 gap-4 text-xs py-1">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase text-slate-400">Status</p>
+                  <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold capitalize ${si.class}`}>{si.label}</span>
                 </div>
-              </SectionCard>
-            </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase text-slate-400">Last Outcome</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200 capitalize truncate">{currentLead.last_outcome?.replace(/_/g, " ") || "--"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase text-slate-400">Last Contact</p>
+                  <p className="text-slate-700 dark:text-slate-300">{currentLead.last_contact_date ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN") : "--"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase text-slate-400">Next Follow-up</p>
+                  <p className="text-slate-700 dark:text-slate-300">{currentLead.follow_up_date || "--"}</p>
+                </div>
+              </div>
+            </SectionCard>
 
-            <div className="flex flex-col">
-              <SectionCard 
-                title={<span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider"><FileText className="h-4 w-4 text-purple-500 dark:text-purple-400" /> Recent Notes</span>}
-                className="flex-1 flex flex-col justify-between"
-              >
-                {notes.length === 0 ? (
-                  <p className="text-xs text-slate-400 dark:text-slate-500 py-6 text-center italic">No notes recorded yet.</p>
-                ) : (
-                  <div className="space-y-2 flex-1 flex flex-col justify-between">
-                    <div className="space-y-2">
-                      {visibleNotes.map((note) => (
-                        <div key={note.id} className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-2.5">
-                          <p className="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed">{note.content}</p>
-                          <p className="mt-1 text-[10px] text-slate-400">{new Date(note.created_at).toLocaleDateString("en-IN")}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {notes.length > 2 && (
-                      <button
-                        onClick={() => setShowAllNotes(!showAllNotes)}
-                        className="w-full flex items-center justify-center gap-1 pt-2 text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-500 transition-colors cursor-pointer"
-                      >
-                        <span>{showAllNotes ? "Show Less" : `Show More (${notes.length - 2} more)`}</span>
-                        {showAllNotes ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                      </button>
-                    )}
+            <SectionCard 
+              title={<span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider"><FileText className="h-4 w-4 text-purple-500 dark:text-purple-400" /> Recent Notes</span>}
+            >
+              {notes.length === 0 ? (
+                <p className="text-xs text-slate-400 dark:text-slate-500 py-6 text-center italic">No notes recorded yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  <div className="space-y-2">
+                    {visibleNotes.map((note) => (
+                      <div key={note.id} className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-2.5">
+                        <p className="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed">{note.content}</p>
+                        <p className="mt-1 text-[10px] text-slate-400">{new Date(note.created_at).toLocaleDateString("en-IN")}</p>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </SectionCard>
-            </div>
+
+                  {notes.length > 2 && (
+                    <button
+                      onClick={() => setShowAllNotes(!showAllNotes)}
+                      className="w-full flex items-center justify-center gap-1 pt-2 text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-500 transition-colors cursor-pointer"
+                    >
+                      <span>{showAllNotes ? "Show Less" : `Show More (${notes.length - 2} more)`}</span>
+                      {showAllNotes ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                    </button>
+                  )}
+                </div>
+              )}
+            </SectionCard>
           </div>
 
           {/* Timeline View for Activity */}
@@ -506,43 +565,61 @@ function CallSessionPage() {
           </SectionCard>
         </div>
 
-        {/* Right Column (1 col): Call Outcome Controls (Light & Dark mode fixed) */}
-        <div className="lg:sticky lg:top-6 flex flex-col h-full">
+        {/* Right Column (1 col): Call Outcome Controls with PC Hover Badges */}
+        <div className="lg:sticky lg:top-6">
           <SectionCard 
             title={<span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider"><Phone className="h-4 w-4 text-blue-500 dark:text-blue-400" /> Log Call Outcome</span>}
-            className="h-full flex flex-col justify-between"
           >
             <div className="space-y-2">
               {[
-                { icon: PhoneOff, label: "No Answer", action: "no_answer" },
-                { icon: Ban, label: "Invalid Number", action: "invalid_number" },
-                { icon: Shield, label: "Gatekeeper", action: "gatekeeper" },
-                { icon: CalendarCheck, label: "Callback Requested", action: "callback_requested" },
-                { icon: ThumbsDown, label: "Not Interested", action: "not_interested" },
-                { icon: ThumbsUp, label: "Interested", action: "interested", primary: true },
+                { icon: PhoneOff, label: "No Answer", action: "no_answer", key: "1" },
+                { icon: Ban, label: "Invalid Number", action: "invalid_number", key: "2" },
+                { icon: Shield, label: "Gatekeeper", action: "gatekeeper", key: "3" },
+                { icon: CalendarCheck, label: "Callback Requested", action: "callback_requested", key: "4" },
+                { icon: ThumbsDown, label: "Not Interested", action: "not_interested", key: "5" },
+                { icon: ThumbsUp, label: "Interested", action: "interested", primary: true, key: "6" },
               ].map((btn) => (
                 <button
                   key={btn.action}
                   onClick={() => handleOutcome(btn.action)}
-                  className={`w-full flex items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold transition-all border cursor-pointer active:scale-95 ${
+                  className={`group w-full flex items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold transition-all border cursor-pointer active:scale-95 ${
                     btn.primary
                       ? "bg-emerald-600 hover:bg-emerald-500 border-transparent text-white shadow-md shadow-emerald-600/20"
                       : "bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-200"
                   }`}
+                  title={`Press '${btn.key}' to log ${btn.label}`}
                 >
                   <span className="flex items-center gap-2.5">
                     <btn.icon className={`h-4 w-4 ${btn.primary ? "text-white" : "text-slate-500 dark:text-slate-400"}`} />
                     <span>{btn.label}</span>
                   </span>
-                  <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                  
+                  {/* Shortcut key hidden by default, reveals only on desktop hover */}
+                  <span
+                    className={`opacity-0 group-hover:opacity-100 transition-opacity duration-150 px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-md border ${
+                      btn.primary 
+                        ? "bg-emerald-700/60 border-emerald-400/40 text-white" 
+                        : "bg-slate-200 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                    }`}
+                  >
+                    {btn.key}
+                  </span>
                 </button>
               ))}
 
               <button
                 onClick={skipLead}
-                className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all mt-3 cursor-pointer"
+                className="group w-full flex items-center justify-between rounded-xl border border-dashed border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all mt-3 cursor-pointer"
+                title="Press 'S' or 'Right Arrow' to skip lead"
               >
-                <SkipForward className="h-3.5 w-3.5" /> Skip to Next Lead
+                <span className="flex items-center gap-2">
+                  <SkipForward className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
+                  <span>Skip to Next Lead</span>
+                </span>
+                
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-md bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                  S
+                </span>
               </button>
             </div>
           </SectionCard>
