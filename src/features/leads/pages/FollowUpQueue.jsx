@@ -10,7 +10,7 @@ import { getNotes, addNote } from "../api/notesApi";
 import { updateLead } from "../api/leadsApi";
 import { createGoogleMeet } from "@/utils/meetingUtils";
 import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
-import WhatsAppModal from "@/components/whatsapp/WhatsappModal";
+import WhatsAppModal from "@/components/whatsapp/whatsappModal";
 import {
   ArrowLeft,
   Phone,
