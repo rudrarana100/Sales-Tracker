@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getLeads } from "../../features/leads/api/leadsApi";
+import { getLeads } from "@/features/leads/api/leadsApi";
 import {
   Search,
   LayoutDashboard,
