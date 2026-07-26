@@ -346,13 +346,30 @@ function CallSessionPage() {
       setSaving(false);
     }
   }
-
-  function sendMeetingConfirmation(meetLink) {
-    if (!currentLead?.phone) return;
+function sendMeetingConfirmation(meetLink) {
+    if (!currentLead?.phone) return; // (use 'lead?.phone' in FollowUpQueue)
     let phone = currentLead.phone.replace(/\D/g, "");
     if (phone.length === 10) phone = "91" + phone;
-    const msg = `Hi ${currentLead.contact_person || currentLead.lead_name},\n\nOur Google Meet has been scheduled.\nDate: ${meetingDate}\nTime: ${meetingTime}\nLink: ${meetLink}`;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+
+    const formattedDate = new Date(meetingDate).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    // Convert 24hr time (e.g., "14:30") to 12hr AM/PM format
+    const [hours, minutes] = meetingTime.split(":");
+    const parsedHours = parseInt(hours, 10);
+    const adjustedHours = parsedHours % 12 || 12;
+    const ampm = parsedHours >= 12 ? "PM" : "AM";
+    const formattedTime = `${adjustedHours}:${minutes} ${ampm}`;
+
+    const msg = `Hi ${currentLead.contact_person || currentLead.lead_name},\n\nOur Google Meet has been scheduled.\n\nDate: ${formattedDate}\nTime: ${formattedTime}\nMeeting Link:\n${meetLink}\n\nLooking forward to speaking with you.\n\n- User\nBuiltStack`;
+
+    window.open(
+      `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
+      "_blank"
+    );
   }
 
   if (loading) {

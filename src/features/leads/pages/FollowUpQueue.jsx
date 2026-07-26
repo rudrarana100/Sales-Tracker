@@ -363,17 +363,31 @@ export default function FollowUpQueue() {
     }
   }
 
-  function sendMeetingConfirmation(meetLink) {
-    if (!lead?.phone) return;
+function sendMeetingConfirmation(meetLink) {
+    if (!lead?.phone) return; // (use 'lead?.phone' in FollowUpQueue)
     let phone = lead.phone.replace(/\D/g, "");
     if (phone.length === 10) phone = "91" + phone;
-    const msg = `Hi ${lead.contact_person || lead.lead_name},\n\nGreat speaking with you today!\n\nOur Google Meet has been scheduled.\n\nDate: ${new Date(meetingDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}\nTime: ${meetingTime}\n\nMeeting Link:\n${meetLink}\n\nLooking forward to speaking with you.\n\n- User\nBuiltStack`;
+
+    const formattedDate = new Date(meetingDate).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    // Convert 24hr time (e.g., "14:30") to 12hr AM/PM format
+    const [hours, minutes] = meetingTime.split(":");
+    const parsedHours = parseInt(hours, 10);
+    const adjustedHours = parsedHours % 12 || 12;
+    const ampm = parsedHours >= 12 ? "PM" : "AM";
+    const formattedTime = `${adjustedHours}:${minutes} ${ampm}`;
+
+    const msg = `Hi ${lead.contact_person || lead.lead_name},\n\nOur Google Meet has been scheduled.\n\nDate: ${formattedDate}\nTime: ${formattedTime}\nMeeting Link:\n${meetLink}\n\nLooking forward to speaking with you.\n\n- User\nBuiltStack`;
+
     window.open(
       `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
       "_blank"
     );
   }
-
   if (loading) {
     return <LoadingState message="Loading follow-up queue..." />;
   }
