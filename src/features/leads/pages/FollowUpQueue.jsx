@@ -10,6 +10,7 @@ import { getNotes, addNote } from "../api/notesApi";
 import { updateLead } from "../api/leadsApi";
 import { createGoogleMeet } from "@/utils/meetingUtils";
 import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
+import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 import {
   ArrowLeft,
   Phone,
@@ -83,6 +84,7 @@ export default function FollowUpQueue() {
   const [showMeetingForm, setShowMeetingForm] = useState(false);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [showCallbackForm, setShowCallbackForm] = useState(false);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
 
   const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("");
@@ -148,7 +150,6 @@ export default function FollowUpQueue() {
     }
   }
 
-  // Keyboard Shortcuts Listener for Follow Up Queue (Silent execution)
   useEffect(() => {
     function handleKeyDown(e) {
       if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
@@ -160,10 +161,11 @@ export default function FollowUpQueue() {
         setShowMeetingForm(false);
         setShowInterestedActions(false);
         setShowFollowUpModal(false);
+        setShowWhatsAppModal(false);
         return;
       }
 
-      if (showCallbackForm || showMeetingForm || showInterestedActions || showFollowUpModal) {
+      if (showCallbackForm || showMeetingForm || showInterestedActions || showFollowUpModal || showWhatsAppModal) {
         return;
       }
 
@@ -209,6 +211,7 @@ export default function FollowUpQueue() {
     showMeetingForm,
     showInterestedActions,
     showFollowUpModal,
+    showWhatsAppModal,
   ]);
 
   const outcomeConfig = {
@@ -267,18 +270,12 @@ export default function FollowUpQueue() {
     }
   }
 
-  function sendWhatsapp() {
+  function handleOpenWhatsApp() {
     if (!lead?.phone) {
       toast.warning("No phone number found.");
       return;
     }
-    let phone = lead.phone.replace(/\D/g, "");
-    if (phone.length === 10) phone = "91" + phone;
-    const msg = `Hi ${lead.contact_person || ""},\n\nGreat speaking with you today!\n\nAs discussed, here's some information about BuiltStack.\n\nWe help businesses build modern websites that increase trust and help generate more leads.\n\nWould love to show you a few examples on a quick Google Meet whenever you're free.`;
-    window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
-      "_blank"
-    );
+    setShowWhatsAppModal(true);
   }
 
   const saveCallbackFollowUp = async () => {
@@ -351,43 +348,16 @@ export default function FollowUpQueue() {
         activity_type: "meeting",
         description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
       });
-      sendMeetingConfirmation(meetLink);
-      await finishCurrentFollowUp();
       setShowMeetingForm(false);
-      setMeetingDate("");
-      setMeetingTime("");
+      setShowWhatsAppModal(true);
     } catch (error) {
       console.error(error);
     } finally {
       setSaving(false);
+      await finishCurrentFollowUp();
     }
   }
 
-function sendMeetingConfirmation(meetLink) {
-    if (!lead?.phone) return; // (use 'lead?.phone' in FollowUpQueue)
-    let phone = lead.phone.replace(/\D/g, "");
-    if (phone.length === 10) phone = "91" + phone;
-
-    const formattedDate = new Date(meetingDate).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-
-    // Convert 24hr time (e.g., "14:30") to 12hr AM/PM format
-    const [hours, minutes] = meetingTime.split(":");
-    const parsedHours = parseInt(hours, 10);
-    const adjustedHours = parsedHours % 12 || 12;
-    const ampm = parsedHours >= 12 ? "PM" : "AM";
-    const formattedTime = `${adjustedHours}:${minutes} ${ampm}`;
-
-    const msg = `Hi ${lead.contact_person || lead.lead_name},\n\nOur Google Meet has been scheduled.\n\nDate: ${formattedDate}\nTime: ${formattedTime}\nMeeting Link:\n${meetLink}\n\nLooking forward to speaking with you.\n\n- User\nBuiltStack`;
-
-    window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
-      "_blank"
-    );
-  }
   if (loading) {
     return <LoadingState message="Loading follow-up queue..." />;
   }
@@ -431,6 +401,19 @@ function sendMeetingConfirmation(meetLink) {
     ? activities
     : activities.slice(0, 2);
 
+  const formattedMeetingDate = meetingDate
+    ? new Date(meetingDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+    : "";
+
+  let formattedMeetingTime = "";
+  if (meetingTime) {
+    const [hours, minutes] = meetingTime.split(":");
+    const parsedHours = parseInt(hours, 10);
+    const adjustedHours = parsedHours % 12 || 12;
+    const ampm = parsedHours >= 12 ? "PM" : "AM";
+    formattedMeetingTime = `${adjustedHours}:${minutes} ${ampm}`;
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -449,7 +432,6 @@ function sendMeetingConfirmation(meetLink) {
         }
       />
 
-      {/* Main Active Lead Hero Card */}
       <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-5 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -484,7 +466,6 @@ function sendMeetingConfirmation(meetLink) {
           </div>
         </div>
 
-        {/* Structured Grid Info */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6 pt-1">
           {[
             { icon: User, label: "Contact", value: lead?.contact_person },
@@ -515,7 +496,6 @@ function sendMeetingConfirmation(meetLink) {
           ))}
         </div>
 
-        {/* Action Toolbar */}
         <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/80">
           {[
             {
@@ -560,7 +540,7 @@ function sendMeetingConfirmation(meetLink) {
                 }
               },
             },
-            { icon: MessageCircle, label: "WhatsApp", onClick: sendWhatsapp },
+            { icon: MessageCircle, label: "WhatsApp", onClick: handleOpenWhatsApp },
           ].map((btn, i) => (
             <button
               key={i}
@@ -574,9 +554,7 @@ function sendMeetingConfirmation(meetLink) {
         </div>
       </div>
 
-      {/* Main 2-Column Split Layout (FIXED: items-start eliminates vertical gaps) */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
-        {/* Left Column (2 cols): Context, History & Notes */}
         <div className="space-y-6 lg:col-span-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <SectionCard
@@ -677,7 +655,6 @@ function sendMeetingConfirmation(meetLink) {
             </SectionCard>
           </div>
 
-          {/* Timeline View for Activity */}
           <SectionCard
             title={
               <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
@@ -732,7 +709,6 @@ function sendMeetingConfirmation(meetLink) {
           </SectionCard>
         </div>
 
-        {/* Right Column (1 col): Call Outcome Controls with PC Hover Badges */}
         <div className="lg:sticky lg:top-6">
           <SectionCard
             title={
@@ -782,7 +758,6 @@ function sendMeetingConfirmation(meetLink) {
                     <span>{btn.label}</span>
                   </span>
 
-                  {/* Shortcut key hidden by default, reveals only on desktop hover */}
                   <span
                     className={`opacity-0 group-hover:opacity-100 transition-opacity duration-150 px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-md border ${
                       btn.primary
@@ -814,8 +789,6 @@ function sendMeetingConfirmation(meetLink) {
         </div>
       </div>
 
-      {/* POPUP MODALS */}
-      {/* Schedule Callback Modal */}
       {showCallbackForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
@@ -891,7 +864,6 @@ function sendMeetingConfirmation(meetLink) {
         </div>
       )}
 
-      {/* Book Google Meet Modal */}
       {showMeetingForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
@@ -952,7 +924,6 @@ function sendMeetingConfirmation(meetLink) {
         </div>
       )}
 
-      {/* Prospect Interested Actions Modal */}
       {showInterestedActions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
@@ -972,7 +943,7 @@ function sendMeetingConfirmation(meetLink) {
             <div className="space-y-2.5">
               <button
                 onClick={() => {
-                  sendWhatsapp();
+                  handleOpenWhatsApp();
                   setShowInterestedActions(false);
                   setShowFollowUpModal(true);
                 }}
@@ -1014,6 +985,17 @@ function sendMeetingConfirmation(meetLink) {
           </div>
         </div>
       )}
+
+      <WhatsAppModal
+        open={showWhatsAppModal}
+        lead={lead}
+        onClose={() => setShowWhatsAppModal(false)}
+        extraParams={{
+          date: formattedMeetingDate,
+          time: formattedMeetingTime,
+          link: lead?.meeting_link || "",
+        }}
+      />
 
       <ScheduleFollowUpModal
         open={showFollowUpModal}
