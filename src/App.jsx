@@ -14,6 +14,7 @@ import CalendarPage from "./features/leads/pages/CalendarPage";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ErrorBoundary from "./components/common/ErrorBoundary";
+import AnalyticsPage from "./features/leads/pages/AnalyticsPage";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
                   <AppLayout>
                     <Routes>
                       <Route path="/" element={<LeadsPage />} />
+                      <Route path="/analytics" element={<AnalyticsPage />} />
                       <Route path="/call-session" element={<CallSessionPage />} />
                       <Route path="/leads" element={<AllLeadsPage />} />
                       <Route path="/leads/:id" element={<LeadDetailPage />} />

@@ -31,3 +31,27 @@ export async function saveSettings(settingsData) {
   if (error) throw error;
   return data;
 }
+
+export async function getUserSetting(key, defaultValue = 20) {
+  try {
+    const settings = await getSettings();
+    if (!settings || settings[key] === undefined) return defaultValue;
+    return parseInt(settings[key], 10);
+  } catch (err) {
+    console.error(err);
+    return defaultValue;
+  }
+}
+
+export async function setUserSetting(key, value) {
+  try {
+    // Fetches current settings first so we upsert with the right user row context
+    const current = await getSettings() || {};
+    await saveSettings({
+      ...current,
+      [key]: value,
+    });
+  } catch (err) {
+    console.error("Failed to save setting:", err);
+  }
+}

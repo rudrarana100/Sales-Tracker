@@ -11,6 +11,7 @@ import {
   Sparkles,
   CheckSquare,
   Calendar,
+  BarChart3,
   X,
   Search,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const menu = [
   { title: "Pipeline", icon: KanbanSquare, path: "/pipeline" },
   { title: "Tasks", icon: CheckSquare, path: "/tasks" },
   { title: "Calendar", icon: Calendar, path: "/calendar" },
+  { title: "Analytics", icon: BarChart3, path: "/analytics" },
 ];
 
 export default function Sidebar({ collapsed, onToggle, onItemClick }) {
