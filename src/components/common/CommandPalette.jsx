@@ -39,16 +39,16 @@ export default function CommandPalette({ open, onClose, onToggleTheme, isDarkMod
   }, [open]);
 
   // Static App Navigation Commands
-  const navigationActions = [
-    { id: "nav-dashboard", title: "Go to Dashboard", icon: LayoutDashboard, category: "Navigation", run: () => navigate("/dashboard") },
-    { id: "nav-leads", title: "Go to Leads", icon: Users, category: "Navigation", run: () => navigate("/leads") },
-    { id: "nav-call-session", title: "Start Call Session", icon: PhoneCall, category: "Navigation", run: () => navigate("/call-session") },
-    { id: "nav-followups", title: "Go to Follow-ups", icon: Clock, category: "Navigation", run: () => navigate("/follow-ups") },
-    { id: "nav-pipeline", title: "Go to Pipeline (Kanban)", icon: Kanban, category: "Navigation", run: () => navigate("/pipeline") },
-    { id: "nav-tasks", title: "Go to Tasks", icon: CheckSquare, category: "Navigation", run: () => navigate("/tasks") },
-    { id: "nav-calendar", title: "Go to Calendar", icon: Calendar, category: "Navigation", run: () => navigate("/calendar") },
-    { id: "nav-settings", title: "Go to Settings", icon: Settings, category: "Navigation", run: () => navigate("/settings") },
-  ];
+const navigationActions = [
+  { id: "nav-dashboard", title: "Go to Dashboard", icon: LayoutDashboard, category: "Navigation", run: () => navigate("/") },
+  { id: "nav-leads", title: "Go to Leads", icon: Users, category: "Navigation", run: () => navigate("/leads") },
+  { id: "nav-call-session", title: "Start Call Session", icon: PhoneCall, category: "Navigation", run: () => navigate("/call-session") },
+  { id: "nav-followups", title: "Go to Follow-ups", icon: Clock, category: "Navigation", run: () => navigate("/follow-ups") },
+  { id: "nav-pipeline", title: "Go to Pipeline (Kanban)", icon: Kanban, category: "Navigation", run: () => navigate("/pipeline") },
+  { id: "nav-tasks", title: "Go to Tasks", icon: CheckSquare, category: "Navigation", run: () => navigate("/tasks") },
+  { id: "nav-calendar", title: "Go to Calendar", icon: Calendar, category: "Navigation", run: () => navigate("/calendar") },
+  { id: "nav-settings", title: "Go to Settings", icon: Settings, category: "Navigation", run: () => navigate("/settings") },
+];
 
   // Quick System Actions
   const quickActions = [
@@ -203,7 +203,6 @@ export default function CommandPalette({ open, onClose, onToggleTheme, isDarkMod
             <span>Select:</span>
             <kbd className="px-1 py-0.5 bg-slate-200 dark:bg-slate-800 rounded text-slate-600 dark:text-slate-300 font-mono">↵</kbd>
           </div>
-          <span>SalesTracker Stack</span>
         </div>
       </div>
     </div>

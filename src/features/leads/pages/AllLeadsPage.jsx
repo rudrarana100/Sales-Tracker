@@ -5,11 +5,13 @@ import LoadingState from "@/components/common/LoadingState";
 import LeadForm from "../components/LeadForm";
 import LeadsList from "../components/LeadsList";
 import CsvImport from "../components/CsvImport";
+import { exportLeadsToCsv } from "@/utils/exportUtils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
-import { Search, Plus, UserPlus, Upload } from "lucide-react";
+import { Search, Plus, UserPlus, Upload, Download } from "lucide-react";
+import { toast } from "sonner";
 
 function AllLeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -62,6 +64,15 @@ function AllLeadsPage() {
     }
   }
 
+  function handleExport() {
+    if (!filteredLeads || filteredLeads.length === 0) {
+      toast.warning("No leads available to export.");
+      return;
+    }
+    exportLeadsToCsv(filteredLeads, "sales_tracker_filtered_leads.csv");
+    toast.success(`Successfully exported ${filteredLeads.length} leads to CSV.`);
+  }
+
   if (loading) {
     return <LoadingState message="Loading prospects directory..." />;
   }
@@ -73,6 +84,15 @@ function AllLeadsPage() {
         description="Manage and organize all your prospects and deals."
         action={
           <div className="flex items-center gap-2.5">
+            {/* Export CSV Button */}
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-800 dark:text-slate-200 px-3.5 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+              <span>Export CSV</span>
+            </button>
+
             {/* Import CSV Button */}
             <button
               onClick={() => csvImportRef.current?.openFilePicker()}
