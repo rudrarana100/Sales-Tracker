@@ -26,7 +26,10 @@ const DEFAULT_SETTINGS = {
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem("crm_local_settings");
+    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -38,8 +41,7 @@ export default function SettingsPage() {
           setSettings((prev) => ({ ...prev, ...data }));
         }
       } catch (error) {
-        console.error("Error fetching settings:", error);
-        toast.error("Failed to load settings from Supabase.");
+        console.warn("Supabase settings unavailable, falling back to local storage.");
       } finally {
         setLoading(false);
       }
@@ -56,11 +58,18 @@ export default function SettingsPage() {
     setSaving(true);
 
     try {
-      await saveSettings(settings);
-      toast.success("Settings saved to Supabase!");
+      localStorage.setItem("crm_local_settings", JSON.stringify(settings));
+      
+      try {
+        await saveSettings(settings);
+      } catch (dbError) {
+        console.warn("Supabase sync skipped, saved locally.");
+      }
+
+      toast.success("Settings saved successfully!");
     } catch (error) {
       console.error("Error saving settings:", error);
-      toast.error(error.message || "Failed to save settings.");
+      toast.error("Failed to save settings.");
     } finally {
       setSaving(false);
     }
@@ -71,7 +80,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
       <PageHeader
         title="Settings"
         description="Manage your profile, CRM calling preferences, and theme."
@@ -95,7 +104,7 @@ export default function SettingsPage() {
                 type="text"
                 value={settings.user_name || ""}
                 onChange={(e) => handleChange("user_name", e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
@@ -107,7 +116,7 @@ export default function SettingsPage() {
                 type="text"
                 value={settings.company_name || ""}
                 onChange={(e) => handleChange("company_name", e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
@@ -119,7 +128,7 @@ export default function SettingsPage() {
                 type="email"
                 value={settings.email || ""}
                 onChange={(e) => handleChange("email", e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
@@ -131,7 +140,7 @@ export default function SettingsPage() {
                 type="text"
                 value={settings.phone || ""}
                 onChange={(e) => handleChange("phone", e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -154,7 +163,7 @@ export default function SettingsPage() {
                 type="text"
                 value={settings.country_code || "91"}
                 onChange={(e) => handleChange("country_code", e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
@@ -165,7 +174,7 @@ export default function SettingsPage() {
               <select
                 value={settings.meet_duration || "30"}
                 onChange={(e) => handleChange("meet_duration", e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500 cursor-pointer"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
               >
                 <option value="15">15 Minutes</option>
                 <option value="30">30 Minutes</option>
@@ -181,7 +190,7 @@ export default function SettingsPage() {
               <select
                 value={settings.follow_up_delay || "1"}
                 onChange={(e) => handleChange("follow_up_delay", e.target.value)}
-                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500 cursor-pointer"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
               >
                 <option value="1">Next Day (+1 Day)</option>
                 <option value="2">In 2 Days (+2 Days)</option>
