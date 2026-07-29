@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getLeads } from "../api/leadsApi";
+import { getLeads, deleteAllLeads, deleteMultipleLeads } from "../api/leadsApi";
 import { useSearchParams } from "react-router-dom";
 import LoadingState from "@/components/common/LoadingState";
 import LeadForm from "../components/LeadForm";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
-import { Search, Plus, UserPlus, Upload, Download } from "lucide-react";
+import { Search, Plus, UserPlus, Upload, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 function AllLeadsPage() {
@@ -19,6 +19,7 @@ function AllLeadsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
+  const [selectedLeadIds, setSelectedLeadIds] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const csvImportRef = useRef(null);
@@ -29,6 +30,7 @@ function AllLeadsPage() {
       setLeads(data);
     } catch (error) {
       console.error(error);
+      toast.error("Failed to load leads.");
     } finally {
       setLoading(false);
     }
@@ -73,6 +75,35 @@ function AllLeadsPage() {
     toast.success(`Successfully exported ${filteredLeads.length} leads to CSV.`);
   }
 
+  async function handleDeleteSelected() {
+    if (selectedLeadIds.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedLeadIds.length} selected leads?`)) return;
+    
+    try {
+      await deleteMultipleLeads(selectedLeadIds);
+      toast.success(`Successfully deleted ${selectedLeadIds.length} leads.`);
+      setSelectedLeadIds([]);
+      fetchLeads();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete selected leads.");
+    }
+  }
+
+  async function handleDeleteAll() {
+    if (!window.confirm("⚠️ Are you sure you want to delete ALL leads? This action cannot be undone.")) return;
+    
+    try {
+      await deleteAllLeads();
+      toast.success("All leads have been deleted.");
+      setSelectedLeadIds([]);
+      fetchLeads();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete all leads.");
+    }
+  }
+
   if (loading) {
     return <LoadingState message="Loading prospects directory..." />;
   }
@@ -83,7 +114,29 @@ function AllLeadsPage() {
         title="Leads Management"
         description="Manage and organize all your prospects and deals."
         action={
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Delete Selected Button */}
+            {selectedLeadIds.length > 0 && (
+              <button
+                onClick={handleDeleteSelected}
+                className="flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3.5 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Delete Selected ({selectedLeadIds.length})</span>
+              </button>
+            )}
+
+            {/* Delete All Button */}
+            {leads.length > 0 && (
+              <button
+                onClick={handleDeleteAll}
+                className="flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Delete All</span>
+              </button>
+            )}
+
             {/* Export CSV Button */}
             <button
               onClick={handleExport}
@@ -162,7 +215,12 @@ function AllLeadsPage() {
       )}
 
       <SectionCard title={`All Leads (${filteredLeads.length})`}>
-        <LeadsList leads={filteredLeads} onStatusChange={fetchLeads} />
+        <LeadsList 
+          leads={filteredLeads} 
+          onStatusChange={fetchLeads} 
+          selectedLeadIds={selectedLeadIds}
+          setSelectedLeadIds={setSelectedLeadIds}
+        />
       </SectionCard>
     </div>
   );

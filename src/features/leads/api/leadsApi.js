@@ -4,12 +4,13 @@ export async function getLeads() {
   const { data, error } = await supabase
     .from("leads")
     .select("*")
-    .order("created_at", {ascending: false})
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
 
   return data;
 }
+
 export async function createLead(lead) {
   const { data, error } = await supabase
     .from("leads")
@@ -20,6 +21,7 @@ export async function createLead(lead) {
 
   return data;
 }
+
 export async function updateLead(id, updates) {
   const { data, error } = await supabase
     .from("leads")
@@ -31,26 +33,29 @@ export async function updateLead(id, updates) {
 
   return data;
 }
-export async function deleteLead(id){
-  const {data, error} = await supabase
+
+export async function deleteLead(id) {
+  const { data, error } = await supabase
     .from("leads")
     .delete()
     .eq("id", id);
 
-    if (error) throw error;
+  if (error) throw error;
 
-    return data;
+  return data;
 }
+
 export async function importLeads(leads) {
-  const {data, error} = await supabase
+  const { data, error } = await supabase
     .from("leads")
     .insert(leads)
     .select();
 
-    if (error) throw error;
+  if (error) throw error;
 
-    return data;
+  return data;
 }
+
 export async function getExistingPhones() {
   const { data, error } = await supabase
     .from("leads")
@@ -60,6 +65,7 @@ export async function getExistingPhones() {
 
   return data;
 }
+
 export async function getLeadById(id) {
   const { data, error } = await supabase
     .from("leads")
@@ -131,3 +137,32 @@ export async function createDeal(deal) {
   return data;
 }
 
+export async function deleteAllLeads() {
+  const { data, error } = await supabase
+    .from("leads")
+    .delete()
+    .not("id", "is", null);
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteMultipleLeads(ids) {
+  const { data, error } = await supabase
+    .from("leads")
+    .delete()
+    .in("id", ids);
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getImportBatches() {
+  const { data, error } = await supabase
+    .from("leads")
+    .select("import_batch")
+    .not("import_batch", "is", null);
+
+  if (error) throw error;
+  return [...new Set(data.map((lead) => lead.import_batch))];
+}

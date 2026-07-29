@@ -27,6 +27,7 @@ const TARGET_FIELDS = [
 const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
   const [csvHeaders, setCsvHeaders] = useState([]);
   const [rawRows, setRows] = useState([]);
+  const [currentFileName, setCurrentFileName] = useState("");
   const [fieldMapping, setFieldMapping] = useState({});
   const [step, setStep] = useState(1); // Step 1: Map Columns | Step 2: Live Preview
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,8 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
   function handleFile(e) {
     const file = e.target.files[0];
     if (!file) return;
+
+    setCurrentFileName(file.name);
 
     Papa.parse(file, {
       header: true,
@@ -79,6 +82,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
   function handleClose() {
     setRows([]);
     setCsvHeaders([]);
+    setCurrentFileName("");
     setFieldMapping({});
     setStep(1);
   }
@@ -90,10 +94,16 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
     }));
   }
 
-  // Transform raw CSV rows into DB schema using active field mappings
+  // Generate dynamic batch label using filename and current date
+  const cleanBatchName = currentFileName
+    ? `${currentFileName.replace(/\.[^/.]+$/, "")} (${new Date().toLocaleDateString()})`
+    : `Manual Import (${new Date().toLocaleDateString()})`;
+
+  // Transform raw CSV rows into DB schema using active field mappings & assign batch tag
   const mappedLeads = rawRows.map((row) => {
     const lead = {
       status: "cold",
+      import_batch: cleanBatchName,
     };
     TARGET_FIELDS.forEach((field) => {
       const csvHeader = fieldMapping[field.key];
@@ -144,7 +154,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
       toast.success("Import completed", {
         description: `Successfully imported ${uniqueLeads.length} lead${
           uniqueLeads.length !== 1 ? "s" : ""
-        }.${skipped > 0 ? ` Skipped ${skipped} duplicate phone numbers.` : ""}`,
+        } under batch "${cleanBatchName}".${skipped > 0 ? ` Skipped ${skipped} duplicate phone numbers.` : ""}`,
       });
 
       handleClose();
@@ -182,7 +192,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {step === 1
-                    ? "Map your CSV column headers to SalesTracker database fields."
+                    ? `Mapping file: "${currentFileName}" into collection batch "${cleanBatchName}"`
                     : "Review mapped lead data before adding them to your CRM workspace."}
                 </p>
               </div>
@@ -286,7 +296,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
 
                   {mappedLeads.length > 10 && (
                     <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                      Showing first 10 preview rows of {mappedLeads.length} total entries...
+                      Showing first 10 preview rows of {mappedLeads.length} total entries under batch collection: <strong className="text-slate-800 dark:text-slate-200">{cleanBatchName}</strong>
                     </p>
                   )}
                 </div>
