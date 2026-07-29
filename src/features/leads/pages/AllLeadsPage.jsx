@@ -1,16 +1,14 @@
 import { useEffect, useState, useRef } from "react";
-import { getLeads, deleteAllLeads, deleteMultipleLeads } from "../api/leadsApi";
+import { getLeads, deleteAllLeads, deleteMultipleLeads, getImportBatches } from "../api/leadsApi";
 import { useSearchParams } from "react-router-dom";
 import LoadingState from "@/components/common/LoadingState";
 import LeadForm from "../components/LeadForm";
 import LeadsList from "../components/LeadsList";
 import CsvImport from "../components/CsvImport";
 import { exportLeadsToCsv } from "@/utils/exportUtils";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
-import { Search, Plus, UserPlus, Upload, Download, Trash2 } from "lucide-react";
+import { Search, Plus, UserPlus, Upload, Download, Trash2, FolderKanban } from "lucide-react";
 import { toast } from "sonner";
 
 function AllLeadsPage() {
@@ -18,6 +16,8 @@ function AllLeadsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [batchFilter, setBatchFilter] = useState("all");
+  const [batches, setBatches] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedLeadIds, setSelectedLeadIds] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,6 +28,8 @@ function AllLeadsPage() {
     try {
       const data = await getLeads();
       setLeads(data);
+      const batchList = await getImportBatches();
+      setBatches(batchList);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load leads.");
@@ -51,9 +53,14 @@ function AllLeadsPage() {
       lead.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
     const matchesStatus =
       statusFilter === "all" || lead.status === statusFilter;
-    return matchesSearch && matchesStatus;
+      
+    const matchesBatch =
+      batchFilter === "all" || lead.import_batch === batchFilter;
+
+    return matchesSearch && matchesStatus && matchesBatch;
   });
 
   function handleSearchChange(e) {
@@ -170,7 +177,9 @@ function AllLeadsPage() {
       {/* Hidden CsvImport Component Trigger */}
       <CsvImport ref={csvImportRef} onImport={fetchLeads} />
 
+      {/* Clean Filter Bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        {/* Search Input */}
         <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
@@ -180,8 +189,10 @@ function AllLeadsPage() {
             className="h-9.5 w-full rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 shadow-xs focus:outline-none focus:ring-1 focus:ring-slate-900 transition-all"
           />
         </div>
+
+        {/* Status Filter */}
         <select
-          className="h-9.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs outline-none focus:ring-1 focus:ring-slate-900"
+          className="h-9.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
@@ -194,6 +205,23 @@ function AllLeadsPage() {
           <option value="closed_won">Closed Won</option>
           <option value="closed_lost">Closed Lost</option>
         </select>
+
+        {/* Import Batch Collection Filter */}
+        <div className="relative flex items-center">
+          <FolderKanban className="absolute left-3 h-3.5 w-3.5 text-blue-500 pointer-events-none" />
+          <select
+            className="h-9.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-4 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer appearance-none"
+            value={batchFilter}
+            onChange={(e) => setBatchFilter(e.target.value)}
+          >
+            <option value="all">All Import Batches</option>
+            {batches.map((batch) => (
+              <option key={batch} value={batch}>
+                {batch}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {showForm && (

@@ -1,4 +1,4 @@
-import { useState, useRef, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, forwardRef, useImperativeHandle, useMemo } from "react";
 import Papa from "papaparse";
 import { importLeads, getExistingPhones } from "../api/leadsApi";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import {
 import { Download, X, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
-// Target Database Fields
 const TARGET_FIELDS = [
   { key: "lead_name", label: "Business / Lead Name", required: true },
   { key: "phone", label: "Phone Number", required: true },
@@ -94,23 +93,27 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
     }));
   }
 
-  // Generate dynamic batch label using filename and current date
-  const cleanBatchName = currentFileName
-    ? `${currentFileName.replace(/\.[^/.]+$/, "")} (${new Date().toLocaleDateString()})`
-    : `Manual Import (${new Date().toLocaleDateString()})`;
+  // Memoize batch label generation to prevent re-trigger loops
+  const cleanBatchName = useMemo(() => {
+    return currentFileName
+      ? currentFileName.replace(/\.[^/.]+$/, "")
+      : `Manual Import`;
+  }, [currentFileName]);
 
-  // Transform raw CSV rows into DB schema using active field mappings & assign batch tag
-  const mappedLeads = rawRows.map((row) => {
-    const lead = {
-      status: "cold",
-      import_batch: cleanBatchName,
-    };
-    TARGET_FIELDS.forEach((field) => {
-      const csvHeader = fieldMapping[field.key];
-      lead[field.key] = csvHeader && row[csvHeader] ? String(row[csvHeader]).trim() : "";
+  // Memoize mapped rows transformation
+  const mappedLeads = useMemo(() => {
+    return rawRows.map((row) => {
+      const lead = {
+        status: "cold",
+        import_batch: cleanBatchName,
+      };
+      TARGET_FIELDS.forEach((field) => {
+        const csvHeader = fieldMapping[field.key];
+        lead[field.key] = csvHeader && row[csvHeader] ? String(row[csvHeader]).trim() : "";
+      });
+      return lead;
     });
-    return lead;
-  });
+  }, [rawRows, fieldMapping, cleanBatchName]);
 
   function handleProceedToPreview() {
     if (!fieldMapping.lead_name && !fieldMapping.phone) {
@@ -123,7 +126,6 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
   async function handleImport() {
     setLoading(true);
     try {
-      // Filter out rows without basic required information
       const validLeads = mappedLeads.filter((l) => l.lead_name || l.phone);
 
       if (validLeads.length === 0) {
@@ -132,10 +134,15 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
         return;
       }
 
-      const existing = await getExistingPhones();
-      const existingPhones = new Set(
-        (existing || []).map((lead) => lead.phone).filter(Boolean)
-      );
+      let existingPhones = new Set();
+      try {
+        const existing = await getExistingPhones();
+        existingPhones = new Set(
+          (existing || []).map((lead) => lead.phone).filter(Boolean)
+        );
+      } catch (err) {
+        console.warn("Could not check existing phones:", err);
+      }
 
       const uniqueLeads = validLeads.filter(
         (row) => !row.phone || !existingPhones.has(row.phone)
@@ -149,12 +156,15 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
       }
 
       await importLeads(uniqueLeads);
-      if (onImport) await onImport();
+      
+      if (onImport) {
+        await onImport();
+      }
 
       toast.success("Import completed", {
         description: `Successfully imported ${uniqueLeads.length} lead${
           uniqueLeads.length !== 1 ? "s" : ""
-        } under batch "${cleanBatchName}".${skipped > 0 ? ` Skipped ${skipped} duplicate phone numbers.` : ""}`,
+        } into workspace "${cleanBatchName}".${skipped > 0 ? ` Skipped ${skipped} duplicate phone numbers.` : ""}`,
       });
 
       handleClose();
@@ -185,14 +195,14 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Import Leads</span>
+                  <span>Import Leads Workspace</span>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-semibold border border-blue-200 dark:border-blue-800">
                     Step {step} of 2
                   </span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {step === 1
-                    ? `Mapping file: "${currentFileName}" into collection batch "${cleanBatchName}"`
+                    ? `Mapping file: "${currentFileName}" into workspace "${cleanBatchName}"`
                     : "Review mapped lead data before adding them to your CRM workspace."}
                 </p>
               </div>
@@ -296,7 +306,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
 
                   {mappedLeads.length > 10 && (
                     <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                      Showing first 10 preview rows of {mappedLeads.length} total entries under batch collection: <strong className="text-slate-800 dark:text-slate-200">{cleanBatchName}</strong>
+                      Showing first 10 preview rows of {mappedLeads.length} total entries under workspace: <strong className="text-slate-800 dark:text-slate-200">{cleanBatchName}</strong>
                     </p>
                   )}
                 </div>
@@ -365,4 +375,4 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
   );
 });
 
-export default CsvImport;
+export default CsvImport; 
