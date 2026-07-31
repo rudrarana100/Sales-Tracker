@@ -9,7 +9,7 @@ import LeadScraperModal from "../components/LeadScraperModal";
 import { exportLeadsToCsv } from "@/utils/exportUtils";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
-import { Search, Plus, UserPlus, Upload, Download, Trash2, FolderKanban, MapPin } from "lucide-react";
+import { Search, Plus, UserPlus, Upload, Download, Trash2, FolderKanban, MapPin, Globe, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 function AllLeadsPage() {
@@ -18,6 +18,8 @@ function AllLeadsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [batchFilter, setBatchFilter] = useState("all");
+  const [websiteFilter, setWebsiteFilter] = useState("all");
+  const [emailFilter, setEmailFilter] = useState("all");
   const [batches, setBatches] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showScraperModal, setShowScraperModal] = useState(false);
@@ -55,14 +57,30 @@ function AllLeadsPage() {
       lead.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus =
       statusFilter === "all" || lead.status === statusFilter;
-      
+
     const matchesBatch =
       batchFilter === "all" || lead.import_batch === batchFilter;
 
-    return matchesSearch && matchesStatus && matchesBatch;
+    // Website Filter Logic
+    let matchesWebsite = true;
+    if (websiteFilter === "has_website") {
+      matchesWebsite = Boolean(lead.website && lead.website.trim() !== "");
+    } else if (websiteFilter === "no_website") {
+      matchesWebsite = !lead.website || lead.website.trim() === "";
+    }
+
+    // Email Filter Logic
+    let matchesEmail = true;
+    if (emailFilter === "has_email") {
+      matchesEmail = Boolean(lead.email && lead.email.trim() !== "");
+    } else if (emailFilter === "no_email") {
+      matchesEmail = !lead.email || lead.email.trim() === "";
+    }
+
+    return matchesSearch && matchesStatus && matchesBatch && matchesWebsite && matchesEmail;
   });
 
   function handleSearchChange(e) {
@@ -87,7 +105,7 @@ function AllLeadsPage() {
   async function handleDeleteSelected() {
     if (selectedLeadIds.length === 0) return;
     if (!window.confirm(`Are you sure you want to delete ${selectedLeadIds.length} selected leads?`)) return;
-    
+
     try {
       await deleteMultipleLeads(selectedLeadIds);
       toast.success(`Successfully deleted ${selectedLeadIds.length} leads.`);
@@ -101,7 +119,7 @@ function AllLeadsPage() {
 
   async function handleDeleteAll() {
     if (!window.confirm("⚠️ Are you sure you want to delete ALL leads? This action cannot be undone.")) return;
-    
+
     try {
       await deleteAllLeads();
       toast.success("All leads have been deleted.");
@@ -197,9 +215,9 @@ function AllLeadsPage() {
       />
 
       {/* Clean Filter Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-wrap items-center gap-3">
         {/* Search Input */}
-        <div className="relative flex-1 max-w-xs">
+        <div className="relative flex-1 min-w-[200px] max-w-xs">
           <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
             placeholder="Search leads..."
@@ -207,6 +225,34 @@ function AllLeadsPage() {
             onChange={handleSearchChange}
             className="h-9.5 w-full rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 shadow-xs focus:outline-none focus:ring-1 focus:ring-slate-900 transition-all"
           />
+        </div>
+
+        {/* Website Filter Dropdown */}
+        <div className="relative flex items-center">
+          <Globe className="absolute left-3 h-3.5 w-3.5 text-blue-500 pointer-events-none" />
+          <select
+            className="h-9.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-4 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer appearance-none"
+            value={websiteFilter}
+            onChange={(e) => setWebsiteFilter(e.target.value)}
+          >
+            <option value="all">All Websites</option>
+            <option value="has_website">Has Website</option>
+            <option value="no_website">Missing Website</option>
+          </select>
+        </div>
+
+        {/* Email Filter Dropdown */}
+        <div className="relative flex items-center">
+          <Mail className="absolute left-3 h-3.5 w-3.5 text-purple-500 pointer-events-none" />
+          <select
+            className="h-9.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-4 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer appearance-none"
+            value={emailFilter}
+            onChange={(e) => setEmailFilter(e.target.value)}
+          >
+            <option value="all">All Emails</option>
+            <option value="has_email">Has Email</option>
+            <option value="no_email">Missing Email</option>
+          </select>
         </div>
 
         {/* Status Filter */}
@@ -227,7 +273,7 @@ function AllLeadsPage() {
 
         {/* Import Batch Collection Filter */}
         <div className="relative flex items-center">
-          <FolderKanban className="absolute left-3 h-3.5 w-3.5 text-blue-500 pointer-events-none" />
+          <FolderKanban className="absolute left-3 h-3.5 w-3.5 text-emerald-500 pointer-events-none" />
           <select
             className="h-9.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-4 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer appearance-none"
             value={batchFilter}

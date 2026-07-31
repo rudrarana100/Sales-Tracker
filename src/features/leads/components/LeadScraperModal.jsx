@@ -118,7 +118,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
         <DialogHeader className="space-y-1 border-b pb-3">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
             <Sparkles className="h-5 w-5 text-blue-600" />
-            High-Volume Lead Intelligence Engine
+            High-Volume Lead Scraper
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500">
             Extract targeted, high-intent business leads with verified contact numbers, website URLs, and emails directly from Google Maps.
@@ -167,7 +167,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
               </span>
               <span>{progress} / {targetCount} Leads Collected</span>
             </div>
-            <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+            <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
               <div
                 className="bg-blue-600 h-full transition-all duration-500"
                 style={{ width: `${Math.min(100, (progress / targetCount) * 100)}%` }}
@@ -176,7 +176,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
           </div>
         )}
 
-        {/* Leads List Container */}
+        {/* Streamed Leads Results */}
         <div className="flex-1 overflow-y-auto border rounded-2xl p-3 bg-slate-50/50 dark:bg-slate-950/40 min-h-[300px] max-h-[450px]">
           {scrapedResults.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400 space-y-2">
@@ -208,7 +208,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
                     <div
                       key={index}
                       onClick={() => toggleSelect(index)}
-                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border transition-all cursor-pointer text-xs gap-3 ${
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer text-xs gap-3 ${
                         isSelected
                           ? "border-blue-500 bg-blue-50/60 dark:bg-blue-950/30 shadow-xs"
                           : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"
