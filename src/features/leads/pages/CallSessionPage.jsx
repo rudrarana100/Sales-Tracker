@@ -306,7 +306,7 @@ function CallSessionPage() {
     }
   }
 
-  async function saveMeeting() {
+async function saveMeeting() {
     try {
       if (!meetingDate || !meetingTime) {
         toast.warning("Please select both date and time.");
@@ -315,29 +315,44 @@ function CallSessionPage() {
       setSaving(true);
       const start = new Date(`${meetingDate}T${meetingTime}`);
       const end = new Date(start.getTime() + 30 * 60 * 1000);
+      
       const meetLink = await createGoogleMeet(
         `Meeting with ${currentLead.lead_name}`,
         "BuiltStack Discovery Call",
         start.toISOString(),
         end.toISOString()
       );
+
       await updateLead(currentLead.id, {
         status: "meeting_booked",
         last_outcome: "google_meet_booked",
         last_contact_date: new Date().toISOString().split("T")[0],
         meeting_link: meetLink,
       });
+
       await addActivity({
         lead_id: currentLead.id,
         activity_type: "meeting",
         description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
       });
+
+      if (currentLead?.phone) {
+        const cleanPhone = currentLead.phone.replace(/[^0-9]/g, "");
+        if (cleanPhone) {
+          const message = `Hi ${currentLead.lead_name || "there"}, this is to confirm that your Google Meet session has been successfully scheduled.\n\nDate: ${meetingDate}\nTime: ${meetingTime}\nGoogle Meet Link: ${meetLink}\n\nPlease ensure you join a few minutes prior to the scheduled time so we can make the most of our discussion. If you need to reschedule or have any questions beforehand, feel free to reply directly to this message.\n\nLooking forward to speaking with you.`;
+          
+          const encodedMessage = encodeURIComponent(message);
+          window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, "_blank");
+        }
+      }
+
       setSkippedLeadIds((prev) => [...prev, currentLead.id]);
       setShowMeetingForm(false);
-      setShowWhatsAppModal(true);
+      toast.success("Meeting booked and WhatsApp confirmation triggered!");
       await fetchLeads();
     } catch (error) {
       console.error(error);
+      toast.error("Failed to book meeting or open WhatsApp.");
     } finally {
       setSaving(false);
     }

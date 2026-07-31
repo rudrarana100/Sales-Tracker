@@ -37,9 +37,10 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
     d.setDate(d.getDate() + daysFromNow);
     setDate(d.toISOString().split("T")[0]);
   }
-async function handleSave() {
+
+  async function handleSave() {
     if (!date) {
-      toast.warning("Please select a follow-up date.");
+      toast.warning("Please select a date.");
       return;
     }
     setSaving(true);
@@ -67,25 +68,38 @@ async function handleSave() {
         await createFollowUp(payload);
       }
 
-    
+      onSaved?.();
+      onClose();
+
+      // Automatically construct WhatsApp message with a mock or dynamic Google Meet link if type is meeting
       if (lead?.phone) {
         const cleanPhone = lead.phone.replace(/[^0-9]/g, "");
         if (cleanPhone) {
           let defaultMsg = "";
           if (type === "meeting") {
-            defaultMsg = `Hi ${lead.lead_name || "there"}, your Google Meet session has been scheduled for ${date}${time ? ` at ${time}` : ""}. Looking forward to speaking with you!`;
+            const meetLink = "https://meet.google.com/new";
+            defaultMsg = `Hi ${lead.lead_name || "there"}, your Google Meet has been scheduled!\n\n📅 Date: ${date}\n⏰ Time: ${time || "TBD"}\n🔗 Join Meeting: ${meetLink}\n\nLooking forward to speaking with you!`;
           } else {
-            defaultMsg = `Hi ${lead.lead_name || "there"}, this is a reminder regarding our scheduled ${type} on ${date}${time ? ` at ${time}` : ""}.`;
+            defaultMsg = `Hi ${lead.lead_name || "there"}, this is a confirmation regarding our scheduled ${type} on ${date}${time ? ` at ${time}` : ""}.`;
           }
           
           const encodedMessage = encodeURIComponent(defaultMsg);
-          window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, "_blank");
+          const waUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+
+          // Attempt direct programmatic open
+          const newWindow = window.open(waUrl, "_blank");
+
+          // Fallback toast action if browser popup blocker stops it
+          toast.success(type === "meeting" ? "Meeting scheduled successfully!" : "Follow-up saved successfully!", {
+            description: "Click below if WhatsApp didn't open automatically.",
+            action: {
+              label: "💬 Open WhatsApp Now",
+              onClick: () => window.open(waUrl, "_blank"),
+            },
+            duration: 12000,
+          });
         }
       }
-
-      onSaved?.();
-      onClose();
-      toast.success(followUp ? "Follow-up updated successfully!" : "Follow-up scheduled & WhatsApp ready!");
     } catch (error) {
       console.error(error);
       toast.error(followUp ? "Failed to update follow-up." : "Failed to create follow-up.");
@@ -113,7 +127,7 @@ async function handleSave() {
             </div>
             <div>
               <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                {followUp ? "Reschedule Follow-up" : "Schedule Follow-up"}
+                {followUp ? "Reschedule Follow-up" : "Schedule Meeting / Follow-up"}
               </h2>
               <p className="text-[11px] text-slate-400">For {lead?.lead_name || "Lead"}</p>
             </div>
@@ -129,7 +143,7 @@ async function handleSave() {
         <div className="space-y-4">
           {/* Follow-up Type selector */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Follow-up Type</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Type</label>
             <div className="grid grid-cols-3 gap-2">
               {followUpTypes.map((t) => {
                 const Icon = t.icon;
@@ -217,7 +231,7 @@ async function handleSave() {
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Notes & Objectives</label>
             <textarea
-              placeholder="What needs to be discussed or sent during this follow-up..."
+              placeholder="What needs to be discussed..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full min-h-20 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500 resize-none"
@@ -237,10 +251,10 @@ async function handleSave() {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-4 py-2 text-xs font-bold shadow-xs transition-all"
+              className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-4 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              <span>{saving ? "Saving..." : followUp ? "Update Schedule" : "Save Follow-up"}</span>
+              <span>{saving ? "Saving..." : "Save & Open WhatsApp"}</span>
             </button>
           </div>
         </div>
@@ -250,4 +264,3 @@ async function handleSave() {
 }
 
 export default ScheduleFollowUpModal;
-
