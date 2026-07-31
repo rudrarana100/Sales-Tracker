@@ -5,10 +5,11 @@ import LoadingState from "@/components/common/LoadingState";
 import LeadForm from "../components/LeadForm";
 import LeadsList from "../components/LeadsList";
 import CsvImport from "../components/CsvImport";
+import LeadScraperModal from "../components/LeadScraperModal";
 import { exportLeadsToCsv } from "@/utils/exportUtils";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
-import { Search, Plus, UserPlus, Upload, Download, Trash2, FolderKanban } from "lucide-react";
+import { Search, Plus, UserPlus, Upload, Download, Trash2, FolderKanban, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 function AllLeadsPage() {
@@ -19,6 +20,7 @@ function AllLeadsPage() {
   const [batchFilter, setBatchFilter] = useState("all");
   const [batches, setBatches] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [showScraperModal, setShowScraperModal] = useState(false);
   const [selectedLeadIds, setSelectedLeadIds] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -162,6 +164,16 @@ function AllLeadsPage() {
               <span>Import CSV</span>
             </button>
 
+            {/* Scrape Google Maps Button */}
+            <button
+              type="button"
+              onClick={() => setShowScraperModal(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-400 px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
+            >
+              <MapPin className="h-3.5 w-3.5 text-blue-500" />
+              <span>Scrape Google Maps</span>
+            </button>
+
             {/* Add Lead Button */}
             <button
               onClick={() => setShowForm(!showForm)}
@@ -176,6 +188,13 @@ function AllLeadsPage() {
 
       {/* Hidden CsvImport Component Trigger */}
       <CsvImport ref={csvImportRef} onImport={fetchLeads} />
+
+      {/* Scraper Modal Trigger */}
+      <LeadScraperModal
+        open={showScraperModal}
+        onClose={() => setShowScraperModal(false)}
+        onImported={fetchLeads}
+      />
 
       {/* Clean Filter Bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
