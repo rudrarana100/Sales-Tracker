@@ -5,6 +5,7 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import axios from "axios";
 import * as cheerio from "cheerio";
+import { v4 as uuidv4 } from "uuid";
 
 import authRoutes from "./routes/authRoutes.js";
 import calendarRoutes from "./routes/calendarRoutes.js";
@@ -27,6 +28,21 @@ app.use(
 );
 
 app.use(express.json());
+
+// In-memory store for active scraping jobs
+const scrapingJobs = {};
+
+// Sub-location keywords used to expand searches beyond Google Maps' 120-item display limit
+const SUB_LOCATIONS = [
+  "Main Market",
+  "Center",
+  "Zone 1",
+  "Zone 2",
+  "North",
+  "South",
+  "Industrial Area",
+  "Commercial Hub",
+];
 
 // Helper function: Extracts contact email from scraped business websites
 async function extractEmailFromWebsite(websiteUrl) {
@@ -78,15 +94,45 @@ app.get("/api/test", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/calendar", calendarRoutes);
 
-// High-Efficiency Google Maps Scraper Endpoint
-app.post("/api/scrape-maps", async (req, res) => {
-  const { query, location, limit = 10 } = req.body;
+// 1. Start High-Volume Asynchronous Scraping Job
+app.post("/api/scrape-maps/start", async (req, res) => {
+  const { query, location, targetCount = 50 } = req.body;
 
   if (!query || !location) {
     return res.status(400).json({ error: "Query and location are required." });
   }
 
+  const jobId = uuidv4();
+  scrapingJobs[jobId] = {
+    id: jobId,
+    status: "processing",
+    progress: 0,
+    target: targetCount,
+    leads: [],
+    error: null,
+  };
+
+  // Run Puppeteer scraper in the background
+  runBackgroundScraper(jobId, query, location, targetCount);
+
+  // Return Job ID immediately to avoid HTTP timeouts on the client
+  return res.json({ success: true, jobId });
+});
+
+// 2. Poll Scraping Job Progress
+app.get("/api/scrape-maps/status/:jobId", (req, res) => {
+  const job = scrapingJobs[req.params.jobId];
+  if (!job) {
+    return res.status(404).json({ error: "Job not found." });
+  }
+  return res.json(job);
+});
+
+// Async Background Scraper Core
+async function runBackgroundScraper(jobId, query, location, targetCount) {
+  const job = scrapingJobs[jobId];
   let browser;
+
   try {
     browser = await puppeteer.launch({
       headless: "new",
@@ -102,109 +148,105 @@ app.post("/api/scrape-maps", async (req, res) => {
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });
 
-    const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(
-      `${query} in ${location}`
-    )}`;
+    const searchQueries = [
+      `${query} in ${location}`,
+      ...SUB_LOCATIONS.map((sub) => `${query} in ${sub}, ${location}`),
+    ];
 
-    await page.goto(searchUrl, { waitUntil: "networkidle2", timeout: 60000 });
+    const collectedLeads = new Map(); // Store by phone or name to avoid duplicate leads
 
-    // Wait for the results feed container
-    await page.waitForSelector('div[role="feed"]', { timeout: 15000 }).catch(() => null);
+    for (const searchQuery of searchQueries) {
+      if (collectedLeads.size >= targetCount) break;
 
-    // Smooth scroll down the feed to dynamically render listings
-    await page.evaluate(async (maxItems) => {
-      const feed = document.querySelector('div[role="feed"]');
-      if (!feed) return;
+      const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`;
+      await page.goto(searchUrl, { waitUntil: "networkidle2", timeout: 60000 }).catch(() => null);
 
-      await new Promise((resolve) => {
-        let totalScroll = 0;
-        const timer = setInterval(() => {
-          feed.scrollBy(0, 400);
-          totalScroll += 400;
-          const links = document.querySelectorAll('a[href*="/maps/place/"]');
-          if (links.length >= maxItems || totalScroll >= 12000) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 400);
-      });
-    }, limit);
+      await page.waitForSelector('div[role="feed"]', { timeout: 10000 }).catch(() => null);
 
-    // Extract place detail URLs from sidebar feed
-    const placeUrls = await page.evaluate((maxItems) => {
-      const links = Array.from(document.querySelectorAll('a[href*="/maps/place/"]'));
-      return links.map((a) => a.href).slice(0, maxItems);
-    }, limit);
-
-    const scrapedLeads = [];
-
-    // Deep inspect each listing directly for accurate phone, website, and name
-    for (const url of placeUrls) {
-      try {
-        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 });
-
-        const leadData = await page.evaluate(() => {
-          const nameEl = document.querySelector("h1");
-          const name = nameEl ? nameEl.innerText.trim() : "";
-
-          if (!name) return null;
-
-          // Stable ARIA-attribute selectors for phone & website
-          const phoneBtn = document.querySelector('button[data-tooltip*="phone"], button[aria-label*="Phone"]');
-          let phone = "";
-          if (phoneBtn) {
-            const ariaLabel = phoneBtn.getAttribute("aria-label") || "";
-            phone = ariaLabel.replace(/Phone:\s*/i, "").trim();
-          }
-
-          const websiteLink = document.querySelector('a[data-tooltip*="website"], a[aria-label*="Website"]');
-          const website = websiteLink ? websiteLink.href : "";
-
-          const categoryBtn = document.querySelector('button[jsaction*="category"]');
-          const category = categoryBtn ? categoryBtn.innerText.trim() : "";
-
-          return {
-            lead_name: name,
-            phone: phone,
-            website: website,
-            business_type: category,
-            google_maps_link: window.location.href,
-          };
-        });
-
-        // Filter out incomplete/bad listings
-        if (leadData && (leadData.phone || leadData.website)) {
-          let scrapedEmail = "";
-          if (leadData.website) {
-            scrapedEmail = await extractEmailFromWebsite(leadData.website);
-          }
-
-          scrapedLeads.push({
-            ...leadData,
-            email: scrapedEmail,
-            business_type: leadData.business_type || query,
-            status: "cold",
-            last_outcome: "scraped_from_maps",
-          });
+      // Scroll sidebar to render dynamic listings
+      await page.evaluate(async () => {
+        const feed = document.querySelector('div[role="feed"]');
+        if (!feed) return;
+        for (let i = 0; i < 12; i++) {
+          feed.scrollBy(0, 800);
+          await new Promise((r) => setTimeout(r, 500));
         }
-      } catch (err) {
-        console.warn(`Skipped listing at ${url}`);
+      });
+
+      const placeUrls = await page.evaluate(() => {
+        const links = Array.from(document.querySelectorAll('a[href*="/maps/place/"]'));
+        return Array.from(new Set(links.map((a) => a.href)));
+      });
+
+      for (const url of placeUrls) {
+        if (collectedLeads.size >= targetCount) break;
+
+        try {
+          await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 });
+
+          const leadData = await page.evaluate(() => {
+            const nameEl = document.querySelector("h1");
+            const name = nameEl ? nameEl.innerText.trim() : "";
+            if (!name) return null;
+
+            const phoneBtn = document.querySelector('button[data-tooltip*="phone"], button[aria-label*="Phone"]');
+            let phone = phoneBtn ? (phoneBtn.getAttribute("aria-label") || "").replace(/Phone:\s*/i, "").trim() : "";
+
+            const websiteLink = document.querySelector('a[data-tooltip*="website"], a[aria-label*="Website"]');
+            let website = websiteLink ? websiteLink.href : "";
+            if (website.includes("/url?q=")) {
+              const match = website.match(/\/url\?q=([^&]+)/);
+              if (match && match[1]) website = decodeURIComponent(match[1]);
+            }
+
+            const categoryBtn = document.querySelector('button[jsaction*="category"]');
+            const category = categoryBtn ? categoryBtn.innerText.trim() : "";
+
+            return {
+              lead_name: name,
+              phone,
+              website,
+              business_type: category,
+              google_maps_link: window.location.href,
+            };
+          });
+
+          if (leadData && (leadData.phone || leadData.website)) {
+            const key = leadData.phone || leadData.lead_name;
+            if (!collectedLeads.has(key)) {
+              let scrapedEmail = "";
+              if (leadData.website) {
+                scrapedEmail = await extractEmailFromWebsite(leadData.website);
+              }
+
+              collectedLeads.set(key, {
+                ...leadData,
+                email: scrapedEmail,
+                business_type: leadData.business_type || query,
+                status: "cold",
+                last_outcome: "scraped_from_maps",
+              });
+
+              // Stream live updates directly to job state
+              job.leads = Array.from(collectedLeads.values());
+              job.progress = job.leads.length;
+            }
+          }
+        } catch (e) {
+          // Skip individual failed listing
+        }
       }
     }
 
     await browser.close();
-
-    return res.json({
-      success: true,
-      count: scrapedLeads.length,
-      data: scrapedLeads,
-    });
+    job.status = "completed";
   } catch (error) {
     if (browser) await browser.close();
-    console.error("Scraping Error:", error);
-    return res.status(500).json({ error: "Failed to scrape Google Maps.", details: error.message });
+    console.error("Job Scraping Error:", error);
+    job.status = "failed";
+    job.error = error.message;
   }
-});
+}
 
 const PORT = process.env.PORT || 5000;
 

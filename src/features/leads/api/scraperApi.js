@@ -1,27 +1,67 @@
-import { createLead } from "./leadsApi"; // Or whatever your function is named in leadsApi.js (e.g. addLead, insertLead)
+import { createLead } from "./leadsApi";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
-export async function scrapeGoogleMapsLeads({ query, location, limit = 10 }) {
-  const response = await fetch(`${BACKEND_URL}/api/scrape-maps`, {
+// Start high-volume scraping job
+export async function startScraperJob({ query, location, targetCount = 50 }) {
+  const response = await fetch(`${BACKEND_URL}/api/scrape-maps/start`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ query, location, limit }),
+    body: JSON.stringify({ query, location, targetCount }),
   });
 
   const result = await response.json();
 
   if (!response.ok || !result.success) {
-    throw new Error(result.error || "Failed to fetch leads from backend scraper.");
+    throw new Error(result.error || "Failed to start scraping job.");
   }
 
-  return result.data;
+  return result.jobId;
 }
 
+// Check job status & live progress
+export async function checkScraperStatus(jobId) {
+  const response = await fetch(`${BACKEND_URL}/api/scrape-maps/status/${jobId}`);
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.error || "Failed to fetch scraper status.");
+  }
+
+  return result;
+}
+
+// Import selected leads to CRM
 export async function importScrapedLeads(selectedLeads) {
-  // Save each scraped lead to the database
-  const createPromises = selectedLeads.map((lead) => createLead(lead));
-  return Promise.all(createPromises);
+  let importedCount = 0;
+  let skippedCount = 0;
+
+  for (const lead of selectedLeads) {
+    try {
+      await createLead({
+        lead_name: lead.lead_name || "Unknown Business",
+        contact_person: lead.contact_person || "--",
+        phone: lead.phone || null,
+        email: lead.email || null,
+        website: lead.website || null,
+        business_type: lead.business_type || "General",
+        google_maps_link: lead.google_maps_link || null,
+        status: "cold",
+        last_outcome: "scraped_from_maps",
+      });
+      importedCount++;
+    } catch (error) {
+      // 409 status code or message indicating duplicate entry
+      if (error?.status === 409 || error?.message?.includes("409") || error?.code === "23505") {
+        console.warn(`Skipped duplicate lead: ${lead.lead_name}`);
+        skippedCount++;
+      } else {
+        console.error(`Failed to import lead: ${lead.lead_name}`, error);
+      }
+    }
+  }
+
+  return { importedCount, skippedCount };
 }
