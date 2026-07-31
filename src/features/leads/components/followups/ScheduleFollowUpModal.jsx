@@ -37,8 +37,7 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
     d.setDate(d.getDate() + daysFromNow);
     setDate(d.toISOString().split("T")[0]);
   }
-
-  async function handleSave() {
+async function handleSave() {
     if (!date) {
       toast.warning("Please select a follow-up date.");
       return;
@@ -67,8 +66,26 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
       } else {
         await createFollowUp(payload);
       }
+
+    
+      if (lead?.phone) {
+        const cleanPhone = lead.phone.replace(/[^0-9]/g, "");
+        if (cleanPhone) {
+          let defaultMsg = "";
+          if (type === "meeting") {
+            defaultMsg = `Hi ${lead.lead_name || "there"}, your Google Meet session has been scheduled for ${date}${time ? ` at ${time}` : ""}. Looking forward to speaking with you!`;
+          } else {
+            defaultMsg = `Hi ${lead.lead_name || "there"}, this is a reminder regarding our scheduled ${type} on ${date}${time ? ` at ${time}` : ""}.`;
+          }
+          
+          const encodedMessage = encodeURIComponent(defaultMsg);
+          window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, "_blank");
+        }
+      }
+
       onSaved?.();
       onClose();
+      toast.success(followUp ? "Follow-up updated successfully!" : "Follow-up scheduled & WhatsApp ready!");
     } catch (error) {
       console.error(error);
       toast.error(followUp ? "Failed to update follow-up." : "Failed to create follow-up.");
