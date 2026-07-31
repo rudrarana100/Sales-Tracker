@@ -3,7 +3,7 @@ import { addNote, getNotes, deleteNote } from "../api/notesApi";
 import { addActivity } from "../api/activitiesApi";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, FileText, Loader2 } from "lucide-react";
+import { Plus, Trash2, FileText, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -21,6 +21,7 @@ function NotesPanel({ leadId, onNoteAdded }) {
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
   const [adding, setAdding] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   async function fetchNotes() {
     try {
@@ -73,6 +74,8 @@ function NotesPanel({ leadId, onNoteAdded }) {
     }
   }
 
+  const displayedNotes = expanded ? notes : notes.slice(0, 3);
+
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
@@ -83,7 +86,7 @@ function NotesPanel({ leadId, onNoteAdded }) {
           onChange={(e) => setNewNote(e.target.value)}
           className="min-h-0 flex-1 resize-none"
         />
-        <Button size="sm" onClick={handleAddNote} className="self-start shrink-0" disabled={adding}>
+        <Button size="sm" onClick={handleAddNote} className="self-start shrink-0 cursor-pointer" disabled={adding}>
           {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           Add
         </Button>
@@ -98,7 +101,7 @@ function NotesPanel({ leadId, onNoteAdded }) {
         </div>
       ) : (
         <div className="space-y-2">
-          {notes.map((note) => (
+          {displayedNotes.map((note) => (
             <div key={note.id} className="flex items-start justify-between rounded-2xl border border-border bg-card px-4 py-3 transition-all duration-200 hover:shadow-subtle">
               <div className="min-w-0 flex-1">
                 <p className="text-sm text-card-foreground">{note.content}</p>
@@ -108,7 +111,7 @@ function NotesPanel({ leadId, onNoteAdded }) {
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-destructive shrink-0 ml-2">
+                  <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-destructive shrink-0 ml-2 cursor-pointer">
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </AlertDialogTrigger>
@@ -120,8 +123,8 @@ function NotesPanel({ leadId, onNoteAdded }) {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDelete(note)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDelete(note)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer">
                       Delete
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -129,6 +132,26 @@ function NotesPanel({ leadId, onNoteAdded }) {
               </AlertDialog>
             </div>
           ))}
+
+          {notes.length > 3 && (
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:shadow-subtle cursor-pointer"
+            >
+              {expanded ? (
+                <>
+                  <ChevronUp size={16} />
+                  Show Less
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={16} />
+                  Show {notes.length - 3} More
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
     </div>

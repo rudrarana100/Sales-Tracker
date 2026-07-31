@@ -9,6 +9,7 @@ import { getNotes, addNote } from "../api/notesApi";
 import { createFollowUp } from "../api/followUpsApi";
 import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
 import WhatsAppModal from "@/components/whatsapp/whatsappModal";
+import PostMeetingOutcomeModal from "../components/PostMeetingOutcomeModal";
 import {
   Phone,
   User,
@@ -38,13 +39,41 @@ import {
 import { toast } from "sonner";
 
 const statusBadge = {
-  cold: { label: "Cold", class: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700" },
-  contacted: { label: "Contacted", class: "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800" },
-  warm: { label: "Warm", class: "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800" },
-  meeting_booked: { label: "Meeting", class: "bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800" },
-  proposal_sent: { label: "Proposal", class: "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" },
-  closed_won: { label: "Won", class: "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" },
-  closed_lost: { label: "Lost", class: "bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 line-through" },
+  cold: {
+    label: "Cold",
+    class:
+      "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700",
+  },
+  contacted: {
+    label: "Contacted",
+    class:
+      "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
+  },
+  warm: {
+    label: "Warm",
+    class:
+      "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800",
+  },
+  meeting_booked: {
+    label: "Meeting",
+    class:
+      "bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800",
+  },
+  proposal_sent: {
+    label: "Proposal",
+    class:
+      "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800",
+  },
+  closed_won: {
+    label: "Won",
+    class:
+      "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800",
+  },
+  closed_lost: {
+    label: "Lost",
+    class:
+      "bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 line-through",
+  },
 };
 
 function CallSessionPage() {
@@ -69,8 +98,11 @@ function CallSessionPage() {
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [showAllActivities, setShowAllActivities] = useState(false);
 
+  const [showPostMeetingModal, setShowPostMeetingModal] = useState(false);
+  const [selectedLeadForOutcome, setSelectedLeadForOutcome] = useState(null);
+
   const coldLeads = leads.filter(
-    (l) => l.status === "cold" && !skippedLeadIds.includes(l.id)
+    (l) => l.status === "cold" && !skippedLeadIds.includes(l.id),
   );
   const currentLead = coldLeads[0];
   const totalCold = leads.filter((l) => l.status === "cold").length;
@@ -111,7 +143,11 @@ function CallSessionPage() {
   // Keyboard Shortcuts Listener for Call Session
   useEffect(() => {
     function handleKeyDown(e) {
-      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      if (
+        ["INPUT", "TEXTAREA", "SELECT"].includes(
+          document.activeElement?.tagName,
+        )
+      ) {
         return;
       }
 
@@ -121,10 +157,18 @@ function CallSessionPage() {
         setShowInterestedActions(false);
         setShowFollowUpModal(false);
         setShowWhatsAppModal(false);
+        setShowPostMeetingModal(false);
         return;
       }
 
-      if (showCallbackForm || showMeetingForm || showInterestedActions || showFollowUpModal || showWhatsAppModal) {
+      if (
+        showCallbackForm ||
+        showMeetingForm ||
+        showInterestedActions ||
+        showFollowUpModal ||
+        showWhatsAppModal ||
+        showPostMeetingModal
+      ) {
         return;
       }
 
@@ -173,6 +217,7 @@ function CallSessionPage() {
     showInterestedActions,
     showFollowUpModal,
     showWhatsAppModal,
+    showPostMeetingModal,
   ]);
 
   const outcomeConfig = {
@@ -275,7 +320,8 @@ function CallSessionPage() {
       await createFollowUp({
         lead_id: currentLead.id,
         type: "call",
-        title: callbackReason === "gatekeeper" ? "Gatekeeper Follow-up" : "Callback",
+        title:
+          callbackReason === "gatekeeper" ? "Gatekeeper Follow-up" : "Callback",
         notes: callbackNote,
         scheduled_date: callbackDate,
         scheduled_time: callbackTime,
@@ -283,14 +329,18 @@ function CallSessionPage() {
         status: "pending",
       });
       if (callbackNote.trim()) {
-        await addNote({ lead_id: currentLead.id, content: callbackNote.trim() });
+        await addNote({
+          lead_id: currentLead.id,
+          content: callbackNote.trim(),
+        });
       }
       await addActivity({
         lead_id: currentLead.id,
         activity_type: "callback",
-        description: callbackReason === "gatekeeper"
-          ? `Reached gatekeeper. Callback scheduled for ${callbackDate} at ${callbackTime}`
-          : `Callback scheduled for ${callbackDate} at ${callbackTime}`,
+        description:
+          callbackReason === "gatekeeper"
+            ? `Reached gatekeeper. Callback scheduled for ${callbackDate} at ${callbackTime}`
+            : `Callback scheduled for ${callbackDate} at ${callbackTime}`,
       });
       setSkippedLeadIds((prev) => [...prev, currentLead.id]);
       setShowCallbackForm(false);
@@ -306,7 +356,7 @@ function CallSessionPage() {
     }
   }
 
-async function saveMeeting() {
+  async function saveMeeting() {
     try {
       if (!meetingDate || !meetingTime) {
         toast.warning("Please select both date and time.");
@@ -315,12 +365,12 @@ async function saveMeeting() {
       setSaving(true);
       const start = new Date(`${meetingDate}T${meetingTime}`);
       const end = new Date(start.getTime() + 30 * 60 * 1000);
-      
+
       const meetLink = await createGoogleMeet(
         `Meeting with ${currentLead.lead_name}`,
         "BuiltStack Discovery Call",
         start.toISOString(),
-        end.toISOString()
+        end.toISOString(),
       );
 
       await updateLead(currentLead.id, {
@@ -340,9 +390,12 @@ async function saveMeeting() {
         const cleanPhone = currentLead.phone.replace(/[^0-9]/g, "");
         if (cleanPhone) {
           const message = `Hi ${currentLead.lead_name || "there"}, this is to confirm that your Google Meet session has been successfully scheduled.\n\nDate: ${meetingDate}\nTime: ${meetingTime}\nGoogle Meet Link: ${meetLink}\n\nPlease ensure you join a few minutes prior to the scheduled time so we can make the most of our discussion. If you need to reschedule or have any questions beforehand, feel free to reply directly to this message.\n\nLooking forward to speaking with you.`;
-          
+
           const encodedMessage = encodeURIComponent(message);
-          window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, "_blank");
+          window.open(
+            `https://wa.me/${cleanPhone}?text=${encodedMessage}`,
+            "_blank",
+          );
         }
       }
 
@@ -365,13 +418,20 @@ async function saveMeeting() {
   if (coldLeads.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Call Session" description="All caught up for today." />
+        <PageHeader
+          title="Call Session"
+          description="All caught up for today."
+        />
         <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-12 text-center flex flex-col items-center justify-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400">
             <PhoneCall className="h-6 w-6 text-blue-500" />
           </div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Session Complete</h2>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">No cold leads remaining to call.</p>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            Session Complete
+          </h2>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            No cold leads remaining to call.
+          </p>
         </div>
       </div>
     );
@@ -379,10 +439,16 @@ async function saveMeeting() {
 
   const si = statusBadge[currentLead.status] || statusBadge.cold;
   const visibleNotes = showAllNotes ? notes : notes.slice(0, 2);
-  const visibleActivities = showAllActivities ? activities : activities.slice(0, 2);
+  const visibleActivities = showAllActivities
+    ? activities
+    : activities.slice(0, 2);
 
   const formattedMeetingDate = meetingDate
-    ? new Date(meetingDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+    ? new Date(meetingDate).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
     : "";
 
   let formattedMeetingTime = "";
@@ -408,12 +474,34 @@ async function saveMeeting() {
               <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {currentLead.lead_name}
               </h2>
-              <span className={`inline-flex items-center rounded-lg px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${si.class}`}>
+              <span
+                className={`inline-flex items-center rounded-lg px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${si.class}`}
+              >
                 {si.label}
               </span>
+
+              {currentLead.status === "meeting_booked" && (
+                <button
+                  onClick={() => {
+                    setSelectedLeadForOutcome(currentLead);
+                    setShowPostMeetingModal(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                >
+                  <span>Log Meeting Outcome</span>
+                </button>
+              )}
             </div>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Last Contacted: <span className="text-slate-800 dark:text-slate-200 font-medium">{currentLead.last_contact_date ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Never"}</span>
+              Last Contacted:{" "}
+              <span className="text-slate-800 dark:text-slate-200 font-medium">
+                {currentLead.last_contact_date
+                  ? new Date(currentLead.last_contact_date).toLocaleDateString(
+                      "en-IN",
+                      { day: "numeric", month: "short", year: "numeric" },
+                    )
+                  : "Never"}
+              </span>
             </p>
           </div>
 
@@ -437,41 +525,84 @@ async function saveMeeting() {
             { icon: Phone, label: "Phone", value: currentLead.phone },
             { icon: Mail, label: "Email", value: currentLead.email },
             { icon: Globe, label: "Website", value: currentLead.website },
-            { icon: MapPin, label: "Business", value: currentLead.business_type },
-            { icon: Calendar, label: "Follow-up", value: currentLead.follow_up_date ? `${currentLead.follow_up_date}` : "--" },
+            {
+              icon: MapPin,
+              label: "Business",
+              value: currentLead.business_type,
+            },
+            {
+              icon: Calendar,
+              label: "Follow-up",
+              value: currentLead.follow_up_date
+                ? `${currentLead.follow_up_date}`
+                : "--",
+            },
           ].map((item, i) => (
-            <div key={i} className="flex flex-col justify-center rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/40 p-2.5">
+            <div
+              key={i}
+              className="flex flex-col justify-center rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/40 p-2.5"
+            >
               <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 mb-1">
                 <item.icon className="h-3.5 w-3.5 shrink-0" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider">
+                  {item.label}
+                </span>
               </div>
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{item.value || "--"}</p>
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                {item.value || "--"}
+              </p>
             </div>
           ))}
         </div>
 
         <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/80">
           {[
-            { icon: Globe, label: "Website", onClick: () => {
-              if (!currentLead.website) return;
-              let u = currentLead.website;
-              if (!u.startsWith("http")) u = "https://" + u;
-              window.open(u, "_blank");
-            }},
-            { icon: MapPin, label: "Maps", onClick: () => {
-              if (!currentLead.google_maps_link) return;
-              window.open(currentLead.google_maps_link, "_blank");
-            }},
-            { icon: Mail, label: "Email", onClick: () => {
-              if (!currentLead.email) { toast.warning("No email found."); return; }
-              window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentLead.email)}`, "_blank");
-            }},
-            { icon: Copy, label: "Copy Phone", onClick: () => {
-              if (!currentLead.phone) return;
-              navigator.clipboard.writeText(currentLead.phone);
-              toast.success("Phone copied!");
-            }},
-            { icon: MessageCircle, label: "WhatsApp", onClick: handleOpenWhatsApp },
+            {
+              icon: Globe,
+              label: "Website",
+              onClick: () => {
+                if (!currentLead.website) return;
+                let u = currentLead.website;
+                if (!u.startsWith("http")) u = "https://" + u;
+                window.open(u, "_blank");
+              },
+            },
+            {
+              icon: MapPin,
+              label: "Maps",
+              onClick: () => {
+                if (!currentLead.google_maps_link) return;
+                window.open(currentLead.google_maps_link, "_blank");
+              },
+            },
+            {
+              icon: Mail,
+              label: "Email",
+              onClick: () => {
+                if (!currentLead.email) {
+                  toast.warning("No email found.");
+                  return;
+                }
+                window.open(
+                  `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentLead.email)}`,
+                  "_blank",
+                );
+              },
+            },
+            {
+              icon: Copy,
+              label: "Copy Phone",
+              onClick: () => {
+                if (!currentLead.phone) return;
+                navigator.clipboard.writeText(currentLead.phone);
+                toast.success("Phone copied!");
+              },
+            },
+            {
+              icon: MessageCircle,
+              label: "WhatsApp",
+              onClick: handleOpenWhatsApp,
+            },
           ].map((btn, i) => (
             <button
               key={i}
@@ -488,41 +619,84 @@ async function saveMeeting() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
         <div className="space-y-6 lg:col-span-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SectionCard 
-              title={<span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider"><Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" /> Previous Interaction</span>}
+            <SectionCard
+              title={
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                  <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" />{" "}
+                  Previous Interaction
+                </span>
+              }
             >
               <div className="grid grid-cols-2 gap-4 text-xs py-1">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Status</p>
-                  <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold capitalize ${si.class}`}>{si.label}</span>
+                  <p className="text-[10px] font-bold uppercase text-slate-400">
+                    Status
+                  </p>
+                  <span
+                    className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold capitalize ${si.class}`}
+                  >
+                    {si.label}
+                  </span>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Last Outcome</p>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200 capitalize truncate">{currentLead.last_outcome?.replace(/_/g, " ") || "--"}</p>
+                  <p className="text-[10px] font-bold uppercase text-slate-400">
+                    Last Outcome
+                  </p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200 capitalize truncate">
+                    {currentLead.last_outcome?.replace(/_/g, " ") || "--"}
+                  </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Last Contact</p>
-                  <p className="text-slate-700 dark:text-slate-300">{currentLead.last_contact_date ? new Date(currentLead.last_contact_date).toLocaleDateString("en-IN") : "--"}</p>
+                  <p className="text-[10px] font-bold uppercase text-slate-400">
+                    Last Contact
+                  </p>
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {currentLead.last_contact_date
+                      ? new Date(
+                          currentLead.last_contact_date,
+                        ).toLocaleDateString("en-IN")
+                      : "--"}
+                  </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Next Follow-up</p>
-                  <p className="text-slate-700 dark:text-slate-300">{currentLead.follow_up_date || "--"}</p>
+                  <p className="text-[10px] font-bold uppercase text-slate-400">
+                    Next Follow-up
+                  </p>
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {currentLead.follow_up_date || "--"}
+                  </p>
                 </div>
               </div>
             </SectionCard>
 
-            <SectionCard 
-              title={<span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider"><FileText className="h-4 w-4 text-purple-500 dark:text-purple-400" /> Recent Notes</span>}
+            <SectionCard
+              title={
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                  <FileText className="h-4 w-4 text-purple-500 dark:text-purple-400" />{" "}
+                  Recent Notes
+                </span>
+              }
             >
               {notes.length === 0 ? (
-                <p className="text-xs text-slate-400 dark:text-slate-500 py-6 text-center italic">No notes recorded yet.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 py-6 text-center italic">
+                  No notes recorded yet.
+                </p>
               ) : (
                 <div className="space-y-2">
                   <div className="space-y-2">
                     {visibleNotes.map((note) => (
-                      <div key={note.id} className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-2.5">
-                        <p className="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed">{note.content}</p>
-                        <p className="mt-1 text-[10px] text-slate-400">{new Date(note.created_at).toLocaleDateString("en-IN")}</p>
+                      <div
+                        key={note.id}
+                        className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-2.5"
+                      >
+                        <p className="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
+                          {note.content}
+                        </p>
+                        <p className="mt-1 text-[10px] text-slate-400">
+                          {new Date(note.created_at).toLocaleDateString(
+                            "en-IN",
+                          )}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -532,8 +706,16 @@ async function saveMeeting() {
                       onClick={() => setShowAllNotes(!showAllNotes)}
                       className="w-full flex items-center justify-center gap-1 pt-2 text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-500 transition-colors cursor-pointer"
                     >
-                      <span>{showAllNotes ? "Show Less" : `Show More (${notes.length - 2} more)`}</span>
-                      {showAllNotes ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      <span>
+                        {showAllNotes
+                          ? "Show Less"
+                          : `Show More (${notes.length - 2} more)`}
+                      </span>
+                      {showAllNotes ? (
+                        <ChevronUp className="h-3 w-3" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3" />
+                      )}
                     </button>
                   )}
                 </div>
@@ -541,18 +723,34 @@ async function saveMeeting() {
             </SectionCard>
           </div>
 
-          <SectionCard title={<span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider"><History className="h-4 w-4 text-emerald-500 dark:text-emerald-400" /> Interaction Timeline</span>}>
+          <SectionCard
+            title={
+              <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                <History className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />{" "}
+                Interaction Timeline
+              </span>
+            }
+          >
             {activities.length === 0 ? (
-              <p className="text-xs text-slate-400 dark:text-slate-500 py-4 text-center italic">No activity history.</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 py-4 text-center italic">
+                No activity history.
+              </p>
             ) : (
               <div className="space-y-3">
                 <div className="relative pl-4 space-y-4 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
                   {visibleActivities.map((a) => (
-                    <div key={a.id} className="relative flex items-start gap-3 text-xs">
+                    <div
+                      key={a.id}
+                      className="relative flex items-start gap-3 text-xs"
+                    >
                       <div className="absolute -left-4 top-1 h-3 w-3 rounded-full border-2 border-white dark:border-slate-900 bg-blue-500 shrink-0" />
                       <div className="space-y-0.5 min-w-0">
-                        <p className="font-bold text-slate-800 dark:text-slate-200">{a.description}</p>
-                        <p className="text-[10px] text-slate-400">{new Date(a.created_at).toLocaleString("en-IN")}</p>
+                        <p className="font-bold text-slate-800 dark:text-slate-200">
+                          {a.description}
+                        </p>
+                        <p className="text-[10px] text-slate-400">
+                          {new Date(a.created_at).toLocaleString("en-IN")}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -563,8 +761,16 @@ async function saveMeeting() {
                     onClick={() => setShowAllActivities(!showAllActivities)}
                     className="w-full flex items-center justify-center gap-1 pt-2 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors border-t border-slate-100 dark:border-slate-800/80 cursor-pointer"
                   >
-                    <span>{showAllActivities ? "Show Less" : `Show More (${activities.length - 2} more)`}</span>
-                    {showAllActivities ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                    <span>
+                      {showAllActivities
+                        ? "Show Less"
+                        : `Show More (${activities.length - 2} more)`}
+                    </span>
+                    {showAllActivities ? (
+                      <ChevronUp className="h-3 w-3" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3" />
+                    )}
                   </button>
                 )}
               </div>
@@ -573,17 +779,53 @@ async function saveMeeting() {
         </div>
 
         <div className="lg:sticky lg:top-6">
-          <SectionCard 
-            title={<span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider"><Phone className="h-4 w-4 text-blue-500 dark:text-blue-400" /> Log Call Outcome</span>}
+          <SectionCard
+            title={
+              <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                <Phone className="h-4 w-4 text-blue-500 dark:text-blue-400" />{" "}
+                Log Call Outcome
+              </span>
+            }
           >
             <div className="space-y-2">
               {[
-                { icon: PhoneOff, label: "No Answer", action: "no_answer", key: "1" },
-                { icon: Ban, label: "Invalid Number", action: "invalid_number", key: "2" },
-                { icon: Shield, label: "Gatekeeper", action: "gatekeeper", key: "3" },
-                { icon: CalendarCheck, label: "Callback Requested", action: "callback_requested", key: "4" },
-                { icon: ThumbsDown, label: "Not Interested", action: "not_interested", key: "5" },
-                { icon: ThumbsUp, label: "Interested", action: "interested", primary: true, key: "6" },
+                {
+                  icon: PhoneOff,
+                  label: "No Answer",
+                  action: "no_answer",
+                  key: "1",
+                },
+                {
+                  icon: Ban,
+                  label: "Invalid Number",
+                  action: "invalid_number",
+                  key: "2",
+                },
+                {
+                  icon: Shield,
+                  label: "Gatekeeper",
+                  action: "gatekeeper",
+                  key: "3",
+                },
+                {
+                  icon: CalendarCheck,
+                  label: "Callback Requested",
+                  action: "callback_requested",
+                  key: "4",
+                },
+                {
+                  icon: ThumbsDown,
+                  label: "Not Interested",
+                  action: "not_interested",
+                  key: "5",
+                },
+                {
+                  icon: ThumbsUp,
+                  label: "Interested",
+                  action: "interested",
+                  primary: true,
+                  key: "6",
+                },
               ].map((btn) => (
                 <button
                   key={btn.action}
@@ -596,14 +838,16 @@ async function saveMeeting() {
                   title={`Press '${btn.key}' to log ${btn.label}`}
                 >
                   <span className="flex items-center gap-2.5">
-                    <btn.icon className={`h-4 w-4 ${btn.primary ? "text-white" : "text-slate-500 dark:text-slate-400"}`} />
+                    <btn.icon
+                      className={`h-4 w-4 ${btn.primary ? "text-white" : "text-slate-500 dark:text-slate-400"}`}
+                    />
                     <span>{btn.label}</span>
                   </span>
-                  
+
                   <span
                     className={`opacity-0 group-hover:opacity-100 transition-opacity duration-150 px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-md border ${
-                      btn.primary 
-                        ? "bg-emerald-700/60 border-emerald-400/40 text-white" 
+                      btn.primary
+                        ? "bg-emerald-700/60 border-emerald-400/40 text-white"
                         : "bg-slate-200 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                     }`}
                   >
@@ -621,7 +865,7 @@ async function saveMeeting() {
                   <SkipForward className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
                   <span>Skip to Next Lead</span>
                 </span>
-                
+
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-md bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300">
                   S
                 </span>
@@ -637,33 +881,68 @@ async function saveMeeting() {
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <CalendarCheck className="h-4 w-4 text-blue-500 dark:text-blue-400" />
-                <span>{callbackReason === "gatekeeper" ? "Gatekeeper Follow-up" : "Schedule Callback"}</span>
+                <span>
+                  {callbackReason === "gatekeeper"
+                    ? "Gatekeeper Follow-up"
+                    : "Schedule Callback"}
+                </span>
               </h3>
-              <button onClick={() => setShowCallbackForm(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+              <button
+                onClick={() => setShowCallbackForm(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Date</label>
-                <input type="date" value={callbackDate} onChange={(e) => setCallbackDate(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={callbackDate}
+                  onChange={(e) => setCallbackDate(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Time</label>
-                <input type="time" value={callbackTime} onChange={(e) => setCallbackTime(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
+                  Time
+                </label>
+                <input
+                  type="time"
+                  value={callbackTime}
+                  onChange={(e) => setCallbackTime(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Notes</label>
-                <input placeholder="Add context or notes..." value={callbackNote} onChange={(e) => setCallbackNote(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
+                  Notes
+                </label>
+                <input
+                  placeholder="Add context or notes..."
+                  value={callbackNote}
+                  onChange={(e) => setCallbackNote(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                />
               </div>
             </div>
 
             <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-              <button onClick={() => setShowCallbackForm(false)} className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer">
+              <button
+                onClick={() => setShowCallbackForm(false)}
+                className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer"
+              >
                 Cancel
               </button>
-              <button onClick={saveCallback} disabled={saving} className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white py-2 text-xs font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer">
+              <button
+                onClick={saveCallback}
+                disabled={saving}
+                className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white py-2 text-xs font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+              >
                 {saving ? "Saving..." : "Save Callback"}
               </button>
             </div>
@@ -679,27 +958,51 @@ async function saveMeeting() {
                 <Video className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 <span>Book Google Meet</span>
               </h3>
-              <button onClick={() => setShowMeetingForm(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+              <button
+                onClick={() => setShowMeetingForm(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Date</label>
-                <input type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={meetingDate}
+                  onChange={(e) => setMeetingDate(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Time</label>
-                <input type="time" value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500" />
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
+                  Time
+                </label>
+                <input
+                  type="time"
+                  value={meetingTime}
+                  onChange={(e) => setMeetingTime(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                />
               </div>
             </div>
 
             <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-              <button onClick={() => setShowMeetingForm(false)} className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer">
+              <button
+                onClick={() => setShowMeetingForm(false)}
+                className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 text-xs font-semibold transition-all cursor-pointer"
+              >
                 Cancel
               </button>
-              <button onClick={saveMeeting} disabled={saving} className="flex-1 rounded-xl bg-purple-600 hover:bg-purple-500 text-white py-2 text-xs font-bold transition-all shadow-md shadow-purple-500/20 cursor-pointer">
+              <button
+                onClick={saveMeeting}
+                disabled={saving}
+                className="flex-1 rounded-xl bg-purple-600 hover:bg-purple-500 text-white py-2 text-xs font-bold transition-all shadow-md shadow-purple-500/20 cursor-pointer"
+              >
                 {saving ? "Creating..." : "Confirm Meeting"}
               </button>
             </div>
@@ -715,29 +1018,50 @@ async function saveMeeting() {
                 <ThumbsUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Prospect Interested</span>
               </h3>
-              <button onClick={() => setShowInterestedActions(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+              <button
+                onClick={() => setShowInterestedActions(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div className="space-y-2.5">
-              <button onClick={() => { setShowInterestedActions(false); setShowWhatsAppModal(true); }} className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer">
+              <button
+                onClick={() => {
+                  setShowInterestedActions(false);
+                  setShowWhatsAppModal(true);
+                }}
+                className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
                 <MessageCircle className="h-4 w-4" />
                 <span>Send WhatsApp</span>
               </button>
 
-              <button onClick={() => { setShowInterestedActions(false); setShowMeetingForm(true); }} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer">
+              <button
+                onClick={() => {
+                  setShowInterestedActions(false);
+                  setShowMeetingForm(true);
+                }}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
                 <Video className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 <span>Book Google Meet</span>
               </button>
 
-              <button onClick={markInterested} className="w-full rounded-xl border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer">
+              <button
+                onClick={markInterested}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
                 <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <span>Schedule Follow-up</span>
               </button>
             </div>
 
-            <button onClick={() => setShowInterestedActions(false)} className="w-full text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 py-1 font-semibold transition-all cursor-pointer">
+            <button
+              onClick={() => setShowInterestedActions(false)}
+              className="w-full text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 py-1 font-semibold transition-all cursor-pointer"
+            >
               Cancel
             </button>
           </div>
@@ -771,6 +1095,19 @@ async function saveMeeting() {
             description: "Lead marked as Interested",
           });
           setSkippedLeadIds((prev) => [...prev, currentLead.id]);
+          await fetchLeads();
+        }}
+      />
+
+      {/* Post-Meeting Outcome Modal */}
+      <PostMeetingOutcomeModal
+        lead={selectedLeadForOutcome}
+        open={showPostMeetingModal}
+        onClose={() => {
+          setShowPostMeetingModal(false);
+          setSelectedLeadForOutcome(null);
+        }}
+        onUpdated={async () => {
           await fetchLeads();
         }}
       />

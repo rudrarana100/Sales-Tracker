@@ -14,9 +14,10 @@ import TimelineCard from "../components/lead-detail/TimelineCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Video, Calendar, X, Check, Loader2 } from "lucide-react";
+import { Video, Calendar, X, Check, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import LeadDetailSkeleton from "@/components/loaders/LeadDetailSkeleton";
+import PostMeetingOutcomeModal from "../components/PostMeetingOutcomeModal";
 
 function LeadDetailPage() {
   const { id } = useParams();
@@ -30,6 +31,7 @@ function LeadDetailPage() {
   const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showPostMeetingModal, setShowPostMeetingModal] = useState(false);
 
   useEffect(() => {
     fetchLead();
@@ -222,13 +224,13 @@ function LeadDetailPage() {
     );
   }
 
-if (!lead) {
-  return (
-    <div className="mx-auto max-w-3xl">
-      <LeadDetailSkeleton />
-    </div>
-  );
-}
+  if (!lead) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <LeadDetailSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -237,6 +239,27 @@ if (!lead) {
         navigate={navigate}
         handleLeadUpdate={handleLeadUpdate}
       />
+
+      {/* Post-Meeting Outcome Trigger Button */}
+      {lead.status === "meeting_booked" && (
+        <div className="flex items-center justify-between rounded-xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/60 dark:bg-purple-950/20 p-4 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Meeting Booked</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Log outcome once the call concludes.</p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setShowPostMeetingModal(true)}
+            className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-xs cursor-pointer"
+          >
+            Log Meeting Outcome
+          </Button>
+        </div>
+      )}
+
       <ContactCard lead={lead} />
       <QuickActionsCard
         lead={lead}
@@ -344,6 +367,17 @@ if (!lead) {
           ActivityTimeline={ActivityTimeline}
         />
       </div>
+
+      {/* Post-Meeting Outcome Modal */}
+      <PostMeetingOutcomeModal
+        lead={lead}
+        open={showPostMeetingModal}
+        onClose={() => setShowPostMeetingModal(false)}
+        onUpdated={async () => {
+          await fetchLead();
+          setTimelineRefresh((prev) => prev + 1);
+        }}
+      />
     </div>
   );
 }

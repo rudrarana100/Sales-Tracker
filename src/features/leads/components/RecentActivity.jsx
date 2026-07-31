@@ -47,8 +47,9 @@ function RecentActivity() {
 
       {activities.length > 3 && (
         <button
+          type="button"
           onClick={() => setExpanded(!expanded)}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:shadow-subtle"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:shadow-subtle cursor-pointer"
         >
           {expanded ? (
             <>
