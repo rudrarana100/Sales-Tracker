@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getActivities } from "../api/activitiesApi";
-import { Phone, Calendar, RefreshCw, PhoneCall, FileText, Trash2, Video } from "lucide-react";
+import { Phone, Calendar, RefreshCw, PhoneCall, FileText, Trash2, Video, ChevronDown, ChevronUp } from "lucide-react";
 
 const activityIcons = {
   meeting: Video,
@@ -13,13 +13,14 @@ const activityIcons = {
 
 function ActivityTimeline({ leadId, refreshTrigger }) {
   const [activities, setActivities] = useState([]);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (!leadId) return;
     async function fetchActivities() {
       try {
         const data = await getActivities(leadId);
-        setActivities(data);
+        setActivities(data || []);
       } catch (error) {
         console.error(error);
       }
@@ -49,11 +50,13 @@ function ActivityTimeline({ leadId, refreshTrigger }) {
     );
   }
 
+  const displayedActivities = expanded ? activities : activities.slice(0, 3);
+
   return (
     <div className="space-y-3">
-      {activities.map((activity, index) => {
+      {displayedActivities.map((activity, index) => {
         const Icon = activityIcons[activity.activity_type] || RefreshCw;
-        const isLast = index === activities.length - 1;
+        const isLast = index === displayedActivities.length - 1;
 
         return (
           <div key={activity.id} className="flex gap-3">
@@ -61,7 +64,9 @@ function ActivityTimeline({ leadId, refreshTrigger }) {
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted">
                 <Icon className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
-              {!isLast && <div className="mt-1 w-px flex-1 bg-border" />}
+              {(!isLast || (!expanded && activities.length > 3)) && (
+                <div className="mt-1 w-px flex-1 bg-border" />
+              )}
             </div>
             <div className={isLast ? "pb-0" : "pb-3"}>
               <p className="text-sm text-card-foreground">{formatDescription(activity)}</p>
@@ -78,6 +83,26 @@ function ActivityTimeline({ leadId, refreshTrigger }) {
           </div>
         );
       })}
+
+      {activities.length > 3 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:shadow-subtle cursor-pointer mt-2"
+        >
+          {expanded ? (
+            <>
+              <ChevronUp size={16} />
+              Show Less
+            </>
+          ) : (
+            <>
+              <ChevronDown size={16} />
+              Show {activities.length - 3} More
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 }

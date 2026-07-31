@@ -9,7 +9,6 @@ import { getNotes, addNote } from "../api/notesApi";
 import { createFollowUp } from "../api/followUpsApi";
 import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
 import WhatsAppModal from "@/components/whatsapp/whatsappModal";
-import PostMeetingOutcomeModal from "../components/PostMeetingOutcomeModal";
 import {
   Phone,
   User,
@@ -30,7 +29,6 @@ import {
   PhoneCall,
   Clock,
   FileText,
-  ChevronRight,
   ChevronDown,
   ChevronUp,
   X,
@@ -98,9 +96,6 @@ function CallSessionPage() {
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [showAllActivities, setShowAllActivities] = useState(false);
 
-  const [showPostMeetingModal, setShowPostMeetingModal] = useState(false);
-  const [selectedLeadForOutcome, setSelectedLeadForOutcome] = useState(null);
-
   const coldLeads = leads.filter(
     (l) => l.status === "cold" && !skippedLeadIds.includes(l.id),
   );
@@ -157,7 +152,6 @@ function CallSessionPage() {
         setShowInterestedActions(false);
         setShowFollowUpModal(false);
         setShowWhatsAppModal(false);
-        setShowPostMeetingModal(false);
         return;
       }
 
@@ -166,8 +160,7 @@ function CallSessionPage() {
         showMeetingForm ||
         showInterestedActions ||
         showFollowUpModal ||
-        showWhatsAppModal ||
-        showPostMeetingModal
+        showWhatsAppModal
       ) {
         return;
       }
@@ -217,7 +210,6 @@ function CallSessionPage() {
     showInterestedActions,
     showFollowUpModal,
     showWhatsAppModal,
-    showPostMeetingModal,
   ]);
 
   const outcomeConfig = {
@@ -479,18 +471,6 @@ function CallSessionPage() {
               >
                 {si.label}
               </span>
-
-              {currentLead.status === "meeting_booked" && (
-                <button
-                  onClick={() => {
-                    setSelectedLeadForOutcome(currentLead);
-                    setShowPostMeetingModal(true);
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
-                >
-                  <span>Log Meeting Outcome</span>
-                </button>
-              )}
             </div>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Last Contacted:{" "}
@@ -1095,19 +1075,6 @@ function CallSessionPage() {
             description: "Lead marked as Interested",
           });
           setSkippedLeadIds((prev) => [...prev, currentLead.id]);
-          await fetchLeads();
-        }}
-      />
-
-      {/* Post-Meeting Outcome Modal */}
-      <PostMeetingOutcomeModal
-        lead={selectedLeadForOutcome}
-        open={showPostMeetingModal}
-        onClose={() => {
-          setShowPostMeetingModal(false);
-          setSelectedLeadForOutcome(null);
-        }}
-        onUpdated={async () => {
           await fetchLeads();
         }}
       />

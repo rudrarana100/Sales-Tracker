@@ -26,7 +26,7 @@ function NotesPanel({ leadId, onNoteAdded }) {
   async function fetchNotes() {
     try {
       const data = await getNotes(leadId);
-      setNotes(data);
+      setNotes(data || []);
     } catch (error) {
       console.error(error);
     }
@@ -74,7 +74,7 @@ function NotesPanel({ leadId, onNoteAdded }) {
     }
   }
 
-  const displayedNotes = expanded ? notes : notes.slice(0, 3);
+  const displayedNotes = expanded ? notes : notes.slice(0, 2);
 
   return (
     <div className="space-y-3">
@@ -133,11 +133,11 @@ function NotesPanel({ leadId, onNoteAdded }) {
             </div>
           ))}
 
-          {notes.length > 3 && (
+          {notes.length > 2 && (
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:shadow-subtle cursor-pointer"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:shadow-subtle cursor-pointer mt-2"
             >
               {expanded ? (
                 <>
@@ -147,7 +147,7 @@ function NotesPanel({ leadId, onNoteAdded }) {
               ) : (
                 <>
                   <ChevronDown size={16} />
-                  Show {notes.length - 3} More
+                  Show {notes.length - 2} More
                 </>
               )}
             </button>
