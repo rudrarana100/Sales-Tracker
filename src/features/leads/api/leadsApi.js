@@ -166,3 +166,15 @@ export async function getImportBatches() {
   if (error) throw error;
   return [...new Set(data.map((lead) => lead.import_batch))];
 }
+export async function assignLeadsToCollection(leadIds, collectionName) {
+  const { data, error } = await supabase
+    .from("leads")
+    .update({ import_batch: collectionName })
+    .in("id", leadIds);
+
+  if (error) {
+    console.error("Error moving leads to collection:", error);
+    throw error;
+  }
+  return data;
+}

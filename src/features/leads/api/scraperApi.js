@@ -34,7 +34,8 @@ export async function checkScraperStatus(jobId) {
 }
 
 // Import selected leads to CRM
-export async function importScrapedLeads(selectedLeads) {
+
+export async function importScrapedLeads(selectedLeads, collectionName = "Scraped Leads") {
   let importedCount = 0;
   let skippedCount = 0;
 
@@ -48,17 +49,14 @@ export async function importScrapedLeads(selectedLeads) {
         website: lead.website || null,
         business_type: lead.business_type || "General",
         google_maps_link: lead.google_maps_link || null,
+        import_batch: collectionName, // Always uses the exact folder name given in modal
         status: "cold",
         last_outcome: "scraped_from_maps",
       });
       importedCount++;
     } catch (error) {
-      // 409 status code or message indicating duplicate entry
       if (error?.status === 409 || error?.message?.includes("409") || error?.code === "23505") {
-        console.warn(`Skipped duplicate lead: ${lead.lead_name}`);
         skippedCount++;
-      } else {
-        console.error(`Failed to import lead: ${lead.lead_name}`, error);
       }
     }
   }

@@ -3,13 +3,14 @@ import { startScraperJob, checkScraperStatus, importScrapedLeads } from "../api/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Globe, Phone, Mail, Check, Loader2, Download, ExternalLink, Briefcase, Sparkles } from "lucide-react";
+import { Search, MapPin, Globe, Phone, Mail, Check, Loader2, Download, ExternalLink, Briefcase, Sparkles, Folder } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LeadScraperModal({ open, onClose, onImported }) {
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
   const [targetCount, setTargetCount] = useState(50);
+  const [collectionName, setCollectionName] = useState(""); // Custom Folder Name State
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [jobId, setJobId] = useState(null);
@@ -53,6 +54,8 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
       return;
     }
 
+    // Auto-generate a clean collection folder name like "Lawyers - Bhopal"
+    setCollectionName(`${query.trim()} - ${location.trim()}`);
     setLoading(true);
     setProgress(0);
     setScrapedResults([]);
@@ -91,12 +94,21 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
       return;
     }
 
+    if (!collectionName.trim()) {
+      toast.warning("Please give your collection folder a name.");
+      return;
+    }
+
     setImporting(true);
     try {
-      const { importedCount, skippedCount } = await importScrapedLeads(leadsToImport);
+      // Pass the user-specified collectionName
+      const { importedCount, skippedCount } = await importScrapedLeads(
+        leadsToImport,
+        collectionName.trim()
+      );
 
       if (importedCount > 0) {
-        toast.success(`Successfully imported ${importedCount} new lead(s)!`);
+        toast.success(`Imported ${importedCount} lead(s) into "${collectionName.trim()}"!`);
       }
       if (skippedCount > 0) {
         toast.info(`Skipped ${skippedCount} duplicate lead(s).`);
@@ -128,7 +140,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
         {/* Search Controls */}
         <form onSubmit={handleStartScrape} className="flex flex-col sm:flex-row items-center gap-2 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800">
           <Input
-            placeholder="Category (e.g. Dentists)"
+            placeholder="Category (e.g. Lawyers)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={loading}
@@ -177,16 +189,15 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
         )}
 
         {/* Streamed Leads Results */}
-        <div className="flex-1 overflow-y-auto border rounded-2xl p-3 bg-slate-50/50 dark:bg-slate-950/40 min-h-[300px] max-h-[450px]">
+        <div className="flex-1 overflow-y-auto border rounded-2xl p-3 bg-slate-50/50 dark:bg-slate-950/40 min-h-[260px] max-h-[400px]">
           {scrapedResults.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400 space-y-2">
+            <div className="flex flex-col items-center justify-center py-16 text-center text-slate-400 space-y-2">
               <MapPin className="h-10 w-10 opacity-40 text-blue-500" />
               <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">No leads extracted yet</p>
               <p className="text-xs text-slate-400 max-w-sm">Enter a business category and city above, set your desired lead count limit, and click Start.</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {/* Header Controls */}
               <div className="flex items-center justify-between px-2 pb-2 border-b text-xs font-semibold text-slate-600 dark:text-slate-400">
                 <div className="flex items-center gap-3">
                   <button type="button" onClick={toggleSelectAll} className="text-blue-600 hover:underline cursor-pointer">
@@ -196,11 +207,10 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
                   <span>Total Found: <strong className="text-slate-900 dark:text-white">{scrapedResults.length}</strong></span>
                 </div>
                 <span className="text-blue-600 font-bold bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-900">
-                  {selectedIndices.length} Selected for Import
+                  {selectedIndices.length} Selected
                 </span>
               </div>
 
-              {/* Cards List */}
               <div className="grid grid-cols-1 gap-2.5">
                 {scrapedResults.map((item, index) => {
                   const isSelected = selectedIndices.includes(index);
@@ -275,12 +285,19 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
           )}
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex items-center justify-between pt-2 border-t">
-          <p className="text-xs text-slate-500">
-            Selected leads will be created with status <span className="font-bold text-slate-700 dark:text-slate-300">Cold</span>.
-          </p>
-          <div className="flex items-center gap-2">
+        {/* Footer Actions with Collection Name Input */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t">
+          <div className="flex items-center gap-2 w-full sm:w-auto flex-1 max-w-sm">
+            <Folder className="h-4 w-4 text-blue-500 shrink-0" />
+            <Input
+              placeholder="Collection / Folder Name"
+              value={collectionName}
+              onChange={(e) => setCollectionName(e.target.value)}
+              className="text-xs h-9 bg-white dark:bg-slate-900 border-slate-200 font-semibold"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <Button variant="outline" size="sm" onClick={onClose} className="text-xs h-9 px-4">
               Cancel
             </Button>
@@ -291,7 +308,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
               className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold h-9 px-4 cursor-pointer shadow-xs"
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 mr-1.5" />}
-              Import {selectedIndices.length} Leads to CRM
+              Import {selectedIndices.length} Leads
             </Button>
           </div>
         </div>
