@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, lazy, Suspense } from "react";
 import {
   getLeads,
   deleteAllLeads,
@@ -8,11 +8,8 @@ import {
 } from "../api/leadsApi";
 import { useSearchParams } from "react-router-dom";
 import LoadingState from "@/components/common/LoadingState";
-import LeadForm from "../components/LeadForm";
 import LeadsList from "../components/LeadsList";
 import CsvImport from "../components/CsvImport";
-import LeadScraperModal from "../components/LeadScraperModal";
-import CollectionManagerModal from "../components/CollectionManagerModal"; // Import Modal
 import { exportLeadsToCsv } from "@/utils/exportUtils";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
@@ -28,9 +25,13 @@ import {
   Globe,
   Mail,
   FolderPlus,
-  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Lazy Loaded Modal and Form Components for Code-Splitting
+const LeadForm = lazy(() => import("../components/LeadForm"));
+const LeadScraperModal = lazy(() => import("../components/LeadScraperModal"));
+const CollectionManagerModal = lazy(() => import("../components/CollectionManagerModal"));
 
 function AllLeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -44,7 +45,7 @@ function AllLeadsPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [showScraperModal, setShowScraperModal] = useState(false);
-  const [showCollectionModal, setShowCollectionModal] = useState(false); // Modal trigger state
+  const [showCollectionModal, setShowCollectionModal] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState(false);
 
   const [targetCollectionInput, setTargetCollectionInput] = useState("");
@@ -56,9 +57,9 @@ function AllLeadsPage() {
   async function fetchLeads() {
     try {
       const data = await getLeads();
-      setLeads(data);
+      setLeads(data || []);
       const batchList = await getImportBatches();
-      setCollections(batchList.filter(Boolean));
+      setCollections((batchList || []).filter(Boolean));
     } catch (error) {
       console.error(error);
       toast.error("Failed to load leads.");
@@ -140,10 +141,10 @@ function AllLeadsPage() {
     try {
       await assignLeadsToCollection(
         selectedLeadIds,
-        targetCollectionInput.trim(),
+        targetCollectionInput.trim()
       );
       toast.success(
-        `Moved ${selectedLeadIds.length} lead(s) to "${targetCollectionInput.trim()}"`,
+        `Moved ${selectedLeadIds.length} lead(s) to "${targetCollectionInput.trim()}"`
       );
       setSelectedLeadIds([]);
       setTargetCollectionInput("");
@@ -262,25 +263,33 @@ function AllLeadsPage() {
 
       <CsvImport ref={csvImportRef} onImport={fetchLeads} />
 
-      <LeadScraperModal
-        open={showScraperModal}
-        onClose={() => setShowScraperModal(false)}
-        onImported={fetchLeads}
-      />
+      {/* Lazy Loaded Scraper Modal */}
+      {showScraperModal && (
+        <Suspense fallback={null}>
+          <LeadScraperModal
+            open={showScraperModal}
+            onClose={() => setShowScraperModal(false)}
+            onImported={fetchLeads}
+          />
+        </Suspense>
+      )}
 
-      {/* COLLECTION MANAGER MODAL */}
-      <CollectionManagerModal
-        open={showCollectionModal}
-        onClose={() => setShowCollectionModal(false)}
-        collections={collections}
-        selectedCollection={selectedCollection}
-        onSelectCollection={setSelectedCollection}
-        leads={leads}
-      />
+      {/* Lazy Loaded Collection Manager Modal */}
+      {showCollectionModal && (
+        <Suspense fallback={null}>
+          <CollectionManagerModal
+            open={showCollectionModal}
+            onClose={() => setShowCollectionModal(false)}
+            collections={collections}
+            selectedCollection={selectedCollection}
+            onSelectCollection={setSelectedCollection}
+            leads={leads}
+          />
+        </Suspense>
+      )}
 
-      {/* UNIFIED COMPACT FILTER BAR */}
+      {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800">
-        {/* Search Input */}
         <div className="relative flex-1 min-w-[200px] max-w-xs">
           <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
@@ -291,7 +300,6 @@ function AllLeadsPage() {
           />
         </div>
 
-        {/* Collections Pop-up Button */}
         <button
           onClick={() => setShowCollectionModal(true)}
           className="flex items-center gap-2 h-9 px-3.5 rounded-xl border border-blue-500/30 bg-blue-50/60 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-bold hover:bg-blue-100/60 transition-all cursor-pointer"
@@ -308,7 +316,6 @@ function AllLeadsPage() {
           </span>
         </button>
 
-        {/* Website Filter */}
         <div className="relative flex items-center">
           <Globe className="absolute left-3 h-3.5 w-3.5 text-blue-500 pointer-events-none" />
           <select
@@ -322,7 +329,6 @@ function AllLeadsPage() {
           </select>
         </div>
 
-        {/* Email Filter */}
         <div className="relative flex items-center">
           <Mail className="absolute left-3 h-3.5 w-3.5 text-purple-500 pointer-events-none" />
           <select
@@ -336,7 +342,6 @@ function AllLeadsPage() {
           </select>
         </div>
 
-        {/* Status Filter */}
         <select
           className="h-9 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none cursor-pointer"
           value={statusFilter}
@@ -353,7 +358,7 @@ function AllLeadsPage() {
         </select>
       </div>
 
-      {/* MOVE TO COLLECTION MODAL */}
+      {/* Move To Collection Modal */}
       {showMoveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-xl">
@@ -370,7 +375,7 @@ function AllLeadsPage() {
             <div className="space-y-2">
               <input
                 type="text"
-                placeholder="Collection Name (e.g. Dentists, CAs)"
+                placeholder="Collection Name"
                 value={targetCollectionInput}
                 onChange={(e) => setTargetCollectionInput(e.target.value)}
                 className="w-full text-xs h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -417,22 +422,25 @@ function AllLeadsPage() {
         </div>
       )}
 
+      {/* Lazy Loaded Lead Form */}
       {showForm && (
-        <SectionCard
-          title={
-            <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-              <UserPlus className="h-4 w-4 text-blue-500" />
-              Add New Lead
-            </span>
-          }
-        >
-          <LeadForm
-            onLeadAdded={() => {
-              fetchLeads();
-              setShowForm(false);
-            }}
-          />
-        </SectionCard>
+        <Suspense fallback={<LoadingState message="Loading form..." />}>
+          <SectionCard
+            title={
+              <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                <UserPlus className="h-4 w-4 text-blue-500" />
+                Add New Lead
+              </span>
+            }
+          >
+            <LeadForm
+              onLeadAdded={() => {
+                fetchLeads();
+                setShowForm(false);
+              }}
+            />
+          </SectionCard>
+        </Suspense>
       )}
 
       <SectionCard

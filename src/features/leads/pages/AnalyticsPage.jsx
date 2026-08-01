@@ -4,20 +4,34 @@ import { getActivities } from "../api/activitiesApi";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
 import LoadingState from "@/components/common/LoadingState";
-import { TrendingUp, Users, Calendar, Award, PieChart, CheckCircle2, Flame, PhoneCall, Zap, Target, Sparkles, X, Settings2 } from "lucide-react";
+import {
+  TrendingUp,
+  Users,
+  Calendar,
+  Award,
+  PieChart,
+  CheckCircle2,
+  Flame,
+  PhoneCall,
+  Zap,
+  Target,
+  Sparkles,
+  X,
+  Settings2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AnalyticsPage() {
   const [leads, setLeads] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Daily Target State (Saved locally)
   const [dailyTarget, setDailyTarget] = useState(() => {
     const saved = localStorage.getItem("sales_daily_target");
     return saved ? parseInt(saved, 10) : 20;
   });
-  
+
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [newTargetInput, setNewTargetInput] = useState(dailyTarget);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -27,18 +41,17 @@ export default function AnalyticsPage() {
       const leadsData = await getLeads();
       setLeads(leadsData || []);
 
-      let allActivities = [];
-      for (const lead of leadsData || []) {
-        try {
-          const act = await getActivities(lead.id);
-          if (act) allActivities.push(...act);
-        } catch (e) {
-          // skip
-        }
+      // Performance Optimization: Fetch activities in parallel instead of a serial loop
+      if (leadsData && leadsData.length > 0) {
+        const activityPromises = leadsData.map((lead) =>
+          getActivities(lead.id).catch(() => [])
+        );
+        const results = await Promise.all(activityPromises);
+        const flattenedActivities = results.flat().filter(Boolean);
+        setActivities(flattenedActivities);
       }
-      setActivities(allActivities);
     } catch (error) {
-      console.error(error);
+      console.error("Analytics fetch error:", error);
     } finally {
       setLoading(false);
     }
@@ -57,15 +70,24 @@ export default function AnalyticsPage() {
   const closedWon = leads.filter((l) => l.status === "closed_won").length;
   const closedLost = leads.filter((l) => l.status === "closed_lost").length;
 
-  const conversionRate = totalLeads > 0 ? ((closedWon / totalLeads) * 100).toFixed(1) : 0;
+  const conversionRate =
+    totalLeads > 0 ? ((closedWon / totalLeads) * 100).toFixed(1) : 0;
 
   const callActivities = activities.filter(
-    (a) => a.activity_type === "call_outcome" || a.activity_type === "callback" || a.activity_type === "meeting"
+    (a) =>
+      a.activity_type === "call_outcome" ||
+      a.activity_type === "callback" ||
+      a.activity_type === "meeting"
   );
-  
+
   const todayStr = new Date().toISOString().split("T")[0];
-  const todayCalls = callActivities.filter((a) => a.created_at?.startsWith(todayStr)).length;
-  const targetProgress = Math.min(Math.round((todayCalls / dailyTarget) * 100), 100);
+  const todayCalls = callActivities.filter((a) =>
+    a.created_at?.startsWith(todayStr)
+  ).length;
+  const targetProgress = Math.min(
+    Math.round((todayCalls / dailyTarget) * 100),
+    100
+  );
 
   useEffect(() => {
     if (todayCalls >= dailyTarget && dailyTarget > 0) {
@@ -88,11 +110,21 @@ export default function AnalyticsPage() {
   }
 
   const outcomeCounts = {
-    "Interested": callActivities.filter((a) => a.description?.toLowerCase().includes("interested")).length,
-    "No Answer": callActivities.filter((a) => a.description?.toLowerCase().includes("no answer")).length,
-    "Gatekeeper": callActivities.filter((a) => a.description?.toLowerCase().includes("gatekeeper")).length,
-    "Callback Requested": callActivities.filter((a) => a.description?.toLowerCase().includes("callback")).length,
-    "Not Interested": callActivities.filter((a) => a.description?.toLowerCase().includes("not interested")).length,
+    Interested: callActivities.filter((a) =>
+      a.description?.toLowerCase().includes("interested")
+    ).length,
+    "No Answer": callActivities.filter((a) =>
+      a.description?.toLowerCase().includes("no answer")
+    ).length,
+    Gatekeeper: callActivities.filter((a) =>
+      a.description?.toLowerCase().includes("gatekeeper")
+    ).length,
+    "Callback Requested": callActivities.filter((a) =>
+      a.description?.toLowerCase().includes("callback")
+    ).length,
+    "Not Interested": callActivities.filter((a) =>
+      a.description?.toLowerCase().includes("not interested")
+    ).length,
   };
 
   const gridDays = [];
@@ -100,7 +132,9 @@ export default function AnalyticsPage() {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dStr = d.toISOString().split("T")[0];
-    const count = callActivities.filter((a) => a.created_at?.startsWith(dStr)).length;
+    const count = callActivities.filter((a) =>
+      a.created_at?.startsWith(dStr)
+    ).length;
     gridDays.push({ date: dStr, count });
   }
 
@@ -135,15 +169,24 @@ export default function AnalyticsPage() {
                 <Target className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Daily Call Goal</h4>
-                <p className="text-[11px] text-slate-400">Target: {dailyTarget} calls today</p>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  Daily Call Goal
+                </h4>
+                <p className="text-[11px] text-slate-400">
+                  Target: {dailyTarget} calls today
+                </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
-              <span className="text-lg font-black text-slate-900 dark:text-white">{todayCalls} / {dailyTarget}</span>
+              <span className="text-lg font-black text-slate-900 dark:text-white">
+                {todayCalls} / {dailyTarget}
+              </span>
               <button
-                onClick={() => { setNewTargetInput(dailyTarget); setShowGoalModal(true); }}
+                onClick={() => {
+                  setNewTargetInput(dailyTarget);
+                  setShowGoalModal(true);
+                }}
                 className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
                 title="Customize Daily Goal"
               >
@@ -173,37 +216,64 @@ export default function AnalyticsPage() {
                 <Flame className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Outbound Momentum</h4>
-                <p className="text-[11px] text-slate-400">Consistent daily dialing streak</p>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  Outbound Momentum
+                </h4>
+                <p className="text-[11px] text-slate-400">
+                  Consistent daily dialing streak
+                </p>
               </div>
             </div>
-            <span className="text-lg font-black text-amber-500">Active Streak 🔥</span>
+            <span className="text-lg font-black text-amber-500">
+              Active Streak 🔥
+            </span>
           </div>
 
           <div className="grid grid-cols-3 gap-2 pt-1 text-center">
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
-              <p className="text-[10px] font-bold uppercase text-slate-400">Total Calls</p>
-              <p className="text-base font-black text-slate-800 dark:text-slate-200">{callActivities.length}</p>
+              <p className="text-[10px] font-bold uppercase text-slate-400">
+                Total Calls
+              </p>
+              <p className="text-base font-black text-slate-800 dark:text-slate-200">
+                {callActivities.length}
+              </p>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
-              <p className="text-[10px] font-bold uppercase text-slate-400">Meetings</p>
-              <p className="text-base font-black text-purple-600 dark:text-purple-400">{meetingsBooked}</p>
+              <p className="text-[10px] font-bold uppercase text-slate-400">
+                Meetings
+              </p>
+              <p className="text-base font-black text-purple-600 dark:text-purple-400">
+                {meetingsBooked}
+              </p>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
-              <p className="text-[10px] font-bold uppercase text-slate-400">Win Rate</p>
-              <p className="text-base font-black text-emerald-500">{conversionRate}%</p>
+              <p className="text-[10px] font-bold uppercase text-slate-400">
+                Win Rate
+              </p>
+              <p className="text-base font-black text-emerald-500">
+                {conversionRate}%
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <SectionCard title={<span className="flex items-center gap-2"><Flame className="h-4 w-4 text-emerald-500" /> Outbound Call Activity Heatmap (Last 90 Days)</span>}>
+      <SectionCard
+        title={
+          <span className="flex items-center gap-2">
+            <Flame className="h-4 w-4 text-emerald-500" /> Outbound Call Activity
+            Heatmap (Last 90 Days)
+          </span>
+        }
+      >
         <div className="space-y-4 py-2">
           <div className="flex flex-wrap gap-1.5 p-4 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 justify-center">
             {gridDays.map((day, idx) => (
               <div
                 key={idx}
-                className={`h-4 w-4 rounded-xs transition-transform hover:scale-125 cursor-pointer ${getHeatColor(day.count)}`}
+                className={`h-4 w-4 rounded-xs transition-transform hover:scale-125 cursor-pointer ${getHeatColor(
+                  day.count
+                )}`}
                 title={`${day.date}: ${day.count} calls made`}
               />
             ))}
@@ -224,11 +294,23 @@ export default function AnalyticsPage() {
       </SectionCard>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <SectionCard title={<span className="flex items-center gap-2"><PieChart className="h-4 w-4 text-purple-500" /> Call Outcome Breakdown</span>}>
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <PieChart className="h-4 w-4 text-purple-500" /> Call Outcome
+              Breakdown
+            </span>
+          }
+        >
           <div className="space-y-3 py-2">
             {Object.entries(outcomeCounts).map(([label, count], idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 text-xs">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">{label}</span>
+              <div
+                key={idx}
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 text-xs"
+              >
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  {label}
+                </span>
                 <span className="font-bold text-slate-900 dark:text-white px-2.5 py-1 rounded-lg bg-slate-200/60 dark:bg-slate-800">
                   {count} logs
                 </span>
@@ -237,7 +319,14 @@ export default function AnalyticsPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title={<span className="flex items-center gap-2"><PieChart className="h-4 w-4 text-blue-500" /> Pipeline Stage Distribution</span>}>
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <PieChart className="h-4 w-4 text-blue-500" /> Pipeline Stage
+              Distribution
+            </span>
+          }
+        >
           <div className="space-y-3.5 py-2">
             {[
               { label: "Cold Leads", count: coldLeads, color: "bg-slate-400" },
@@ -252,11 +341,18 @@ export default function AnalyticsPage() {
               return (
                 <div key={idx} className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-700 dark:text-slate-300">{stage.label}</span>
-                    <span className="text-slate-500">{stage.count} ({pct}%)</span>
+                    <span className="text-slate-700 dark:text-slate-300">
+                      {stage.label}
+                    </span>
+                    <span className="text-slate-500">
+                      {stage.count} ({pct}%)
+                    </span>
                   </div>
                   <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                    <div className={`h-full rounded-full transition-all duration-500 ${stage.color}`} style={{ width: `${pct}%` }} />
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${stage.color}`}
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
                 </div>
               );
@@ -273,14 +369,19 @@ export default function AnalyticsPage() {
                 <Target className="h-4 w-4 text-blue-500" />
                 <span>Set Daily Call Goal</span>
               </h3>
-              <button onClick={() => setShowGoalModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+              <button
+                onClick={() => setShowGoalModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <form onSubmit={saveNewGoal} className="space-y-4">
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">Target Calls Per Day</label>
+                <label className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1 block">
+                  Target Calls Per Day
+                </label>
                 <input
                   type="number"
                   min="1"
@@ -291,10 +392,18 @@ export default function AnalyticsPage() {
               </div>
 
               <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                <Button type="button" variant="outline" onClick={() => setShowGoalModal(false)} className="flex-1 rounded-xl text-xs font-semibold cursor-pointer">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowGoalModal(false)}
+                  className="flex-1 rounded-xl text-xs font-semibold cursor-pointer"
+                >
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer">
+                <Button
+                  type="submit"
+                  className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer"
+                >
                   Save Goal
                 </Button>
               </div>
@@ -311,9 +420,12 @@ export default function AnalyticsPage() {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl font-black tracking-tight text-white">Goal Accomplished! 🎉</h2>
+              <h2 className="text-2xl font-black tracking-tight text-white">
+                Goal Accomplished! 🎉
+              </h2>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Fantastic work! You have successfully completed your daily target of <span className="font-bold text-emerald-400">{dailyTarget} calls</span> today. Your consistency is driving unstoppable momentum!
+                Fantastic work! You have successfully completed your daily target
+                of <span className="font-bold text-emerald-400">{dailyTarget} calls</span> today. Your consistency is driving unstoppable momentum!
               </p>
             </div>
 
