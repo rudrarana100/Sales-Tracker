@@ -51,7 +51,7 @@ app.post("/api/scrape-maps/start", async (req, res) => {
     error: null,
   };
 
-  runBackgroundScraper(jobId, query, location, targetCount);
+  runBackgroundScraper(jobId, query, location, Number(targetCount));
 
   return res.json({ success: true, jobId });
 });
@@ -146,8 +146,10 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
         return results;
       });
 
-      // Add extracted items to memory
+      // Add extracted items to memory up to targetCount
       for (const lead of rawLeads) {
+        if (collectedLeads.size >= targetCount) break; // Hard stop at target limit
+
         if (!collectedLeads.has(lead.google_maps_link)) {
           collectedLeads.set(lead.google_maps_link, {
             ...lead,
@@ -159,7 +161,8 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
         }
       }
 
-      job.leads = Array.from(collectedLeads.values());
+      // Slice array to guarantee exactly targetCount items
+      job.leads = Array.from(collectedLeads.values()).slice(0, targetCount);
       job.progress = job.leads.length;
 
       if (collectedLeads.size >= targetCount) break;
