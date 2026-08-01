@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import chromium from "@sparticuz/chromium";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { v4 as uuidv4 } from "uuid";
@@ -132,21 +133,12 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
   let browser;
 
   try {
-    // ✅ Updated with essential Linux container flags for Render deployment
+    // Configured with sparticuz/chromium for Render Linux deployment
     browser = await puppeteer.launch({
-      headless: "new",
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--no-first-run",
-        "--no-zygote",
-        "--single-process",
-        "--disable-gpu",
-        "--disable-blink-features=AutomationControlled",
-        "--window-size=1280,800",
-      ],
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
