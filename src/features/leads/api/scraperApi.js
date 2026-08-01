@@ -1,6 +1,9 @@
 import { createLead } from "./leadsApi";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = 
+  import.meta.env.VITE_API_URL || 
+  import.meta.env.VITE_BACKEND_URL || 
+  "https://sales-tracker-kate.onrender.com";
 
 // Start high-volume scraping job
 export async function startScraperJob({ query, location, targetCount = 50 }) {
@@ -34,7 +37,6 @@ export async function checkScraperStatus(jobId) {
 }
 
 // Import selected leads to CRM
-
 export async function importScrapedLeads(selectedLeads, collectionName = "Scraped Leads") {
   let importedCount = 0;
   let skippedCount = 0;
