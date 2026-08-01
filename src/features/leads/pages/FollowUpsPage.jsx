@@ -1,15 +1,14 @@
-import { useEffect, useState } from "react";
+import PageHeader from "@/components/common/PageHeader";
+import SectionCard from "@/components/common/SectionCard";
+import LoadingState from "@/components/common/LoadingState";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState, lazy, Suspense } from "react";
 import {
   getFollowUps,
   completeFollowUp,
   skipFollowUp,
 } from "../api/followUpsApi";
-import { useNavigate } from "react-router-dom";
-import SectionCard from "@/components/common/SectionCard";
-import LoadingState from "@/components/common/LoadingState";
 import { addActivity } from "../api/activitiesApi";
-import PageHeader from "@/components/common/PageHeader";
-import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
 import {
   Globe,
   MapPin,
@@ -28,6 +27,9 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Lazy load modal for code splitting
+const ScheduleFollowUpModal = lazy(() => import("../components/followups/ScheduleFollowUpModal"));
 
 const statusStyles = {
   cold: "bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
@@ -79,7 +81,7 @@ function FollowUpsPage() {
   async function fetchFollowUps() {
     try {
       const data = await getFollowUps();
-      setFollowUps(data.filter((f) => f.status === "pending"));
+      setFollowUps((data || []).filter((f) => f.status === "pending"));
     } catch (error) {
       console.error(error);
     } finally {
@@ -157,7 +159,7 @@ function FollowUpsPage() {
     return (
       <div
         key={followUp.id}
-        className="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm hover:border-slate-700 transition-all duration-200 space-y-3"
+        className="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs hover:border-slate-700 transition-all duration-200 space-y-3"
       >
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div className="space-y-1.5 min-w-0 flex-1">
@@ -305,7 +307,7 @@ function FollowUpsPage() {
           { label: "Tomorrow", count: tomorrowFollowUps.length, icon: Clock, color: "text-blue-500 bg-blue-50 dark:bg-blue-950/40" },
           { label: "Upcoming", count: upcoming.length, icon: Calendar, color: "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800" },
         ].map((s) => (
-          <div key={s.label} className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-4 shadow-sm flex items-center justify-between">
+          <div key={s.label} className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{s.label}</p>
               <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{s.count}</h2>
@@ -357,16 +359,21 @@ function FollowUpsPage() {
         </div>
       )}
 
-      <ScheduleFollowUpModal
-        lead={editingFollowUp?.leads}
-        followUp={editingFollowUp}
-        open={showRescheduleModal}
-        onClose={() => {
-          setShowRescheduleModal(false);
-          setEditingFollowUp(null);
-        }}
-        onSaved={fetchFollowUps}
-      />
+      {/* Lazy-Loaded Reschedule Modal */}
+      {showRescheduleModal && (
+        <Suspense fallback={null}>
+          <ScheduleFollowUpModal
+            lead={editingFollowUp?.leads}
+            followUp={editingFollowUp}
+            open={showRescheduleModal}
+            onClose={() => {
+              setShowRescheduleModal(false);
+              setEditingFollowUp(null);
+            }}
+            onSaved={fetchFollowUps}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
