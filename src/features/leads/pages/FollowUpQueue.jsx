@@ -3,14 +3,12 @@ import SectionCard from "@/components/common/SectionCard";
 import LoadingState from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { getFollowUps, completeFollowUp, createFollowUp } from "../api/followUpsApi";
 import { addActivity, getActivities } from "../api/activitiesApi";
 import { getNotes, addNote } from "../api/notesApi";
 import { updateLead } from "../api/leadsApi";
 import { createGoogleMeet } from "@/utils/meetingUtils";
-import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
-import WhatsAppModal from "@/components/whatsapp/whatsappModal";
 import {
   ArrowLeft,
   Phone,
@@ -37,6 +35,10 @@ import {
   SkipForward,
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Lazy-loaded modal components for code splitting
+const ScheduleFollowUpModal = lazy(() => import("../components/followups/ScheduleFollowUpModal"));
+const WhatsAppModal = lazy(() => import("@/components/whatsapp/whatsappModal"));
 
 const statusBadge = {
   cold: {
@@ -124,17 +126,22 @@ export default function FollowUpQueue() {
     if (lead) {
       setShowAllNotes(false);
       setShowAllActivities(false);
-      getNotes(lead.id)
-        .then((d) => setNotes(d || []))
-        .catch(console.error);
-      getActivities(lead.id)
-        .then((d) => setActivities(d || []))
-        .catch(console.error);
+
+      // Parallel fetching for notes and activities
+      Promise.all([
+        getNotes(lead.id).catch(() => []),
+        getActivities(lead.id).catch(() => []),
+      ]).then(([notesData, activitiesData]) => {
+        setNotes(notesData || []);
+        setActivities(activitiesData || []);
+      });
     }
   }, [lead]);
 
   async function finishCurrentFollowUp() {
-    await completeFollowUp(followUp.id);
+    if (followUp?.id) {
+      await completeFollowUp(followUp.id);
+    }
     if (currentIndex < queue.length - 1) {
       setCurrentIndex((p) => p + 1);
     } else {
@@ -986,35 +993,44 @@ export default function FollowUpQueue() {
         </div>
       )}
 
-      <WhatsAppModal
-        open={showWhatsAppModal}
-        lead={lead}
-        onClose={() => setShowWhatsAppModal(false)}
-        extraParams={{
-          date: formattedMeetingDate,
-          time: formattedMeetingTime,
-          link: lead?.meeting_link || "",
-        }}
-      />
+      {/* Lazy Loaded Modals */}
+      {showWhatsAppModal && (
+        <Suspense fallback={null}>
+          <WhatsAppModal
+            open={showWhatsAppModal}
+            lead={lead}
+            onClose={() => setShowWhatsAppModal(false)}
+            extraParams={{
+              date: formattedMeetingDate,
+              time: formattedMeetingTime,
+              link: lead?.meeting_link || "",
+            }}
+          />
+        </Suspense>
+      )}
 
-      <ScheduleFollowUpModal
-        open={showFollowUpModal}
-        lead={lead}
-        onClose={() => setShowFollowUpModal(false)}
-        onSaved={async () => {
-          await updateLead(lead.id, {
-            status: "warm",
-            last_outcome: "interested",
-            last_contact_date: new Date().toISOString().split("T")[0],
-          });
-          await addActivity({
-            lead_id: lead.id,
-            activity_type: "status_change",
-            description: "Lead marked as Interested",
-          });
-          await finishCurrentFollowUp();
-        }}
-      />
+      {showFollowUpModal && (
+        <Suspense fallback={null}>
+          <ScheduleFollowUpModal
+            open={showFollowUpModal}
+            lead={lead}
+            onClose={() => setShowFollowUpModal(false)}
+            onSaved={async () => {
+              await updateLead(lead.id, {
+                status: "warm",
+                last_outcome: "interested",
+                last_contact_date: new Date().toISOString().split("T")[0],
+              });
+              await addActivity({
+                lead_id: lead.id,
+                activity_type: "status_change",
+                description: "Lead marked as Interested",
+              });
+              await finishCurrentFollowUp();
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
