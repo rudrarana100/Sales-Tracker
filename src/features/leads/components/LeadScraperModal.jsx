@@ -3,14 +3,17 @@ import { startScraperJob, checkScraperStatus, importScrapedLeads } from "../api/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Globe, Phone, Mail, Check, Loader2, Download, ExternalLink, Briefcase, Sparkles, Folder } from "lucide-react";
+import { 
+  Search, MapPin, Globe, Phone, Mail, Check, Loader2, 
+  Download, ExternalLink, Briefcase, Sparkles, FolderKanban 
+} from "lucide-react";
 import { toast } from "sonner";
 
 export default function LeadScraperModal({ open, onClose, onImported }) {
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
   const [targetCount, setTargetCount] = useState(50);
-  const [collectionName, setCollectionName] = useState(""); // Custom Folder Name State
+  const [collectionName, setCollectionName] = useState("");
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [jobId, setJobId] = useState(null);
@@ -50,11 +53,10 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
   async function handleStartScrape(e) {
     e.preventDefault();
     if (!query.trim() || !location.trim()) {
-      toast.warning("Please specify both query and location.");
+      toast.warning("Please specify both category and location.");
       return;
     }
 
-    // Auto-generate a clean collection folder name like "Lawyers - Bhopal"
     setCollectionName(`${query.trim()} - ${location.trim()}`);
     setLoading(true);
     setProgress(0);
@@ -95,13 +97,12 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
     }
 
     if (!collectionName.trim()) {
-      toast.warning("Please give your collection folder a name.");
+      toast.warning("Please enter a collection folder name.");
       return;
     }
 
     setImporting(true);
     try {
-      // Pass the user-specified collectionName
       const { importedCount, skippedCount } = await importScrapedLeads(
         leadsToImport,
         collectionName.trim()
@@ -126,46 +127,65 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:!max-w-3xl w-[90vw] max-h-[85vh] flex flex-col p-6 gap-4 overflow-hidden">
+      <DialogContent className="sm:!max-w-3xl w-[90vw] max-h-[85vh] flex flex-col p-6 gap-4 overflow-hidden rounded-2xl">
         <DialogHeader className="space-y-1 border-b pb-3">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
             <Sparkles className="h-5 w-5 text-blue-600" />
-            High-Volume Lead Scraper
+            Lead Scraper
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500">
-            Extract targeted, high-intent business leads with verified contact numbers, website URLs, and emails directly from Google Maps.
+            Extract business leads directly from Google Maps.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Search Controls */}
-        <form onSubmit={handleStartScrape} className="flex flex-col sm:flex-row items-center gap-2 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800">
-          <Input
-            placeholder="Category (e.g. Lawyers)"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            disabled={loading}
-            className="text-xs h-9 bg-white dark:bg-slate-900 flex-1"
-          />
-          <Input
-            placeholder="City (e.g. Bhopal)"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            disabled={loading}
-            className="text-xs h-9 bg-white dark:bg-slate-900 flex-1"
-          />
-          <Input
-            type="number"
-            min={5}
-            max={500}
-            value={targetCount}
-            onChange={(e) => setTargetCount(Number(e.target.value))}
-            disabled={loading}
-            placeholder="Limit"
-            className="text-xs h-9 bg-white dark:bg-slate-900 w-20 font-semibold"
-          />
-          <Button type="submit" disabled={loading} className="h-9 px-5 text-xs font-bold cursor-pointer bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-xs w-full sm:w-auto shrink-0">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4 mr-1" />}
-            {loading ? "Searching..." : "Start"}
+        {/* Clean Input Form */}
+        <form onSubmit={handleStartScrape} className="flex flex-col sm:flex-row items-center gap-2 bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+          {/* Category Input */}
+          <div className="relative flex-1 w-full">
+            <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            <Input
+              placeholder="Industry or Category"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              disabled={loading}
+              className="text-xs h-9.5 pl-10 pr-3 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl font-medium placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Location Input */}
+          <div className="relative flex-1 w-full">
+            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            <Input
+              placeholder="Target City or Region"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              disabled={loading}
+              className="text-xs h-9.5 pl-10 pr-3 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl font-medium placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Limit Input */}
+          <div className="relative w-full sm:w-20">
+            <Input
+              type="number"
+              min={5}
+              max={500}
+              value={targetCount}
+              onChange={(e) => setTargetCount(Number(e.target.value))}
+              disabled={loading}
+              placeholder="Limit"
+              className="text-xs h-9.5 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl text-center font-bold"
+            />
+          </div>
+
+          {/* Start Button */}
+          <Button 
+            type="submit" 
+            disabled={loading} 
+            className="h-9.5 px-5 text-xs font-bold cursor-pointer bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-xs w-full sm:w-auto shrink-0 transition-all active:scale-95"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4 mr-1.5" />}
+            {loading ? "Searching..." : "Start Scrape"}
           </Button>
         </form>
 
@@ -175,7 +195,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
             <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
               <span className="flex items-center gap-1.5">
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-600" />
-                Scraping Google Maps in real-time...
+                Scraping Google Maps...
               </span>
               <span>{progress} / {targetCount} Leads Collected</span>
             </div>
@@ -189,12 +209,12 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
         )}
 
         {/* Streamed Leads Results */}
-        <div className="flex-1 overflow-y-auto border rounded-2xl p-3 bg-slate-50/50 dark:bg-slate-950/40 min-h-[260px] max-h-[400px]">
+        <div className="flex-1 overflow-y-auto border rounded-2xl p-3 bg-slate-50/50 dark:bg-slate-950/40 min-h-[250px] max-h-[380px]">
           {scrapedResults.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center text-slate-400 space-y-2">
               <MapPin className="h-10 w-10 opacity-40 text-blue-500" />
               <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">No leads extracted yet</p>
-              <p className="text-xs text-slate-400 max-w-sm">Enter a business category and city above, set your desired lead count limit, and click Start.</p>
+              <p className="text-xs text-slate-400 max-w-sm">Enter an industry category and location above, then click Start Scrape.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -285,27 +305,27 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
           )}
         </div>
 
-        {/* Footer Actions with Collection Name Input */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t">
-          <div className="flex items-center gap-2 w-full sm:w-auto flex-1 max-w-sm">
-            <Folder className="h-4 w-4 text-blue-500 shrink-0" />
+        {/* Clean Bottom Collection Input */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/80 dark:border-slate-800">
+          <div className="relative flex items-center gap-2 w-full sm:w-auto flex-1 max-w-md">
+            <FolderKanban className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500 shrink-0 pointer-events-none" />
             <Input
-              placeholder="Collection / Folder Name"
+              placeholder="Collection Folder Name"
               value={collectionName}
               onChange={(e) => setCollectionName(e.target.value)}
-              className="text-xs h-9 bg-white dark:bg-slate-900 border-slate-200 font-semibold"
+              className="text-xs h-9.5 pl-10 pr-3 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl font-semibold placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <Button variant="outline" size="sm" onClick={onClose} className="text-xs h-9 px-4">
+            <Button variant="outline" size="sm" onClick={onClose} className="text-xs h-9.5 px-4 rounded-xl border-slate-200 font-semibold">
               Cancel
             </Button>
             <Button
               size="sm"
               onClick={handleImport}
               disabled={importing || selectedIndices.length === 0}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold h-9 px-4 cursor-pointer shadow-xs"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold h-9.5 px-5 rounded-xl cursor-pointer shadow-xs disabled:opacity-50 transition-all"
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 mr-1.5" />}
               Import {selectedIndices.length} Leads
