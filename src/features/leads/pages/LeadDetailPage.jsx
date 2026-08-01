@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getLeadById, updateLead, getDealByLeadId, createDeal } from "../api/leadsApi";
 import ActivityTimeline from "../components/ActivityTimeline";
@@ -17,7 +17,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, Calendar, X, Check, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import LeadDetailSkeleton from "@/components/loaders/LeadDetailSkeleton";
-import PostMeetingOutcomeModal from "../components/PostMeetingOutcomeModal";
+
+// Lazy-loaded modal component
+const PostMeetingOutcomeModal = lazy(() => import("../components/PostMeetingOutcomeModal"));
 
 function LeadDetailPage() {
   const { id } = useParams();
@@ -368,16 +370,20 @@ function LeadDetailPage() {
         />
       </div>
 
-      {/* Post-Meeting Outcome Modal */}
-      <PostMeetingOutcomeModal
-        lead={lead}
-        open={showPostMeetingModal}
-        onClose={() => setShowPostMeetingModal(false)}
-        onUpdated={async () => {
-          await fetchLead();
-          setTimelineRefresh((prev) => prev + 1);
-        }}
-      />
+      {/* Lazy Loaded Post-Meeting Outcome Modal */}
+      {showPostMeetingModal && (
+        <Suspense fallback={null}>
+          <PostMeetingOutcomeModal
+            lead={lead}
+            open={showPostMeetingModal}
+            onClose={() => setShowPostMeetingModal(false)}
+            onUpdated={async () => {
+              await fetchLead();
+              setTimelineRefresh((prev) => prev + 1);
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
