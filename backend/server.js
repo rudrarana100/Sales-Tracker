@@ -17,12 +17,10 @@ puppeteer.use(StealthPlugin());
 
 const app = express();
 
+// Allow origins dynamically for development & production
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://salestrackercrm.vercel.app"
-    ],
+    origin: "*", // Allows requests from Vercel frontend and local testing
     credentials: true,
   })
 );
@@ -134,12 +132,18 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
   let browser;
 
   try {
+    // ✅ Updated with essential Linux container flags for Render deployment
     browser = await puppeteer.launch({
       headless: "new",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu",
         "--disable-blink-features=AutomationControlled",
         "--window-size=1280,800",
       ],
