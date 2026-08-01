@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
+import LoadingState from "@/components/common/LoadingState";
 import {
   CheckSquare,
   Square,
   Plus,
   Calendar,
   User,
-  Clock,
   CheckCircle2,
   Trash2,
   X,
-  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -28,7 +27,7 @@ export default function TasksPage() {
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState(
-    new Date().toISOString().split("T")[0],
+    new Date().toISOString().split("T")[0]
   );
   const [priority, setPriority] = useState("medium");
 
@@ -36,7 +35,7 @@ export default function TasksPage() {
     try {
       setLoading(true);
       const data = await getTasks();
-      setTasks(data);
+      setTasks(data || []);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load tasks");
@@ -44,19 +43,20 @@ export default function TasksPage() {
       setLoading(false);
     }
   }
+
   useEffect(() => {
     loadTasks();
   }, []);
+
   async function toggleTask(task) {
     try {
-      const updated = await updateTask(task.id, {
+      await updateTask(task.id, {
         status: task.status === "completed" ? "pending" : "completed",
         completed_at:
           task.status === "completed" ? null : new Date().toISOString(),
       });
 
       await loadTasks();
-
       toast.success("Task updated");
     } catch (err) {
       console.error(err);
@@ -67,9 +67,7 @@ export default function TasksPage() {
   async function handleDeleteTask(id) {
     try {
       await deleteTaskApi(id);
-
       await loadTasks();
-
       toast.success("Task deleted");
     } catch (err) {
       console.error(err);
@@ -83,7 +81,7 @@ export default function TasksPage() {
     if (!title.trim()) return;
 
     try {
-      const task = await createTask({
+      await createTask({
         title: title.trim(),
         due_date: dueDate,
         priority,
@@ -114,15 +112,19 @@ export default function TasksPage() {
     return true;
   });
 
+  if (loading) {
+    return <LoadingState message="Loading tasks workspace..." />;
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-200">
       <PageHeader
         title="Tasks"
         description="Organize and execute daily sales tasks and assignments."
         action={
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-3.5 py-2 text-xs font-bold shadow-xs transition-all"
+            className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Create New Task</span>
@@ -142,7 +144,7 @@ export default function TasksPage() {
           <button
             key={f.id}
             onClick={() => setFilter(f.id)}
-            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all border ${
+            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all border cursor-pointer ${
               filter === f.id
                 ? "bg-slate-900 text-white dark:bg-blue-600 dark:text-white border-transparent shadow-xs"
                 : "bg-white dark:bg-slate-900 border-slate-200/70 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -186,7 +188,7 @@ export default function TasksPage() {
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   <button
                     onClick={() => toggleTask(t)}
-                    className="mt-0.5 text-slate-400 hover:text-blue-600 transition-colors"
+                    className="mt-0.5 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
                   >
                     {t.status === "completed" ? (
                       <CheckSquare className="h-4.5 w-4.5 text-emerald-500" />
@@ -196,15 +198,21 @@ export default function TasksPage() {
                   </button>
                   <div className="min-w-0 flex-1">
                     <p
-                      className={`text-xs font-bold ${t.status === "completed" ? "line-through text-slate-400" : "text-slate-800 dark:text-slate-100"}`}
+                      className={`text-xs font-bold ${
+                        t.status === "completed"
+                          ? "line-through text-slate-400"
+                          : "text-slate-800 dark:text-slate-100"
+                      }`}
                     >
                       {t.title}
                     </p>
                     <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-400 mt-1">
-                      <span className="flex items-center gap-1 font-semibold">
-                        <User className="h-3 w-3" />
-                        {t.assigned_to}
-                      </span>
+                      {t.assigned_to && (
+                        <span className="flex items-center gap-1 font-semibold">
+                          <User className="h-3 w-3" />
+                          {t.assigned_to}
+                        </span>
+                      )}
                       <span className="flex items-center gap-1 font-semibold">
                         <Calendar className="h-3 w-3" />
                         {t.due_date}
@@ -224,7 +232,7 @@ export default function TasksPage() {
 
                 <button
                   onClick={() => handleDeleteTask(t.id)}
-                  className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
                   title="Delete Task"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -237,15 +245,15 @@ export default function TasksPage() {
 
       {/* Create Task Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                 Create New Task
               </h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -261,23 +269,23 @@ export default function TasksPage() {
                   placeholder="Task title..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+                  className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
+              </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-slate-400">
-                    Priority
-                  </label>
-                  <select
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
-                    className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High 🔥</option>
-                  </select>
-                </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-slate-400">
+                  Priority
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-xs font-semibold text-slate-800 dark:text-slate-100 outline-none cursor-pointer"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High 🔥</option>
+                </select>
               </div>
 
               <div className="space-y-1">
@@ -288,21 +296,21 @@ export default function TasksPage() {
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-800 dark:text-slate-100"
+                  className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-xs font-semibold text-slate-800 dark:text-slate-100 outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold"
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-slate-900 text-white dark:bg-blue-600 px-4 py-2 text-xs font-bold shadow-xs"
+                  className="rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 text-xs font-bold shadow-xs cursor-pointer"
                 >
                   Create Task
                 </button>

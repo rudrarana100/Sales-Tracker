@@ -13,13 +13,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  function handleTabSwitch(registerMode) {
+    setIsRegister(registerMode);
+    setFullName("");
+    setEmail("");
+    setPassword("");
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!email || !password) {
       toast.warning("Please enter your email and password.");
       return;
     }
-    if (isRegister && !fullName) {
+    if (isRegister && !fullName.trim()) {
       toast.warning("Please enter your full name.");
       return;
     }
@@ -27,7 +34,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       if (isRegister) {
-        await register(fullName, email, password);
+        await register(fullName.trim(), email, password);
         toast.success("Account created successfully!");
       } else {
         await login(email, password);
@@ -60,7 +67,7 @@ export default function LoginPage() {
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-900/80 p-1 border border-slate-800/60">
             <button
               type="button"
-              onClick={() => setIsRegister(false)}
+              onClick={() => handleTabSwitch(false)}
               className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 !isRegister
                   ? "bg-blue-600 text-white shadow-xs"
@@ -71,7 +78,7 @@ export default function LoginPage() {
             </button>
             <button
               type="button"
-              onClick={() => setIsRegister(true)}
+              onClick={() => handleTabSwitch(true)}
               className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 isRegister
                   ? "bg-blue-600 text-white shadow-xs"
@@ -91,7 +98,7 @@ export default function LoginPage() {
                   <input
                     type="text"
                     required={isRegister}
-                    placeholder="User"
+                    placeholder="Alex Morgan"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-800 bg-slate-900/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"

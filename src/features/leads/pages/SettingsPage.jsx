@@ -15,10 +15,10 @@ import {
 import { toast } from "sonner";
 
 const DEFAULT_SETTINGS = {
-  user_name: "User",
+  user_name: "",
   company_name: "BuiltStack",
-  email: "user@builtstack.com",
-  phone: "+91 9876543210",
+  email: "",
+  phone: "",
   country_code: "91",
   meet_duration: "30",
   follow_up_delay: "1",
@@ -102,6 +102,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
+                placeholder="Full Name"
                 value={settings.user_name || ""}
                 onChange={(e) => handleChange("user_name", e.target.value)}
                 className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
@@ -114,6 +115,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
+                placeholder="Company Name"
                 value={settings.company_name || ""}
                 onChange={(e) => handleChange("company_name", e.target.value)}
                 className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
@@ -126,6 +128,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="email"
+                placeholder="name@company.com"
                 value={settings.email || ""}
                 onChange={(e) => handleChange("email", e.target.value)}
                 className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
@@ -138,6 +141,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
+                placeholder="+91 9876543210"
                 value={settings.phone || ""}
                 onChange={(e) => handleChange("phone", e.target.value)}
                 className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"

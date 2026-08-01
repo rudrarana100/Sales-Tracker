@@ -62,7 +62,7 @@ function PipelinePage() {
   async function fetchLeads() {
     try {
       const data = await getLeads();
-      setLeads(data);
+      setLeads(data || []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -100,7 +100,10 @@ function PipelinePage() {
     }
   }
 
-  const filteredLeads = leads.filter((lead) => {
+  // Filter out cold leads so Kanban is strictly for active deals
+  const pipelineLeads = leads.filter((l) => l.status !== "cold");
+
+  const filteredLeads = pipelineLeads.filter((lead) => {
     const s = searchTerm.toLowerCase();
     return (
       lead.lead_name?.toLowerCase().includes(s) ||
@@ -166,7 +169,7 @@ function PipelinePage() {
 
               <button
                 onClick={() => navigate(`/leads/${lead.id}`)}
-                className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground transition-all"
+                className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                 title="Open lead details"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -205,7 +208,7 @@ function PipelinePage() {
                     if (!u.startsWith("http")) u = "https://" + u;
                     window.open(u, "_blank");
                   }}
-                  className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <Globe className="h-3 w-3" />
                 </button>
@@ -214,7 +217,7 @@ function PipelinePage() {
                 <button
                   title="Maps"
                   onClick={() => window.open(lead.google_maps_link, "_blank")}
-                  className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <MapPin className="h-3 w-3" />
                 </button>
@@ -226,7 +229,7 @@ function PipelinePage() {
                   if (p.length === 10) p = "91" + p;
                   window.open(`https://wa.me/${p}`, "_blank");
                 }}
-                className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer"
               >
                 <MessageCircle className="h-3 w-3" />
               </button>
@@ -236,7 +239,7 @@ function PipelinePage() {
                   navigator.clipboard.writeText(lead.phone);
                   toast.success("Phone copied!");
                 }}
-                className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <Copy className="h-3 w-3" />
               </button>
@@ -251,17 +254,15 @@ function PipelinePage() {
     return <LoadingState message="Loading deal pipeline..." />;
   }
 
-  const activeDealsCount = leads.filter((l) => l.status !== "cold").length;
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-200">
       <PageHeader
         title="Sales Pipeline"
-        description={`Active management for ${activeDealsCount} deals across stages.`}
+        description={`Active management for ${pipelineLeads.length} ${pipelineLeads.length === 1 ? "deal" : "deals"} across stages.`}
         action={
           <button
             onClick={() => navigate("/leads")}
-            className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-3.5 py-2 text-xs font-bold shadow-xs transition-all"
+            className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Add New Lead</span>
@@ -282,9 +283,9 @@ function PipelinePage() {
         </div>
 
         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-          <span className="flex items-center gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 px-3 py-1 text-slate-700 dark:text-slate-300">
+          <span className="flex items-center gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 px-3 py-1 text-slate-700 dark:text-slate-300 font-bold">
             <Sparkles className="h-3.5 w-3.5 text-blue-500" />
-            <span>{filteredLeads.length} Total Deals</span>
+            <span>{filteredLeads.length} Active Deals</span>
           </span>
         </div>
       </div>
