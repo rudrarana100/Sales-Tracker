@@ -60,20 +60,23 @@ function LeadForm({ onLeadAdded }) {
 
       if (phoneExists && emailExists) {
         toast.warning("A lead with this phone number and email already exists.");
+        setSubmitting(false);
         return;
       }
 
       if (phoneExists) {
         toast.warning("Phone number already exists.");
+        setSubmitting(false);
         return;
       }
 
       if (emailExists) {
         toast.warning("Email already exists.");
+        setSubmitting(false);
         return;
       }
 
-      const newLead = await createLead({
+      await createLead({
         lead_name: leadName.trim(),
         phone: phone.trim(),
         contact_person: contactPerson.trim(),
@@ -93,8 +96,8 @@ function LeadForm({ onLeadAdded }) {
       setGoogleMapsLink("");
       setEmail("");
 
-      onLeadAdded();
-      leadNameRef.current.focus();
+      onLeadAdded?.();
+      leadNameRef.current?.focus();
 
       toast.success("Lead added!");
     } catch (error) {
@@ -116,7 +119,7 @@ function LeadForm({ onLeadAdded }) {
         <Input
           ref={leadNameRef}
           type="text"
-          placeholder="e.g. Acme Corp"
+          placeholder="Business / Company Name"
           value={leadName}
           onChange={(e) => setLeadName(e.target.value)}
         />
@@ -125,7 +128,7 @@ function LeadForm({ onLeadAdded }) {
         <label className="text-xs font-medium text-foreground/80">Phone Number *</label>
         <Input
           type="tel"
-          placeholder="e.g. 9876543210"
+          placeholder="10-digit Phone Number"
           value={phone}
           onChange={(e) => {
             const value = e.target.value.replace(/\D/g, "");
@@ -138,7 +141,7 @@ function LeadForm({ onLeadAdded }) {
         <label className="text-xs font-medium text-foreground/80">Contact Person</label>
         <Input
           type="text"
-          placeholder="e.g. John Doe"
+          placeholder="Contact Person Name"
           value={contactPerson}
           onChange={(e) => setContactPerson(e.target.value)}
         />
@@ -147,7 +150,7 @@ function LeadForm({ onLeadAdded }) {
         <label className="text-xs font-medium text-foreground/80">Business Type</label>
         <Input
           type="text"
-          placeholder="e.g. IT Services"
+          placeholder="Category or Industry"
           value={businessType}
           onChange={(e) => setBusinessType(e.target.value)}
         />
@@ -156,7 +159,7 @@ function LeadForm({ onLeadAdded }) {
         <label className="text-xs font-medium text-foreground/80">Website</label>
         <Input
           type="text"
-          placeholder="e.g. https://example.com"
+          placeholder="https://example.com"
           value={website}
           onChange={(e) => setWebsite(e.target.value)}
         />
@@ -165,7 +168,7 @@ function LeadForm({ onLeadAdded }) {
         <label className="text-xs font-medium text-foreground/80">Google Maps Link</label>
         <Input
           type="text"
-          placeholder="Paste Google Maps URL"
+          placeholder="Google Maps URL"
           value={googleMapsLink}
           onChange={(e) => setGoogleMapsLink(e.target.value)}
         />
@@ -174,7 +177,7 @@ function LeadForm({ onLeadAdded }) {
         <label className="text-xs font-medium text-foreground/80">Email</label>
         <Input
           type="email"
-          placeholder="e.g. john@acme.com"
+          placeholder="name@company.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -183,7 +186,7 @@ function LeadForm({ onLeadAdded }) {
         <button
           type="submit"
           disabled={submitting}
-          className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+          className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-6 py-2.5 text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
         >
           {submitting && <Loader2 className="h-4 w-4 animate-spin text-blue-400" />}
           <span>{submitting ? "Adding..." : "Add Lead"}</span>

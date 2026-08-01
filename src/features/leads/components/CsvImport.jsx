@@ -155,7 +155,12 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
         return;
       }
 
-      await importLeads(uniqueLeads);
+      // Batch import in chunks of 500 for optimal database performance
+      const BATCH_SIZE = 500;
+      for (let i = 0; i < uniqueLeads.length; i += BATCH_SIZE) {
+        const chunk = uniqueLeads.slice(i, i + BATCH_SIZE);
+        await importLeads(chunk);
+      }
       
       if (onImport) {
         await onImport();
@@ -188,7 +193,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
 
       {/* Modal Popup Overlay */}
       {rawRows.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-4xl max-h-[85vh] flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl overflow-hidden">
             
             {/* Modal Header */}
@@ -375,4 +380,4 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
   );
 });
 
-export default CsvImport; 
+export default CsvImport;

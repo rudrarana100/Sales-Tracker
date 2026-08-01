@@ -71,7 +71,7 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
       onSaved?.();
       onClose();
 
-      // Automatically construct WhatsApp message with a mock or dynamic Google Meet link if type is meeting
+      // Automatically construct WhatsApp message if phone exists
       if (lead?.phone) {
         const cleanPhone = lead.phone.replace(/[^0-9]/g, "");
         if (cleanPhone) {
@@ -87,16 +87,16 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
           const waUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
 
           // Attempt direct programmatic open
-          const newWindow = window.open(waUrl, "_blank");
+          window.open(waUrl, "_blank");
 
-          // Fallback toast action if browser popup blocker stops it
+          // Fallback toast action if browser popup blocker triggers
           toast.success(type === "meeting" ? "Meeting scheduled successfully!" : "Follow-up saved successfully!", {
             description: "Click below if WhatsApp didn't open automatically.",
             action: {
-              label: "💬 Open WhatsApp Now",
+              label: "💬 Open WhatsApp",
               onClick: () => window.open(waUrl, "_blank"),
             },
-            duration: 12000,
+            duration: 8000,
           });
         }
       }
@@ -117,24 +117,24 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-2xl animate-scale-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-in fade-in duration-200 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-2xl space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40">
               <Calendar className="h-4.5 w-4.5" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                {followUp ? "Reschedule Follow-up" : "Schedule Meeting / Follow-up"}
+                {followUp ? "Reschedule Follow-up" : "Schedule Follow-up"}
               </h2>
               <p className="text-[11px] text-slate-400">For {lead?.lead_name || "Lead"}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-all cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -153,7 +153,7 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
                     key={t.id}
                     type="button"
                     onClick={() => setType(t.id)}
-                    className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-bold transition-all ${
+                    className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-bold transition-all cursor-pointer ${
                       isSelected
                         ? "bg-slate-900 text-white dark:bg-blue-600 dark:text-white border-transparent shadow-xs"
                         : "bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -172,20 +172,20 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
             <div className="flex items-center justify-between">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Date</label>
               <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-400">
-                <button type="button" onClick={() => setDatePreset(0)} className="hover:text-blue-600 dark:hover:text-blue-400">Today</button>
+                <button type="button" onClick={() => setDatePreset(0)} className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">Today</button>
                 <span>&middot;</span>
-                <button type="button" onClick={() => setDatePreset(1)} className="hover:text-blue-600 dark:hover:text-blue-400">Tomorrow</button>
+                <button type="button" onClick={() => setDatePreset(1)} className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">Tomorrow</button>
                 <span>&middot;</span>
-                <button type="button" onClick={() => setDatePreset(2)} className="hover:text-blue-600 dark:hover:text-blue-400">+2 Days</button>
+                <button type="button" onClick={() => setDatePreset(2)} className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">+2 Days</button>
                 <span>&middot;</span>
-                <button type="button" onClick={() => setDatePreset(7)} className="hover:text-blue-600 dark:hover:text-blue-400">Next Week</button>
+                <button type="button" onClick={() => setDatePreset(7)} className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">Next Week</button>
               </div>
             </div>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+              className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -194,22 +194,22 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
             <div className="flex items-center justify-between">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Time</label>
               <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-400">
-                <button type="button" onClick={() => setTime("09:00")} className="hover:text-blue-600 dark:hover:text-blue-400">9 AM</button>
+                <button type="button" onClick={() => setTime("09:00")} className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">9 AM</button>
                 <span>&middot;</span>
-                <button type="button" onClick={() => setTime("11:00")} className="hover:text-blue-600 dark:hover:text-blue-400">11 AM</button>
+                <button type="button" onClick={() => setTime("11:00")} className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">11 AM</button>
                 <span>&middot;</span>
-                <button type="button" onClick={() => setTime("14:00")} className="hover:text-blue-600 dark:hover:text-blue-400">2 PM</button>
+                <button type="button" onClick={() => setTime("14:00")} className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">2 PM</button>
                 <span>&middot;</span>
-                <button type="button" onClick={() => setTime("16:00")} className="hover:text-blue-600 dark:hover:text-blue-400">4 PM</button>
+                <button type="button" onClick={() => setTime("16:00")} className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">4 PM</button>
                 <span>&middot;</span>
-                <button type="button" onClick={() => setTime("18:00")} className="hover:text-blue-600 dark:hover:text-blue-400">6 PM</button>
+                <button type="button" onClick={() => setTime("18:00")} className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">6 PM</button>
               </div>
             </div>
             <input
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+              className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -217,7 +217,7 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Priority Level</label>
             <select
-              className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500"
+              className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
             >
@@ -234,7 +234,7 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
               placeholder="What needs to be discussed..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full min-h-20 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-500 resize-none"
+              className="w-full min-h-20 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
             />
           </div>
 
@@ -243,7 +243,7 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all"
+              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
             >
               Cancel
             </button>

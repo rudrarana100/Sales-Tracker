@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageSquare, Calendar, Send, CheckCircle2, PhoneCall } from "lucide-react";
+import { MessageSquare, Calendar, Send } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LeadInteractionPanel({ lead, onUpdate }) {
@@ -26,12 +26,16 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
     setSending("whatsapp");
     try {
       // Format phone number (ensure clean digits)
-      const cleanPhone = lead.phone?.replace(/[^0-9]/g, "");
+      let cleanPhone = lead.phone?.replace(/[^0-9]/g, "");
       if (!cleanPhone) {
         throw new Error("Invalid or missing phone number for this lead.");
       }
 
-      // Open WhatsApp Web / API link or trigger backend dispatch
+      if (cleanPhone.length === 10) {
+        cleanPhone = "91" + cleanPhone;
+      }
+
+      // Trigger WhatsApp Web / App intent
       const encodedMessage = encodeURIComponent(textToSend);
       window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, "_blank");
 
@@ -48,12 +52,12 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
 
   // Quick template for Google Meet / Meeting Confirmation
   function handleSendMeetingConfirmation() {
-    const defaultTemplate = `Hi ${lead.lead_name || "there"}, this is a quick confirmation for our upcoming Google Meet session. Looking forward to speaking with you!`;
+    const defaultTemplate = `Hi ${lead.contact_person || lead.lead_name || "there"}, this is a quick confirmation for our upcoming Google Meet session. Looking forward to speaking with you!`;
     handleSendWhatsApp(defaultTemplate);
   }
 
   return (
-    <div className="flex flex-col h-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs">
+    <div className="flex flex-col h-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs animate-in fade-in duration-200">
       {/* Panel Header */}
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
         <div>
@@ -109,7 +113,7 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
                   📅 Google Meet Confirmation
                 </button>
                 <button
-                  onClick={() => handleSendWhatsApp(`Hi ${lead.lead_name}, checking in to see if you had a chance to review our proposal.`)}
+                  onClick={() => handleSendWhatsApp(`Hi ${lead.contact_person || lead.lead_name || "there"}, checking in to see if you had a chance to review our proposal.`)}
                   className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer"
                 >
                   💬 Follow-up Check-in

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FolderKanban, Plus, Folder, Check, Trash2, Layers } from "lucide-react";
+import { FolderKanban, Plus, Folder, Check, Layers } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CollectionManagerModal({
@@ -41,7 +41,7 @@ export default function CollectionManagerModal({
         {/* Create New Collection Form */}
         <form onSubmit={handleCreateFolder} className="flex items-center gap-2">
           <Input
-            placeholder="New Collection Name (e.g. Bhopal CAs)"
+            placeholder="New Collection Name"
             value={newFolderInput}
             onChange={(e) => setNewFolderInput(e.target.value)}
             className="text-xs h-9 bg-slate-50 dark:bg-slate-950 flex-1"

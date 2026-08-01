@@ -49,70 +49,78 @@ function Dashboard({
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Fetch today's call count for the mini banner
+  // Fetch today's call count in parallel for the mini banner
   useEffect(() => {
     async function fetchBannerData() {
       try {
         const savedGoal = localStorage.getItem("sales_daily_target");
         if (savedGoal) setDailyTarget(parseInt(savedGoal, 10));
 
-        let callCount = 0;
-        for (const lead of leads) {
-          try {
-            const acts = await getActivities(lead.id);
-            if (acts) {
-              const matches = acts.filter(
-                (a) =>
-                  (a.activity_type === "call_outcome" || a.activity_type === "callback" || a.activity_type === "meeting") &&
-                  a.created_at?.startsWith(today)
-              );
-              callCount += matches.length;
-            }
-          } catch (e) {
-            // skip error for individual lead fetch
-          }
+        if (!leads || leads.length === 0) {
+          setTodayCalls(0);
+          return;
         }
+
+        // Parallel activity fetching for instant rendering
+        const activityPromises = leads.map((lead) =>
+          getActivities(lead.id).catch(() => [])
+        );
+
+        const results = await Promise.all(activityPromises);
+        let callCount = 0;
+
+        results.forEach((acts) => {
+          if (acts && Array.isArray(acts)) {
+            const matches = acts.filter(
+              (a) =>
+                (a.activity_type === "call_outcome" ||
+                  a.activity_type === "callback" ||
+                  a.activity_type === "meeting") &&
+                a.created_at?.startsWith(today)
+            );
+            callCount += matches.length;
+          }
+        });
+
         setTodayCalls(callCount);
       } catch (err) {
-        console.error(err);
+        console.error("Dashboard banner fetch error:", err);
       }
     }
 
-    if (leads.length > 0) {
-      fetchBannerData();
-    }
+    fetchBannerData();
   }, [leads, today]);
 
   const targetProgress = Math.min(Math.round((todayCalls / dailyTarget) * 100), 100);
 
   const coldCallsRemaining = leads.filter(
-    (lead) => lead.status === "cold",
+    (lead) => lead.status === "cold"
   ).length;
 
   const followUpsToday = followUps.filter(
-    (followUp) => followUp.scheduled_date === today,
+    (followUp) => followUp.scheduled_date === today
   ).length;
 
   const meetingsToday = followUps.filter(
     (followUp) =>
-      followUp.type === "meeting" && followUp.scheduled_date === today,
+      followUp.type === "meeting" && followUp.scheduled_date === today
   ).length;
 
   const todayTasks = followUps
     .filter((followUp) => followUp.scheduled_date === today)
     .sort((a, b) =>
-      (a.scheduled_time || "").localeCompare(b.scheduled_time || ""),
+      (a.scheduled_time || "").localeCompare(b.scheduled_time || "")
     );
 
   const overdueFollowUps = followUps
     .filter((followUp) => followUp.scheduled_date < today)
     .sort((a, b) =>
-      (a.scheduled_time || "").localeCompare(b.scheduled_time || ""),
+      (a.scheduled_time || "").localeCompare(b.scheduled_time || "")
     );
   const overdueCount = overdueFollowUps.length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
       <PageHeader
         title="Dashboard"
@@ -316,7 +324,7 @@ function Dashboard({
                 {overdueFollowUps.map((followUp) => {
                   const lead = followUp.leads;
                   const relativeDate = getRelativeDueDate(
-                    followUp.scheduled_date,
+                    followUp.scheduled_date
                   );
 
                   return (
