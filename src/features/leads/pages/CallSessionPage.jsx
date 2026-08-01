@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { getLeads, updateLead, getImportBatches } from "../api/leadsApi";
 import { getActivities, addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
@@ -7,8 +7,6 @@ import SectionCard from "@/components/common/SectionCard";
 import LoadingState from "@/components/common/LoadingState";
 import { getNotes, addNote } from "../api/notesApi";
 import { createFollowUp } from "../api/followUpsApi";
-import ScheduleFollowUpModal from "../components/followups/ScheduleFollowUpModal";
-import WhatsAppModal from "@/components/whatsapp/whatsappModal";
 import {
   Phone,
   User,
@@ -36,6 +34,10 @@ import {
   FolderKanban,
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Lazy-loaded modals for code splitting & faster initial load
+const ScheduleFollowUpModal = lazy(() => import("../components/followups/ScheduleFollowUpModal"));
+const WhatsAppModal = lazy(() => import("@/components/whatsapp/whatsappModal"));
 
 const statusBadge = {
   cold: {
@@ -138,12 +140,15 @@ function CallSessionPage() {
     if (currentLead) {
       setShowAllNotes(false);
       setShowAllActivities(false);
-      getNotes(currentLead.id)
-        .then((d) => setNotes(d || []))
-        .catch(console.error);
-      getActivities(currentLead.id)
-        .then((d) => setActivities(d || []))
-        .catch(console.error);
+
+      // Parallel fetching for faster lead details loading
+      Promise.all([
+        getNotes(currentLead.id).catch(() => []),
+        getActivities(currentLead.id).catch(() => []),
+      ]).then(([notesData, activitiesData]) => {
+        setNotes(notesData || []);
+        setActivities(activitiesData || []);
+      });
     }
   }, [currentLead]);
 
@@ -1110,36 +1115,46 @@ function CallSessionPage() {
         </div>
       )}
 
-      <WhatsAppModal
-        open={showWhatsAppModal}
-        lead={currentLead}
-        onClose={() => setShowWhatsAppModal(false)}
-        extraParams={{
-          date: formattedMeetingDate,
-          time: formattedMeetingTime,
-          link: currentLead?.meeting_link || "",
-        }}
-      />
+      {/* Lazy Loaded WhatsApp Modal */}
+      {showWhatsAppModal && (
+        <Suspense fallback={null}>
+          <WhatsAppModal
+            open={showWhatsAppModal}
+            lead={currentLead}
+            onClose={() => setShowWhatsAppModal(false)}
+            extraParams={{
+              date: formattedMeetingDate,
+              time: formattedMeetingTime,
+              link: currentLead?.meeting_link || "",
+            }}
+          />
+        </Suspense>
+      )}
 
-      <ScheduleFollowUpModal
-        open={showFollowUpModal}
-        lead={currentLead}
-        onClose={() => setShowFollowUpModal(false)}
-        onSaved={async () => {
-          await updateLead(currentLead.id, {
-            status: "warm",
-            last_outcome: "interested",
-            last_contact_date: new Date().toISOString().split("T")[0],
-          });
-          await addActivity({
-            lead_id: currentLead.id,
-            activity_type: "status_change",
-            description: "Lead marked as Interested",
-          });
-          setSkippedLeadIds((prev) => [...prev, currentLead.id]);
-          await fetchLeads();
-        }}
-      />
+      {/* Lazy Loaded Follow-up Modal */}
+      {showFollowUpModal && (
+        <Suspense fallback={null}>
+          <ScheduleFollowUpModal
+            open={showFollowUpModal}
+            lead={currentLead}
+            onClose={() => setShowFollowUpModal(false)}
+            onSaved={async () => {
+              await updateLead(currentLead.id, {
+                status: "warm",
+                last_outcome: "interested",
+                last_contact_date: new Date().toISOString().split("T")[0],
+              });
+              await addActivity({
+                lead_id: currentLead.id,
+                activity_type: "status_change",
+                description: "Lead marked as Interested",
+              });
+              setSkippedLeadIds((prev) => [...prev, currentLead.id]);
+              await fetchLeads();
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
