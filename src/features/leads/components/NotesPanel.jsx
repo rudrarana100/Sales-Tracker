@@ -45,7 +45,7 @@ function NotesPanel({ leadId, onNoteAdded }) {
       await addActivity({
         lead_id: leadId,
         activity_type: "note",
-        description: newNote,
+        description: newNote.trim(),
       });
       onNoteAdded?.();
       setNewNote("");
@@ -84,47 +84,59 @@ function NotesPanel({ leadId, onNoteAdded }) {
           placeholder="Write a note..."
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
-          className="min-h-0 flex-1 resize-none"
+          className="min-h-0 flex-1 resize-none text-xs rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-3"
         />
-        <Button size="sm" onClick={handleAddNote} className="self-start shrink-0 cursor-pointer" disabled={adding}>
+        <Button size="sm" onClick={handleAddNote} className="self-start shrink-0 cursor-pointer rounded-xl bg-slate-900 text-white dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-500 text-xs font-bold h-9 px-4" disabled={adding}>
           {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Add
+          <span>Add</span>
         </Button>
       </div>
 
       {notes.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
-            <FileText className="h-5 w-5 text-muted-foreground/60" />
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400">
+            <FileText className="h-5 w-5" />
           </div>
-          <p className="text-sm text-muted-foreground">No notes yet.</p>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">No notes recorded yet.</p>
         </div>
       ) : (
         <div className="space-y-2">
           {displayedNotes.map((note) => (
-            <div key={note.id} className="flex items-start justify-between rounded-2xl border border-border bg-card px-4 py-3 transition-all duration-200 hover:shadow-subtle">
+            <div key={note.id} className="flex items-start justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 transition-all duration-150 hover:shadow-xs">
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-card-foreground">{note.content}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {new Date(note.created_at).toLocaleString()}
+                <p className="text-xs font-medium text-slate-800 dark:text-slate-200 leading-relaxed">{note.content}</p>
+                <p className="mt-1 text-[10px] text-slate-400 font-medium">
+                  {note.created_at ? (
+                    <>
+                      {new Date(note.created_at).toLocaleDateString("en-IN", {
+                        day: "numeric", month: "short", year: "numeric",
+                      })}
+                      {" · "}
+                      {new Date(note.created_at).toLocaleTimeString("en-IN", {
+                        hour: "numeric", minute: "2-digit", hour12: true,
+                      })}
+                    </>
+                  ) : (
+                    "Just now"
+                  )}
                 </p>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-destructive shrink-0 ml-2 cursor-pointer">
+                  <button title="Delete Note" className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors shrink-0 ml-2 cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                     <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  </button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="rounded-2xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Note?</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogTitle className="text-base font-bold">Delete Note?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-xs text-slate-500 dark:text-slate-400">
                       This action cannot be undone. This note will be permanently deleted.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDelete(note)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer">
+                    <AlertDialogCancel className="rounded-xl border-slate-200 dark:border-slate-800 text-xs font-semibold cursor-pointer">Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDelete(note)} className="bg-rose-600 text-white hover:bg-rose-500 rounded-xl text-xs font-bold shadow-xs cursor-pointer">
                       Delete
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -137,17 +149,17 @@ function NotesPanel({ leadId, onNoteAdded }) {
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:shadow-subtle cursor-pointer mt-2"
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer mt-2"
             >
               {expanded ? (
                 <>
-                  <ChevronUp size={16} />
-                  Show Less
+                  <ChevronUp className="h-4 w-4" />
+                  <span>Show Less</span>
                 </>
               ) : (
                 <>
-                  <ChevronDown size={16} />
-                  Show {notes.length - 2} More
+                  <ChevronDown className="h-4 w-4" />
+                  <span>Show {notes.length - 2} More</span>
                 </>
               )}
             </button>
