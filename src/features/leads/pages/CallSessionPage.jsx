@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getLeads, updateLead } from "../api/leadsApi";
+import { getLeads, updateLead, getImportBatches } from "../api/leadsApi";
 import { getActivities, addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
 import PageHeader from "@/components/common/PageHeader";
@@ -33,6 +33,7 @@ import {
   ChevronUp,
   X,
   History,
+  FolderKanban,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -76,6 +77,8 @@ const statusBadge = {
 
 function CallSessionPage() {
   const [leads, setLeads] = useState([]);
+  const [collections, setCollections] = useState([]);
+  const [selectedCollection, setSelectedCollection] = useState("all");
   const [loading, setLoading] = useState(true);
   const [showCallbackForm, setShowCallbackForm] = useState(false);
   const [callbackDate, setCallbackDate] = useState("");
@@ -96,17 +99,30 @@ function CallSessionPage() {
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [showAllActivities, setShowAllActivities] = useState(false);
 
+  // Filtered by 'cold' status + 'skipped' state + selected Collection
   const coldLeads = leads.filter(
-    (l) => l.status === "cold" && !skippedLeadIds.includes(l.id),
+    (l) =>
+      l.status === "cold" &&
+      !skippedLeadIds.includes(l.id) &&
+      (selectedCollection === "all" || l.import_batch === selectedCollection)
   );
+
   const currentLead = coldLeads[0];
-  const totalCold = leads.filter((l) => l.status === "cold").length;
-  const currentIndex = totalCold - coldLeads.length + 1;
+  const totalColdForSelectedCollection = leads.filter(
+    (l) =>
+      l.status === "cold" &&
+      (selectedCollection === "all" || l.import_batch === selectedCollection)
+  ).length;
+
+  const currentIndex =
+    totalColdForSelectedCollection - coldLeads.length + 1;
 
   async function fetchLeads() {
     try {
       const data = await getLeads();
       setLeads(data || []);
+      const batchList = await getImportBatches();
+      setCollections(batchList ? batchList.filter(Boolean) : []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -140,7 +156,7 @@ function CallSessionPage() {
     function handleKeyDown(e) {
       if (
         ["INPUT", "TEXTAREA", "SELECT"].includes(
-          document.activeElement?.tagName,
+          document.activeElement?.tagName
         )
       ) {
         return;
@@ -362,7 +378,7 @@ function CallSessionPage() {
         `Meeting with ${currentLead.lead_name}`,
         "BuiltStack Discovery Call",
         start.toISOString(),
-        end.toISOString(),
+        end.toISOString()
       );
 
       await updateLead(currentLead.id, {
@@ -386,7 +402,7 @@ function CallSessionPage() {
           const encodedMessage = encodeURIComponent(message);
           window.open(
             `https://wa.me/${cleanPhone}?text=${encodedMessage}`,
-            "_blank",
+            "_blank"
           );
         }
       }
@@ -413,6 +429,23 @@ function CallSessionPage() {
         <PageHeader
           title="Call Session"
           description="All caught up for today."
+          action={
+            <div className="relative flex items-center">
+              <FolderKanban className="absolute left-3 h-4 w-4 text-blue-500 pointer-events-none" />
+              <select
+                value={selectedCollection}
+                onChange={(e) => setSelectedCollection(e.target.value)}
+                className="h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-4 text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer shadow-xs"
+              >
+                <option value="all">📁 All Collections</option>
+                {collections.map((col) => (
+                  <option key={col} value={col}>
+                    📂 {col}
+                  </option>
+                ))}
+              </select>
+            </div>
+          }
         />
         <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-12 text-center flex flex-col items-center justify-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400">
@@ -422,7 +455,7 @@ function CallSessionPage() {
             Session Complete
           </h2>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            No cold leads remaining to call.
+            No cold leads remaining to call in "{selectedCollection === "all" ? "All Collections" : selectedCollection}".
           </p>
         </div>
       </div>
@@ -456,7 +489,34 @@ function CallSessionPage() {
     <div className="space-y-6">
       <PageHeader
         title="Call Session"
-        description={`Lead ${currentIndex} of ${totalCold}`}
+        description={`Lead ${currentIndex} of ${totalColdForSelectedCollection}`}
+        action={
+          <div className="relative flex items-center">
+            <FolderKanban className="absolute left-3 h-4 w-4 text-blue-500 pointer-events-none" />
+            <select
+              value={selectedCollection}
+              onChange={(e) => {
+                setSelectedCollection(e.target.value);
+                setSkippedLeadIds([]);
+              }}
+              className="h-9.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-4 text-xs font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer shadow-xs"
+            >
+              <option value="all">
+                📁 All Collections ({leads.filter((l) => l.status === "cold").length} Cold)
+              </option>
+              {collections.map((col) => {
+                const count = leads.filter(
+                  (l) => l.status === "cold" && l.import_batch === col
+                ).length;
+                return (
+                  <option key={col} value={col}>
+                    📂 {col} ({count} Cold)
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        }
       />
 
       <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-5 shadow-xl space-y-4">
@@ -478,7 +538,7 @@ function CallSessionPage() {
                 {currentLead.last_contact_date
                   ? new Date(currentLead.last_contact_date).toLocaleDateString(
                       "en-IN",
-                      { day: "numeric", month: "short", year: "numeric" },
+                      { day: "numeric", month: "short", year: "numeric" }
                     )
                   : "Never"}
               </span>
@@ -487,7 +547,7 @@ function CallSessionPage() {
 
           <div className="flex items-center gap-3">
             <span className="rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-              {currentIndex} / {totalCold}
+              {currentIndex} / {totalColdForSelectedCollection}
             </span>
             <button
               onClick={skipLead}
@@ -564,8 +624,10 @@ function CallSessionPage() {
                   return;
                 }
                 window.open(
-                  `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentLead.email)}`,
-                  "_blank",
+                  `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+                    currentLead.email
+                  )}`,
+                  "_blank"
                 );
               },
             },
@@ -633,7 +695,7 @@ function CallSessionPage() {
                   <p className="text-slate-700 dark:text-slate-300">
                     {currentLead.last_contact_date
                       ? new Date(
-                          currentLead.last_contact_date,
+                          currentLead.last_contact_date
                         ).toLocaleDateString("en-IN")
                       : "--"}
                   </p>
@@ -674,7 +736,7 @@ function CallSessionPage() {
                         </p>
                         <p className="mt-1 text-[10px] text-slate-400">
                           {new Date(note.created_at).toLocaleDateString(
-                            "en-IN",
+                            "en-IN"
                           )}
                         </p>
                       </div>
