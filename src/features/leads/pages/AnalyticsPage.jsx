@@ -18,6 +18,9 @@ import {
   Sparkles,
   X,
   Settings2,
+  BarChart3,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -41,7 +44,6 @@ export default function AnalyticsPage() {
       const leadsData = await getLeads();
       setLeads(leadsData || []);
 
-      // Performance Optimization: Fetch activities in parallel instead of a serial loop
       if (leadsData && leadsData.length > 0) {
         const activityPromises = leadsData.map((lead) =>
           getActivities(lead.id).catch(() => [])
@@ -84,10 +86,44 @@ export default function AnalyticsPage() {
   const todayCalls = callActivities.filter((a) =>
     a.created_at?.startsWith(todayStr)
   ).length;
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split("T")[0];
+  const yesterdayCalls = callActivities.filter((a) =>
+    a.created_at?.startsWith(yesterdayStr)
+  ).length;
+
+  const callDiff = todayCalls - yesterdayCalls;
   const targetProgress = Math.min(
     Math.round((todayCalls / dailyTarget) * 100),
     100
   );
+
+  const activityMap = {};
+  callActivities.forEach((a) => {
+    if (a.created_at) {
+      const dt = a.created_at.split("T")[0];
+      activityMap[dt] = (activityMap[dt] || 0) + 1;
+    }
+  });
+
+  // Calculate Streak
+  let currentStreak = 0;
+  let checkDate = new Date();
+  while (true) {
+    const dStr = checkDate.toISOString().split("T")[0];
+    if (activityMap[dStr] && activityMap[dStr] > 0) {
+      currentStreak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      if (currentStreak === 0 && dStr === todayStr) {
+        checkDate.setDate(checkDate.getDate() - 1);
+        continue;
+      }
+      break;
+    }
+  }
 
   useEffect(() => {
     if (todayCalls >= dailyTarget && dailyTarget > 0) {
@@ -127,22 +163,38 @@ export default function AnalyticsPage() {
     ).length,
   };
 
+  // Generate GitHub-style past 5 months (approx 140 days) for matrix columns
+  const totalDays = 140;
   const gridDays = [];
-  for (let i = 89; i >= 0; i--) {
+  let totalContributions = 0;
+
+  for (let i = totalDays - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dStr = d.toISOString().split("T")[0];
-    const count = callActivities.filter((a) =>
-      a.created_at?.startsWith(dStr)
-    ).length;
-    gridDays.push({ date: dStr, count });
+    const count = activityMap[dStr] || 0;
+    totalContributions += count;
+    
+    const monthName = d.toLocaleString('default', { month: 'short' });
+    const dayOfWeek = d.getDay(); // 0 is Sunday
+    gridDays.unshift({ date: dStr, count, month: monthName, dayOfWeek });
   }
 
+  // Extract unique months for top row labels
+  const monthLabels = [];
+  let lastMonth = "";
+  gridDays.forEach((day, index) => {
+    if (day.month !== lastMonth) {
+      monthLabels.push({ month: day.month, index });
+      lastMonth = day.month;
+    }
+  });
+
   function getHeatColor(count) {
-    if (count === 0) return "bg-slate-100 dark:bg-slate-800/60";
+    if (count === 0) return "bg-slate-100 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50";
     if (count === 1) return "bg-emerald-300 dark:bg-emerald-900";
     if (count <= 3) return "bg-emerald-500 dark:bg-emerald-700";
-    return "bg-emerald-600 dark:bg-emerald-500 shadow-xs shadow-emerald-500/50";
+    return "bg-emerald-600 dark:bg-emerald-400 shadow-xs shadow-emerald-500/50";
   }
 
   function getPercentage(count) {
@@ -151,14 +203,14 @@ export default function AnalyticsPage() {
   }
 
   if (loading) {
-    return <LoadingState message="Generating metrics and heatmap..." />;
+    return <LoadingState message="Generating GitHub-style contribution matrix..." />;
   }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <PageHeader
         title="Sales Analytics & Daily Performance"
-        description="Monitor daily dialing quotas, outcome metrics, and outbound consistency."
+        description="Monitor daily dialing quotas, GitHub-style activity heatmaps, and outbound consistency."
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -207,6 +259,13 @@ export default function AnalyticsPage() {
               />
             </div>
           </div>
+          <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+            <span>Yesterday: {yesterdayCalls} calls</span>
+            <span className={`font-bold flex items-center gap-0.5 ${callDiff >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+              {callDiff >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              {Math.abs(callDiff)} calls vs yesterday
+            </span>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-4">
@@ -217,15 +276,15 @@ export default function AnalyticsPage() {
               </div>
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                  Outbound Momentum
+                  Outbound Momentum & Streak
                 </h4>
                 <p className="text-[11px] text-slate-400">
-                  Consistent daily dialing streak
+                  Consecutive active dialing days
                 </p>
               </div>
             </div>
-            <span className="text-lg font-black text-amber-500">
-              Active Streak 🔥
+            <span className="text-base font-black text-amber-500 bg-amber-50 dark:bg-amber-950/30 px-3 py-1 rounded-xl border border-amber-200/50 dark:border-amber-800/50">
+              {currentStreak} Day Streak 🔥
             </span>
           </div>
 
@@ -258,37 +317,53 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+      {/* GitHub Style Contribution Heatmap */}
       <SectionCard
         title={
           <span className="flex items-center gap-2">
-            <Flame className="h-4 w-4 text-emerald-500" /> Outbound Call Activity
-            Heatmap (Last 90 Days)
+            <BarChart3 className="h-4 w-4 text-emerald-500" /> {totalContributions} outbound calls in the last 4 months
           </span>
         }
       >
-        <div className="space-y-4 py-2">
-          <div className="flex flex-wrap gap-1.5 p-4 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 justify-center">
-            {gridDays.map((day, idx) => (
-              <div
-                key={idx}
-                className={`h-4 w-4 rounded-xs transition-transform hover:scale-125 cursor-pointer ${getHeatColor(
-                  day.count
-                )}`}
-                title={`${day.date}: ${day.count} calls made`}
-              />
-            ))}
+        <div className="space-y-3 py-3 px-2">
+          <div className="p-4 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 overflow-x-auto">
+            {/* Months Header */}
+            <div className="flex text-[10px] font-bold text-slate-400 mb-2 min-w-[550px] relative h-4">
+              {monthLabels.map((m, idx) => (
+                <span 
+                  key={idx} 
+                  className="absolute"
+                  style={{ left: `${(m.index / totalDays) * 100}%` }}
+                >
+                  {m.month}
+                </span>
+              ))}
+            </div>
+
+            {/* Matrix Grid Columns (GitHub style) */}
+            <div className="grid grid-flow-col grid-rows-7 gap-1.5 min-w-[550px] justify-start">
+              {gridDays.map((day, idx) => (
+                <div
+                  key={idx}
+                  className={`h-3.5 w-3.5 rounded-xs transition-transform hover:scale-125 cursor-pointer ${getHeatColor(
+                    day.count
+                  )}`}
+                  title={`${day.date}: ${day.count} calls logged`}
+                />
+              ))}
+            </div>
           </div>
+
           <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
-            <span>90 days ago</span>
+            <span>Learn how we track activities</span>
             <div className="flex items-center gap-1.5">
               <span>Less</span>
-              <div className="h-3 w-3 rounded-xs bg-slate-100 dark:bg-slate-800" />
+              <div className="h-3 w-3 rounded-xs bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50" />
               <div className="h-3 w-3 rounded-xs bg-emerald-300 dark:bg-emerald-900" />
               <div className="h-3 w-3 rounded-xs bg-emerald-500 dark:bg-emerald-700" />
-              <div className="h-3 w-3 rounded-xs bg-emerald-600 dark:bg-emerald-500" />
+              <div className="h-3 w-3 rounded-xs bg-emerald-600 dark:bg-emerald-400" />
               <span>More</span>
             </div>
-            <span>Today ({todayCalls} calls)</span>
           </div>
         </div>
       </SectionCard>
@@ -297,8 +372,7 @@ export default function AnalyticsPage() {
         <SectionCard
           title={
             <span className="flex items-center gap-2">
-              <PieChart className="h-4 w-4 text-purple-500" /> Call Outcome
-              Breakdown
+              <PieChart className="h-4 w-4 text-purple-500" /> Call Outcome Breakdown
             </span>
           }
         >
@@ -322,8 +396,7 @@ export default function AnalyticsPage() {
         <SectionCard
           title={
             <span className="flex items-center gap-2">
-              <PieChart className="h-4 w-4 text-blue-500" /> Pipeline Stage
-              Distribution
+              <PieChart className="h-4 w-4 text-blue-500" /> Pipeline Stage Distribution & Post-Meeting Flow
             </span>
           }
         >
