@@ -23,31 +23,24 @@ export async function googleLogin(req, res) {
   }
 }
 
-// 2. Google Callback Route handler (FIXED: Upsert using email as unique key)
+// 2. Google Callback Route handler (FIXED: Saving against Supabase user_id if passed via state, or fallback)
 export async function googleCallback(req, res) {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query; // state me userId pass kar sakte hain login URL banate waqt
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
-    // Get user info from Google
-    const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
-    const userInfo = await oauth2.userinfo.get();
-    const email = userInfo.data.email;
+    // Agar frontend se state me user id bheji hai, toh use karo
+    const userId = state; 
 
-    if (!email) {
-      throw new Error("Could not retrieve email from Google.");
-    }
-
-    // Save token using email so it always matches regardless of ID type
-    if (tokens.refresh_token) {
+    if (userId && tokens.refresh_token) {
       const { error: dbError } = await supabase
         .from("user_tokens")
         .upsert({
-          email: email,
+          user_id: userId,
           refresh_token: tokens.refresh_token,
           updated_at: new Date()
-        }, { onConflict: 'email' });
+        }, { onConflict: 'user_id' });
 
       if (dbError) {
         console.error("Supabase Token Save Error:", dbError.message);
@@ -61,14 +54,13 @@ export async function googleCallback(req, res) {
   }
 }
 
-// 3. Google Meet Booking Handler (FIXED: Fetching by email instead of userId)
-export async function createGoogleMeetForUser(userEmail, { summary, description, startTime, endTime }) {
+// 3. Google Meet Booking Handler
+export async function createGoogleMeetForUser(userId, { summary, description, startTime, endTime }) {
   try {
-    // Agar tera pehla parameter userId hai, par tu use email ke taur par pass kar raha hai ya email nikal raha hai
     const { data, error } = await supabase
       .from("user_tokens")
       .select("refresh_token")
-      .eq("email", userEmail)
+      .eq("user_id", userId)
       .single();
 
     if (error || !data?.refresh_token) {
