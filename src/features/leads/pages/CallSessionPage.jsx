@@ -369,7 +369,7 @@ function CallSessionPage() {
     }
   }
 
-  async function saveMeeting() {
+async function saveMeeting() {
     try {
       if (!meetingDate || !meetingTime) {
         toast.warning("Please select both date and time.");
@@ -400,7 +400,13 @@ function CallSessionPage() {
       });
 
       if (currentLead?.phone) {
-        let cleanPhone = currentLead.phone.replace(/[^0-9]/g, "");
+        let cleanPhone = currentLead.phone.replace(/\D/g, "");
+        
+        // Strip leading zero if present
+        if (cleanPhone.startsWith("0")) {
+          cleanPhone = cleanPhone.slice(1);
+        }
+
         if (cleanPhone.length === 10) {
           cleanPhone = "91" + cleanPhone;
         }
@@ -411,17 +417,16 @@ function CallSessionPage() {
           const encodedMessage = encodeURIComponent(message);
           const waUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
 
-          // Mobile-safe toast action trigger
-          toast.success("Meeting booked successfully!", {
-            description: "Click below to open WhatsApp confirmation.",
-            action: {
-              label: "💬 Open WhatsApp",
-              onClick: () => {
-                window.location.href = waUrl;
-              },
-            },
-            duration: 10000,
-          });
+          // Automatically opens WhatsApp chat window in background and auto-closes it
+          const whatsappWindow = window.open(waUrl, "_blank");
+
+          if (whatsappWindow) {
+            setTimeout(() => {
+              whatsappWindow.close();
+            }, 4000);
+          }
+
+          toast.success("Meeting booked successfully & WhatsApp dispatched!");
         }
       }
 

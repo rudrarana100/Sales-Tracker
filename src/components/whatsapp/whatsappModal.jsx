@@ -22,8 +22,17 @@ export default function WhatsAppModal({ open, lead, onClose, extraParams = {} })
       toast.warning("No phone number found.");
       return;
     }
+    
     let phone = lead.phone.replace(/\D/g, "");
-    if (phone.length === 10) phone = "91" + phone;
+    
+    // Strip leading zero if present (e.g., 09760... -> 9760...)
+    if (phone.startsWith("0")) {
+      phone = phone.slice(1);
+    }
+
+    if (phone.length === 10) {
+      phone = "91" + phone;
+    }
 
     const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(formattedMessage)}`;
 
