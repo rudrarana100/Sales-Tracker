@@ -509,6 +509,7 @@ export default function FollowUpQueue() {
             {
               icon: PhoneCall,
               label: "Call Now",
+              primary: true,
               onClick: () => {
                 if (!lead?.phone) {
                   toast.warning("No phone number found.");
@@ -571,9 +572,13 @@ export default function FollowUpQueue() {
             <button
               key={i}
               onClick={btn.onClick}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer active:scale-95"
+              className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer active:scale-95 ${
+                btn.primary
+                  ? "bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/25 border border-transparent font-bold"
+                  : "border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+              }`}
             >
-              <btn.icon className="h-3.5 w-3.5 text-slate-400" />
+              <btn.icon className={`h-3.5 w-3.5 ${btn.primary ? "text-white" : "text-slate-400"}`} />
               <span>{btn.label}</span>
             </button>
           ))}
