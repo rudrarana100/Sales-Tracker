@@ -400,25 +400,37 @@ function CallSessionPage() {
       });
 
       if (currentLead?.phone) {
-        const cleanPhone = currentLead.phone.replace(/[^0-9]/g, "");
+        let cleanPhone = currentLead.phone.replace(/[^0-9]/g, "");
+        if (cleanPhone.length === 10) {
+          cleanPhone = "91" + cleanPhone;
+        }
+
         if (cleanPhone) {
           const message = `Hi ${currentLead.lead_name || "there"}, this is to confirm that your Google Meet session has been successfully scheduled.\n\nDate: ${meetingDate}\nTime: ${meetingTime}\nGoogle Meet Link: ${meetLink}\n\nPlease ensure you join a few minutes prior to the scheduled time so we can make the most of our discussion. If you need to reschedule or have any questions beforehand, feel free to reply directly to this message.\n\nLooking forward to speaking with you.`;
 
           const encodedMessage = encodeURIComponent(message);
-          window.open(
-            `https://wa.me/${cleanPhone}?text=${encodedMessage}`,
-            "_blank"
-          );
+          const waUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+
+          // Mobile-safe toast action trigger
+          toast.success("Meeting booked successfully!", {
+            description: "Click below to open WhatsApp confirmation.",
+            action: {
+              label: "💬 Open WhatsApp",
+              onClick: () => {
+                window.location.href = waUrl;
+              },
+            },
+            duration: 10000,
+          });
         }
       }
 
       setSkippedLeadIds((prev) => [...prev, currentLead.id]);
       setShowMeetingForm(false);
-      toast.success("Meeting booked and WhatsApp confirmation triggered!");
       await fetchLeads();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to book meeting or open WhatsApp.");
+      toast.error("Failed to book meeting.");
     } finally {
       setSaving(false);
     }

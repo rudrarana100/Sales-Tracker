@@ -25,11 +25,10 @@ export default function WhatsAppModal({ open, lead, onClose, extraParams = {} })
     let phone = lead.phone.replace(/\D/g, "");
     if (phone.length === 10) phone = "91" + phone;
 
-    // Only opens WhatsApp with your chosen template when you click this button
-    window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(formattedMessage)}`,
-      "_blank"
-    );
+    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(formattedMessage)}`;
+
+    // Mobile-safe navigation to ensure mobile browsers don't block the redirect
+    window.location.href = waUrl;
     onClose();
   }
 
@@ -81,7 +80,7 @@ export default function WhatsAppModal({ open, lead, onClose, extraParams = {} })
 
         {/* Live Message Preview */}
         <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase text-slate-400">Message Preview (Editable)</label>
+          <label className="text-[10px] font-bold uppercase text-slate-400">Message Preview</label>
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-3.5 max-h-40 overflow-y-auto">
             <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed font-mono">
               {formattedMessage}
