@@ -3,7 +3,7 @@ export async function createGoogleMeet(
   description,
   startDateTime,
   endDateTime
-) {l
+) {
   const API_BASE_URL = "https://sales-tracker-kate.onrender.com";
 
   const response = await fetch(`${API_BASE_URL}/calendar/create`, {
