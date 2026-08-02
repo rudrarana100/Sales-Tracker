@@ -4,16 +4,16 @@ import { supabase } from "../lib/supabase.js";
 
 export async function createMeeting(req, res) {
   try {
-    const userId = req.user?.id || req.body.userId;
+    const userEmail = req.user?.email || req.body.email || req.body.userId;
 
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized: User ID missing" });
+    if (!userEmail) {
+      return res.status(401).json({ message: "Unauthorized: User Email missing" });
     }
 
     const { data: tokenData, error: tokenError } = await supabase
       .from("user_tokens")
       .select("refresh_token")
-      .eq("user_id", userId)
+      .eq("email", userEmail) 
       .single();
 
     if (tokenError || !tokenData?.refresh_token) {
@@ -61,6 +61,7 @@ export async function createMeeting(req, res) {
       calendarId: "primary",
       resource: event,
       conferenceDataVersion: 1,
+      sendUpdates: "all",
     });
 
     return res.json(response.data);
