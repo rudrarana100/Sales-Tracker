@@ -29,7 +29,6 @@ export default function AnalyticsPage() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Daily Target State (Saved locally)
   const [dailyTarget, setDailyTarget] = useState(() => {
     const saved = localStorage.getItem("sales_daily_target");
     return saved ? parseInt(saved, 10) : 20;
@@ -163,9 +162,9 @@ export default function AnalyticsPage() {
     ).length,
   };
 
-  // Generate GitHub-style past 5 months (approx 140 days) for matrix columns
-  const totalDays = 140;
-  const gridDays = [];
+  // Build exact GitHub-style chronological 52 weeks (ending right at today - August 2026)
+  const totalDays = 364;
+  const rawGridDays = [];
   let totalContributions = 0;
 
   for (let i = totalDays - 1; i >= 0; i--) {
@@ -176,22 +175,29 @@ export default function AnalyticsPage() {
     totalContributions += count;
     
     const monthName = d.toLocaleString('default', { month: 'short' });
-    const dayOfWeek = d.getDay(); // 0 is Sunday
-    gridDays.unshift({ date: dStr, count, month: monthName, dayOfWeek });
+    const yearNum = d.getFullYear();
+    rawGridDays.push({ date: dStr, count, month: monthName, year: yearNum });
   }
 
-  // Extract unique months for top row labels
+  // Group into weeks
+  const weeks = [];
+  for (let i = 0; i < rawGridDays.length; i += 7) {
+    weeks.push(rawGridDays.slice(i, i + 7));
+  }
+
+  // Month Labels aligned correctly
   const monthLabels = [];
   let lastMonth = "";
-  gridDays.forEach((day, index) => {
-    if (day.month !== lastMonth) {
-      monthLabels.push({ month: day.month, index });
-      lastMonth = day.month;
+  weeks.forEach((week, weekIdx) => {
+    const firstDayOfWeek = week[0];
+    if (firstDayOfWeek && firstDayOfWeek.month !== lastMonth) {
+      monthLabels.push({ month: firstDayOfWeek.month, year: firstDayOfWeek.year, weekIndex: weekIdx });
+      lastMonth = firstDayOfWeek.month;
     }
   });
 
   function getHeatColor(count) {
-    if (count === 0) return "bg-slate-100 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50";
+    if (count === 0) return "bg-slate-100 dark:bg-slate-800/80 border border-slate-200/40 dark:border-slate-700/40";
     if (count === 1) return "bg-emerald-300 dark:bg-emerald-900";
     if (count <= 3) return "bg-emerald-500 dark:bg-emerald-700";
     return "bg-emerald-600 dark:bg-emerald-400 shadow-xs shadow-emerald-500/50";
@@ -203,7 +209,7 @@ export default function AnalyticsPage() {
   }
 
   if (loading) {
-    return <LoadingState message="Generating GitHub-style contribution matrix..." />;
+    return <LoadingState message="Generating contribution matrix..." />;
   }
 
   return (
@@ -317,53 +323,57 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* GitHub Style Contribution Heatmap */}
+      {/* GitHub Style Contribution Calendar ending in August 2026 */}
       <SectionCard
         title={
-          <span className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-emerald-500" /> {totalContributions} outbound calls in the last 4 months
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
+            {totalContributions} contributions in the last year
           </span>
         }
       >
-        <div className="space-y-3 py-3 px-2">
-          <div className="p-4 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 overflow-x-auto">
-            {/* Months Header */}
-            <div className="flex text-[10px] font-bold text-slate-400 mb-2 min-w-[550px] relative h-4">
+        <div className="space-y-3 py-2">
+          <div className="p-5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 overflow-x-auto scrollbar-thin">
+            
+            {/* Months Header Row */}
+            <div className="flex text-[11px] font-bold text-slate-400 mb-2 min-w-[750px] relative h-5">
               {monthLabels.map((m, idx) => (
                 <span 
                   key={idx} 
-                  className="absolute"
-                  style={{ left: `${(m.index / totalDays) * 100}%` }}
+                  className="absolute whitespace-nowrap"
+                  style={{ left: `${(m.weekIndex / 52) * 100}%` }}
                 >
-                  {m.month}
+                  {m.month} {m.month === 'Jan' ? m.year : ''}
                 </span>
               ))}
             </div>
 
-            {/* Matrix Grid Columns (GitHub style) */}
-            <div className="grid grid-flow-col grid-rows-7 gap-1.5 min-w-[550px] justify-start">
-              {gridDays.map((day, idx) => (
-                <div
-                  key={idx}
-                  className={`h-3.5 w-3.5 rounded-xs transition-transform hover:scale-125 cursor-pointer ${getHeatColor(
-                    day.count
-                  )}`}
-                  title={`${day.date}: ${day.count} calls logged`}
-                />
+            {/* Weeks Columns Grid (GitHub Matrix) */}
+            <div className="flex gap-1 min-w-[750px]">
+              {weeks.map((week, wIdx) => (
+                <div key={wIdx} className="flex flex-col gap-1">
+                  {week.map((day, dIdx) => (
+                    <div
+                      key={dIdx}
+                      className={`h-3 w-3 rounded-xs transition-transform hover:scale-125 cursor-pointer ${getHeatColor(
+                        day.count
+                      )}`}
+                      title={`${day.date}: ${day.count} contributions`}
+                    />
+                  ))}
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
-            <span>Learn how we track activities</span>
-            <div className="flex items-center gap-1.5">
-              <span>Less</span>
+          <div className="flex items-center justify-end text-[11px] text-slate-400 px-1 gap-2">
+            <span>Less</span>
+            <div className="flex items-center gap-1">
               <div className="h-3 w-3 rounded-xs bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50" />
               <div className="h-3 w-3 rounded-xs bg-emerald-300 dark:bg-emerald-900" />
               <div className="h-3 w-3 rounded-xs bg-emerald-500 dark:bg-emerald-700" />
               <div className="h-3 w-3 rounded-xs bg-emerald-600 dark:bg-emerald-400" />
-              <span>More</span>
             </div>
+            <span>More</span>
           </div>
         </div>
       </SectionCard>
