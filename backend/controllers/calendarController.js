@@ -4,16 +4,12 @@ import { supabase } from "../lib/supabase.js";
 
 export async function createMeeting(req, res) {
   try {
-    const userEmail = req.user?.email || req.body.email || req.body.userId;
-
-    if (!userEmail) {
-      return res.status(401).json({ message: "Unauthorized: User Email missing" });
-    }
-
+    // Frontend se kuch mat maang, seedha database se sabse latest token utha le
     const { data: tokenData, error: tokenError } = await supabase
       .from("user_tokens")
       .select("refresh_token")
-      .eq("email", userEmail) 
+      .order("updated_at", { ascending: false })
+      .limit(1)
       .single();
 
     if (tokenError || !tokenData?.refresh_token) {
@@ -37,8 +33,8 @@ export async function createMeeting(req, res) {
     } = req.body;
 
     const event = {
-      summary: title,
-      description,
+      summary: title || "Sales Discovery Meeting",
+      description: description || "Outbound CRM Meeting Session",
       start: {
         dateTime: startDateTime,
         timeZone: "Asia/Kolkata",
