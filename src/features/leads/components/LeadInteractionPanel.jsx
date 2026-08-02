@@ -5,7 +5,6 @@ import { toast } from "sonner";
 export default function LeadInteractionPanel({ lead, onUpdate }) {
   const [activeTab, setActiveTab] = useState("whatsapp");
   const [messageText, setMessageText] = useState("");
-  const [sending, setSending] = useState("");
 
   if (!lead) {
     return (
@@ -15,45 +14,42 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
     );
   }
 
-  // Handle WhatsApp Confirmation / Message Trigger
-  async function handleSendWhatsApp(customMsg) {
-    const textToSend = customMsg || messageText;
-    if (!textToSend.trim()) {
+  // Format phone number safely
+  let cleanPhone = lead.phone?.replace(/[^0-9]/g, "") || "";
+  if (cleanPhone.length === 10) {
+    cleanPhone = "91" + cleanPhone;
+  }
+
+  // Generate template URLs
+  const meetingTemplateMsg = `Hi ${lead.contact_person || lead.lead_name || "there"}, this is a quick confirmation for our upcoming Google Meet session. Looking forward to speaking with you!`;
+  const followUpTemplateMsg = `Hi ${lead.contact_person || lead.lead_name || "there"}, checking in to see if you had a chance to review our proposal.`;
+
+  const meetWaUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(meetingTemplateMsg)}` : "#";
+  const followUpWaUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(followUpTemplateMsg)}` : "#";
+  
+  const customWaUrl = cleanPhone && messageText.trim() 
+    ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText.trim())}` 
+    : "#";
+
+  function handleActionClick(e, type) {
+    if (!cleanPhone) {
+      e.preventDefault();
+      toast.error("Invalid or missing phone number for this lead.");
+      return;
+    }
+
+    if (type === "custom" && !messageText.trim()) {
+      e.preventDefault();
       toast.warning("Please enter a message to send.");
       return;
     }
 
-    setSending("whatsapp");
-    try {
-      // Format phone number (ensure clean digits)
-      let cleanPhone = lead.phone?.replace(/[^0-9]/g, "");
-      if (!cleanPhone) {
-        throw new Error("Invalid or missing phone number for this lead.");
-      }
-
-      if (cleanPhone.length === 10) {
-        cleanPhone = "91" + cleanPhone;
-      }
-
-      // Trigger WhatsApp Web / App intent
-      const encodedMessage = encodeURIComponent(textToSend);
-      window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, "_blank");
-
-      toast.success("WhatsApp message triggered successfully!");
+    if (type === "custom") {
       setMessageText("");
-      if (onUpdate) onUpdate();
-    } catch (error) {
-      console.error(error);
-      toast.error(error.message || "Failed to trigger WhatsApp message.");
-    } finally {
-      setSending("");
     }
-  }
 
-  // Quick template for Google Meet / Meeting Confirmation
-  function handleSendMeetingConfirmation() {
-    const defaultTemplate = `Hi ${lead.contact_person || lead.lead_name || "there"}, this is a quick confirmation for our upcoming Google Meet session. Looking forward to speaking with you!`;
-    handleSendWhatsApp(defaultTemplate);
+    if (onUpdate) onUpdate();
+    toast.success("WhatsApp message triggered successfully!");
   }
 
   return (
@@ -72,14 +68,17 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
           </p>
         </div>
 
-        {/* Quick Google Meet Confirmation Trigger Button */}
-        <button
-          onClick={handleSendMeetingConfirmation}
+        {/* Mobile-Safe Quick Google Meet Confirmation Link */}
+        <a
+          href={meetWaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => handleActionClick(e, "template")}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
         >
           <Calendar className="h-3.5 w-3.5" />
           <span>Send Meet WA Confirmation</span>
-        </button>
+        </a>
       </div>
 
       {/* Tabs Switcher */}
@@ -106,18 +105,24 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
                 Quick Action Templates
               </span>
               <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={handleSendMeetingConfirmation}
-                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                <a
+                  href={meetWaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => handleActionClick(e, "template")}
+                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer inline-flex items-center gap-1"
                 >
                   📅 Google Meet Confirmation
-                </button>
-                <button
-                  onClick={() => handleSendWhatsApp(`Hi ${lead.contact_person || lead.lead_name || "there"}, checking in to see if you had a chance to review our proposal.`)}
-                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                </a>
+                <a
+                  href={followUpWaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => handleActionClick(e, "template")}
+                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer inline-flex items-center gap-1"
                 >
                   💬 Follow-up Check-in
-                </button>
+                </a>
               </div>
             </div>
 
@@ -135,14 +140,16 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
             </div>
 
             <div className="flex justify-end">
-              <button
-                onClick={() => handleSendWhatsApp()}
-                disabled={sending === "whatsapp"}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer transition-all disabled:opacity-50"
+              <a
+                href={customWaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => handleActionClick(e, "custom")}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer transition-all"
               >
                 <Send className="h-3.5 w-3.5" />
-                <span>{sending === "whatsapp" ? "Opening..." : "Send WhatsApp Message"}</span>
-              </button>
+                <span>Send WhatsApp Message</span>
+              </a>
             </div>
           </div>
         )}

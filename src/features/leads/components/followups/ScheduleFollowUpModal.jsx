@@ -73,7 +73,11 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
 
       // Automatically construct WhatsApp message if phone exists
       if (lead?.phone) {
-        const cleanPhone = lead.phone.replace(/[^0-9]/g, "");
+        let cleanPhone = lead.phone.replace(/[^0-9]/g, "");
+        if (cleanPhone.length === 10) {
+          cleanPhone = "91" + cleanPhone;
+        }
+
         if (cleanPhone) {
           let defaultMsg = "";
           if (type === "meeting") {
@@ -86,17 +90,16 @@ function ScheduleFollowUpModal({ lead, followUp = null, open, onClose, onSaved }
           const encodedMessage = encodeURIComponent(defaultMsg);
           const waUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
 
-          // Attempt direct programmatic open
-          window.open(waUrl, "_blank");
-
-          // Fallback toast action if browser popup blocker triggers
+          // Mobile-safe toast action using location redirect fallback
           toast.success(type === "meeting" ? "Meeting scheduled successfully!" : "Follow-up saved successfully!", {
-            description: "Click below if WhatsApp didn't open automatically.",
+            description: "Click below to open WhatsApp instantly.",
             action: {
               label: "💬 Open WhatsApp",
-              onClick: () => window.open(waUrl, "_blank"),
+              onClick: () => {
+                window.location.href = waUrl;
+              },
             },
-            duration: 8000,
+            duration: 10000,
           });
         }
       }
