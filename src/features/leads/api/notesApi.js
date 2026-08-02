@@ -1,13 +1,12 @@
 import { supabase } from "../../../lib/supabase";
 
-export async function addNote(note) {
+export async function addNote(notePayload) {
   const { data, error } = await supabase
     .from("notes")
-    .insert([note])
+    .insert([notePayload])
     .select();
 
   if (error) throw error;
-
   return data;
 }
 
@@ -19,15 +18,14 @@ export async function getNotes(leadId) {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-
-  return data;
+  return data || [];
 }
 
-export async function deleteNote(id) {
+export async function deleteNote(noteId) {
   const { error } = await supabase
     .from("notes")
     .delete()
-    .eq("id", id);
+    .eq("id", noteId);
 
   if (error) throw error;
 }
