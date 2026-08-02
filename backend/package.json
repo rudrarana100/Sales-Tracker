@@ -12,7 +12,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
+ "dependencies": {
+    "@supabase/supabase-js": "^2.110.0",
     "@sparticuz/chromium": "^149.0.0",
     "axios": "^1.19.0",
     "cheerio": "^1.2.0",
