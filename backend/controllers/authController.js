@@ -23,10 +23,10 @@ export async function googleLogin(req, res) {
   }
 }
 
-// 2. Google Callback Route handler
+// 2. Google Callback Route handler (FIXED: Added token saving logic)
 export async function googleCallback(req, res) {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query; // state ya userId jo tune bheja ho
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
@@ -34,18 +34,34 @@ export async function googleCallback(req, res) {
     const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
     const userInfo = await oauth2.userinfo.get();
     const googleId = userInfo.data.id;
+    const email = userInfo.data.email;
 
-    // Supabase mein refresh token save karne ka logic (agar zaroorat ho)
-    // Yahan apne user ID ke sath tokens save kar lena
+    // Supabase se pehle check kar ki is email/googleId ka user hai ya nahi, ya direct upsert maar
+    // Yahan hum googleId ya email ko user_id maan kar save kar rahe hain
+    if (tokens.refresh_token) {
+      const { error: dbError } = await supabase
+        .from("user_tokens")
+        .upsert({
+          user_id: googleId, // Agar tera user_id UUID hai toh ise apne system ke user mapping se match karna padega
+          email: email,
+          refresh_token: tokens.refresh_token,
+          updated_at: new Date()
+        }, { onConflict: 'user_id' });
 
-    res.redirect("http://localhost:5173/settings?success=true"); // ya jahan bhi frontend redirect karna ho
+      if (dbError) {
+        console.error("Supabase Token Save Error:", dbError.message);
+      }
+    }
+
+    // Production frontend par redirect kar
+    res.redirect("https://salestrackercrm.vercel.app/settings?success=true"); 
   } catch (err) {
     console.error("Error in google callback:", err.message);
     res.status(500).json({ error: err.message });
   }
 }
 
-// 3. Jo tera pehle se tha (Meet booking wala)
+// 3. Google Meet Booking Handler
 export async function createGoogleMeetForUser(userId, { summary, description, startTime, endTime }) {
   try {
     const { data, error } = await supabase
