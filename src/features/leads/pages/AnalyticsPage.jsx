@@ -21,6 +21,9 @@ import {
   BarChart3,
   ArrowUpRight,
   ArrowDownRight,
+  Clock,
+  Trophy,
+  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -29,6 +32,7 @@ export default function AnalyticsPage() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Daily Target State (Saved locally)
   const [dailyTarget, setDailyTarget] = useState(() => {
     const saved = localStorage.getItem("sales_daily_target");
     return saved ? parseInt(saved, 10) : 20;
@@ -86,6 +90,7 @@ export default function AnalyticsPage() {
     a.created_at?.startsWith(todayStr)
   ).length;
 
+  // Yesterday calls for comparison
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split("T")[0];
@@ -100,12 +105,20 @@ export default function AnalyticsPage() {
   );
 
   const activityMap = {};
+  const dailyCallCounts = {};
+  
   callActivities.forEach((a) => {
     if (a.created_at) {
       const dt = a.created_at.split("T")[0];
       activityMap[dt] = (activityMap[dt] || 0) + 1;
+      dailyCallCounts[dt] = (dailyCallCounts[dt] || 0) + 1;
     }
   });
+
+  // Calculate Personal Best (Max calls in a single day)
+  const personalBestCalls = Object.values(dailyCallCounts).length > 0 
+    ? Math.max(...Object.values(dailyCallCounts), todayCalls) 
+    : todayCalls;
 
   // Calculate Streak
   let currentStreak = 0;
@@ -123,6 +136,17 @@ export default function AnalyticsPage() {
       break;
     }
   }
+
+  // Peak Calling Hours Calculation
+  const hourCounts = { "Morning (9am-12pm)": 0, "Afternoon (12pm-4pm)": 0, "Evening (4pm-8pm)": 0 };
+  callActivities.forEach((a) => {
+    if (a.created_at) {
+      const hour = new Date(a.created_at).getHours();
+      if (hour >= 9 && hour < 12) hourCounts["Morning (9am-12pm)"]++;
+      else if (hour >= 12 && hour < 16) hourCounts["Afternoon (12pm-4pm)"]++;
+      else if (hour >= 16 && hour <= 20) hourCounts["Evening (4pm-8pm)"]++;
+    }
+  });
 
   useEffect(() => {
     if (todayCalls >= dailyTarget && dailyTarget > 0) {
@@ -162,45 +186,20 @@ export default function AnalyticsPage() {
     ).length,
   };
 
-  // Build exact GitHub-style chronological 52 weeks (ending right at today - August 2026)
-  const totalDays = 364;
-  const rawGridDays = [];
-  let totalContributions = 0;
-
-  for (let i = totalDays - 1; i >= 0; i--) {
+  const gridDays = [];
+  for (let i = 89; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dStr = d.toISOString().split("T")[0];
     const count = activityMap[dStr] || 0;
-    totalContributions += count;
-    
-    const monthName = d.toLocaleString('default', { month: 'short' });
-    const yearNum = d.getFullYear();
-    rawGridDays.push({ date: dStr, count, month: monthName, year: yearNum });
+    gridDays.push({ date: dStr, count });
   }
-
-  // Group into weeks
-  const weeks = [];
-  for (let i = 0; i < rawGridDays.length; i += 7) {
-    weeks.push(rawGridDays.slice(i, i + 7));
-  }
-
-  // Month Labels aligned correctly
-  const monthLabels = [];
-  let lastMonth = "";
-  weeks.forEach((week, weekIdx) => {
-    const firstDayOfWeek = week[0];
-    if (firstDayOfWeek && firstDayOfWeek.month !== lastMonth) {
-      monthLabels.push({ month: firstDayOfWeek.month, year: firstDayOfWeek.year, weekIndex: weekIdx });
-      lastMonth = firstDayOfWeek.month;
-    }
-  });
 
   function getHeatColor(count) {
-    if (count === 0) return "bg-slate-100 dark:bg-slate-800/80 border border-slate-200/40 dark:border-slate-700/40";
+    if (count === 0) return "bg-slate-100 dark:bg-slate-800/60";
     if (count === 1) return "bg-emerald-300 dark:bg-emerald-900";
     if (count <= 3) return "bg-emerald-500 dark:bg-emerald-700";
-    return "bg-emerald-600 dark:bg-emerald-400 shadow-xs shadow-emerald-500/50";
+    return "bg-emerald-600 dark:bg-emerald-500 shadow-xs shadow-emerald-500/50";
   }
 
   function getPercentage(count) {
@@ -209,14 +208,14 @@ export default function AnalyticsPage() {
   }
 
   if (loading) {
-    return <LoadingState message="Generating contribution matrix..." />;
+    return <LoadingState message="Generating advanced metrics and heatmap..." />;
   }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <PageHeader
-        title="Sales Analytics & Daily Performance"
-        description="Monitor daily dialing quotas, GitHub-style activity heatmaps, and outbound consistency."
+        title="Sales Analytics & Performance Dashboard"
+        description="Monitor daily dialing quotas, peak calling hours, personal records, and conversion funnels."
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -285,7 +284,7 @@ export default function AnalyticsPage() {
                   Outbound Momentum & Streak
                 </h4>
                 <p className="text-[11px] text-slate-400">
-                  Consecutive active dialing days
+                  Consistent dialing consistency
                 </p>
               </div>
             </div>
@@ -313,70 +312,105 @@ export default function AnalyticsPage() {
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
               <p className="text-[10px] font-bold uppercase text-slate-400">
-                Win Rate
+                Personal Best
               </p>
-              <p className="text-base font-black text-emerald-500">
-                {conversionRate}%
+              <p className="text-base font-black text-emerald-500 flex items-center justify-center gap-1">
+                <Trophy className="h-3.5 w-3.5" /> {personalBestCalls}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* GitHub Style Contribution Calendar ending in August 2026 */}
+      {/* 90 Days Heatmap */}
       <SectionCard
         title={
-          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
-            {totalContributions} contributions in the last year
+          <span className="flex items-center gap-2">
+            <Flame className="h-4 w-4 text-emerald-500" /> Outbound Call Activity
+            Heatmap (Last 90 Days)
           </span>
         }
       >
-        <div className="space-y-3 py-2">
-          <div className="p-5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 overflow-x-auto scrollbar-thin">
-            
-            {/* Months Header Row */}
-            <div className="flex text-[11px] font-bold text-slate-400 mb-2 min-w-[750px] relative h-5">
-              {monthLabels.map((m, idx) => (
-                <span 
-                  key={idx} 
-                  className="absolute whitespace-nowrap"
-                  style={{ left: `${(m.weekIndex / 52) * 100}%` }}
-                >
-                  {m.month} {m.month === 'Jan' ? m.year : ''}
-                </span>
-              ))}
-            </div>
-
-            {/* Weeks Columns Grid (GitHub Matrix) */}
-            <div className="flex gap-1 min-w-[750px]">
-              {weeks.map((week, wIdx) => (
-                <div key={wIdx} className="flex flex-col gap-1">
-                  {week.map((day, dIdx) => (
-                    <div
-                      key={dIdx}
-                      className={`h-3 w-3 rounded-xs transition-transform hover:scale-125 cursor-pointer ${getHeatColor(
-                        day.count
-                      )}`}
-                      title={`${day.date}: ${day.count} contributions`}
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
+        <div className="space-y-4 py-2">
+          <div className="flex flex-wrap gap-1.5 p-4 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 justify-center">
+            {gridDays.map((day, idx) => (
+              <div
+                key={idx}
+                className={`h-4 w-4 rounded-xs transition-transform hover:scale-125 cursor-pointer ${getHeatColor(
+                  day.count
+                )}`}
+                title={`${day.date}: ${day.count} calls made`}
+              />
+            ))}
           </div>
-
-          <div className="flex items-center justify-end text-[11px] text-slate-400 px-1 gap-2">
-            <span>Less</span>
-            <div className="flex items-center gap-1">
-              <div className="h-3 w-3 rounded-xs bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50" />
+          <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
+            <span>90 days ago</span>
+            <div className="flex items-center gap-1.5">
+              <span>Less</span>
+              <div className="h-3 w-3 rounded-xs bg-slate-100 dark:bg-slate-800" />
               <div className="h-3 w-3 rounded-xs bg-emerald-300 dark:bg-emerald-900" />
               <div className="h-3 w-3 rounded-xs bg-emerald-500 dark:bg-emerald-700" />
-              <div className="h-3 w-3 rounded-xs bg-emerald-600 dark:bg-emerald-400" />
+              <div className="h-3 w-3 rounded-xs bg-emerald-600 dark:bg-emerald-500" />
+              <span>More</span>
             </div>
-            <span>More</span>
+            <span>Today ({todayCalls} calls)</span>
           </div>
         </div>
       </SectionCard>
+
+      {/* New Analytics Cards: Peak Calling Hours & Conversion Funnel */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-blue-500" /> Peak Calling Hours Analysis
+            </span>
+          }
+        >
+          <div className="space-y-3 py-2">
+            {Object.entries(hourCounts).map(([slot, count], idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 text-xs"
+              >
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  {slot}
+                </span>
+                <span className="font-bold text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/50">
+                  {count} calls logged
+                </span>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-emerald-500" /> Sales Conversion Funnel
+            </span>
+          }
+        >
+          <div className="space-y-3 py-2 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
+              <span className="font-semibold">Total Leads Ingestion</span>
+              <span className="font-bold">{totalLeads}</span>
+            </div>
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/40 dark:border-blue-900/40">
+              <span className="font-semibold text-blue-600 dark:text-blue-400">Contacted & Reached</span>
+              <span className="font-bold text-blue-600 dark:text-blue-400">{contactedLeads + warmLeads}</span>
+            </div>
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/40 dark:border-purple-900/40">
+              <span className="font-semibold text-purple-600 dark:text-purple-400">Discovery Meetings Booked</span>
+              <span className="font-bold text-purple-600 dark:text-purple-400">{meetingsBooked}</span>
+            </div>
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/40 dark:border-emerald-900/40">
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">Deals Closed Won</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">{closedWon} ({conversionRate}%)</span>
+            </div>
+          </div>
+        </SectionCard>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SectionCard
@@ -406,7 +440,7 @@ export default function AnalyticsPage() {
         <SectionCard
           title={
             <span className="flex items-center gap-2">
-              <PieChart className="h-4 w-4 text-blue-500" /> Pipeline Stage Distribution & Post-Meeting Flow
+              <PieChart className="h-4 w-4 text-blue-500" /> Pipeline Stage Distribution
             </span>
           }
         >
