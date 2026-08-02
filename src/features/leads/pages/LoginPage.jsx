@@ -51,14 +51,10 @@ export default function LoginPage() {
 
   async function handleGoogleAuth() {
     try {
-      if (loginWithGoogle) {
-        await loginWithGoogle();
-      } else {
-        toast.info("Google SSO integration hook pending.");
-      }
+      await loginWithGoogle();
     } catch (err) {
       console.error(err);
-      toast.error("Google authentication failed.");
+      toast.error(err.message || "Google authentication failed.");
     }
   }
 

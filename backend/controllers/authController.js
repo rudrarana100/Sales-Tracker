@@ -2,6 +2,50 @@ import { google } from "googleapis";
 import oauth2Client from "../config/google.js";
 import { supabase } from "../lib/supabase.js";
 
+// 1. Google Login Route handler
+export async function googleLogin(req, res) {
+  try {
+    const scopes = [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
+    ];
+
+    const url = oauth2Client.generateAuthUrl({
+      access_type: "offline",
+      scope: scopes,
+      prompt: "consent",
+    });
+
+    res.redirect(url);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// 2. Google Callback Route handler
+export async function googleCallback(req, res) {
+  try {
+    const { code } = req.query;
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    // Get user info from Google
+    const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
+    const userInfo = await oauth2.userinfo.get();
+    const googleId = userInfo.data.id;
+
+    // Supabase mein refresh token save karne ka logic (agar zaroorat ho)
+    // Yahan apne user ID ke sath tokens save kar lena
+
+    res.redirect("http://localhost:5173/settings?success=true"); // ya jahan bhi frontend redirect karna ho
+  } catch (err) {
+    console.error("Error in google callback:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// 3. Jo tera pehle se tha (Meet booking wala)
 export async function createGoogleMeetForUser(userId, { summary, description, startTime, endTime }) {
   try {
     const { data, error } = await supabase
