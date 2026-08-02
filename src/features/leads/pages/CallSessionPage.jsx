@@ -369,7 +369,7 @@ function CallSessionPage() {
     }
   }
 
-async function saveMeeting() {
+  async function saveMeeting() {
     try {
       if (!meetingDate || !meetingTime) {
         toast.warning("Please select both date and time.");
@@ -619,6 +619,24 @@ async function saveMeeting() {
 
         <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/80">
           {[
+            {
+              icon: PhoneCall,
+              label: "Call Now",
+              onClick: () => {
+                if (!currentLead.phone) {
+                  toast.warning("No phone number found.");
+                  return;
+                }
+                let phone = currentLead.phone.replace(/\D/g, "");
+                if (phone.startsWith("0")) {
+                  phone = phone.slice(1);
+                }
+                if (phone.length === 10) {
+                  phone = "91" + phone;
+                }
+                window.location.href = `tel:+${phone}`;
+              },
+            },
             {
               icon: Globe,
               label: "Website",
@@ -911,7 +929,7 @@ async function saveMeeting() {
                   <span
                     className={`opacity-0 group-hover:opacity-100 transition-opacity duration-150 px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-md border ${
                       btn.primary
-                        ? "bg-emerald-700/60 border-emerald-400/40 text-white"
+                        ? "vbg-emerald-700/60 border-emerald-400/40 text-white"
                         : "bg-slate-200 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                     }`}
                   >

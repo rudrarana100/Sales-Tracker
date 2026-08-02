@@ -33,6 +33,7 @@ import {
   FileText,
   History,
   SkipForward,
+  PhoneCall,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -505,6 +506,24 @@ export default function FollowUpQueue() {
 
         <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/80">
           {[
+            {
+              icon: PhoneCall,
+              label: "Call Now",
+              onClick: () => {
+                if (!lead?.phone) {
+                  toast.warning("No phone number found.");
+                  return;
+                }
+                let phone = lead.phone.replace(/\D/g, "");
+                if (phone.startsWith("0")) {
+                  phone = phone.slice(1);
+                }
+                if (phone.length === 10) {
+                  phone = "91" + phone;
+                }
+                window.location.href = `tel:+${phone}`;
+              },
+            },
             {
               icon: Globe,
               label: "Website",
