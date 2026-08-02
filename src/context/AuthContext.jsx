@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
 
     initAuth();
 
-    // 2. Listen to real-time auth state changes (login, logout, token refresh)
+    // 2. Listen to real-time auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Real Supabase Login
+  // Real Supabase Email/Password Login
   const login = async (email, password) => {
     setLoading(true);
     try {
@@ -49,7 +49,32 @@ export function AuthProvider({ children }) {
       return data;
     } catch (err) {
       console.error("Login failed:", err.message);
-      throw err; // Re-throw to allow LoginPage toast to display exact error
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Google OAuth Login (Enables Calendar Access for User Meetings)
+  const loginWithGoogle = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          scopes: "https://www.googleapis.com/auth/calendar.events",
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error("Google login failed:", err.message);
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -113,7 +138,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, updateProfile }}
+      value={{ user, loading, login, loginWithGoogle, register, logout, updateProfile }}
     >
       {children}
     </AuthContext.Provider>

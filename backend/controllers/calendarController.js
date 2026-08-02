@@ -1,8 +1,29 @@
 import { google } from "googleapis";
 import oauth2Client from "../config/google.js";
+import { supabase } from "../lib/supabase.js";
 
 export async function createMeeting(req, res) {
   try {
+    const userId = req.user?.id || req.body.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: User ID missing" });
+    }
+
+    const { data: tokenData, error: tokenError } = await supabase
+      .from("user_tokens")
+      .select("refresh_token")
+      .eq("user_id", userId)
+      .single();
+
+    if (tokenError || !tokenData?.refresh_token) {
+      return res.status(400).json({ 
+        message: "Google Calendar not connected. Please link your Google account first." 
+      });
+    }
+
+    oauth2Client.setCredentials({ refresh_token: tokenData.refresh_token });
+
     const calendar = google.calendar({
       version: "v3",
       auth: oauth2Client,
@@ -17,19 +38,15 @@ export async function createMeeting(req, res) {
 
     const event = {
       summary: title,
-
       description,
-
       start: {
         dateTime: startDateTime,
         timeZone: "Asia/Kolkata",
       },
-
       end: {
         dateTime: endDateTime,
         timeZone: "Asia/Kolkata",
       },
-
       conferenceData: {
         createRequest: {
           requestId: Date.now().toString(),
@@ -46,13 +63,14 @@ export async function createMeeting(req, res) {
       conferenceDataVersion: 1,
     });
 
-    res.json(response.data);
+    return res.json(response.data);
 
   } catch (error) {
-    console.error(error);
+    console.error("Error creating user meeting:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to create meeting",
+      error: error.message,
     });
   }
 }
