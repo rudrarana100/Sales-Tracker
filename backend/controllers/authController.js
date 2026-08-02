@@ -23,37 +23,37 @@ export async function googleLogin(req, res) {
   }
 }
 
-// 2. Google Callback Route handler (FIXED: Added token saving logic)
+// 2. Google Callback Route handler (FIXED: Upsert using email as unique key)
 export async function googleCallback(req, res) {
   try {
-    const { code, state } = req.query; // state ya userId jo tune bheja ho
+    const { code } = req.query;
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
     // Get user info from Google
     const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
     const userInfo = await oauth2.userinfo.get();
-    const googleId = userInfo.data.id;
     const email = userInfo.data.email;
 
-    // Supabase se pehle check kar ki is email/googleId ka user hai ya nahi, ya direct upsert maar
-    // Yahan hum googleId ya email ko user_id maan kar save kar rahe hain
+    if (!email) {
+      throw new Error("Could not retrieve email from Google.");
+    }
+
+    // Save token using email so it always matches regardless of ID type
     if (tokens.refresh_token) {
       const { error: dbError } = await supabase
         .from("user_tokens")
         .upsert({
-          user_id: googleId, // Agar tera user_id UUID hai toh ise apne system ke user mapping se match karna padega
           email: email,
           refresh_token: tokens.refresh_token,
           updated_at: new Date()
-        }, { onConflict: 'user_id' });
+        }, { onConflict: 'email' });
 
       if (dbError) {
         console.error("Supabase Token Save Error:", dbError.message);
       }
     }
 
-    // Production frontend par redirect kar
     res.redirect("https://salestrackercrm.vercel.app/settings?success=true"); 
   } catch (err) {
     console.error("Error in google callback:", err.message);
@@ -61,13 +61,14 @@ export async function googleCallback(req, res) {
   }
 }
 
-// 3. Google Meet Booking Handler
-export async function createGoogleMeetForUser(userId, { summary, description, startTime, endTime }) {
+// 3. Google Meet Booking Handler (FIXED: Fetching by email instead of userId)
+export async function createGoogleMeetForUser(userEmail, { summary, description, startTime, endTime }) {
   try {
+    // Agar tera pehla parameter userId hai, par tu use email ke taur par pass kar raha hai ya email nikal raha hai
     const { data, error } = await supabase
       .from("user_tokens")
       .select("refresh_token")
-      .eq("user_id", userId)
+      .eq("email", userEmail)
       .single();
 
     if (error || !data?.refresh_token) {
