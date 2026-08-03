@@ -1,24 +1,17 @@
 import { google } from "googleapis";
 import oauth2Client from "../config/google.js";
-import { supabase } from "../lib/supabase.js";
 
 export async function createMeeting(req, res) {
   try {
-    // Frontend se kuch mat maang, seedha database se sabse latest token utha le
-    const { data: tokenData, error: tokenError } = await supabase
-      .from("user_tokens")
-      .select("refresh_token")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .single();
+    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
 
-    if (tokenError || !tokenData?.refresh_token) {
+    if (!refreshToken) {
       return res.status(400).json({ 
-        message: "Google Calendar not connected. Please link your Google account first." 
+        message: "Google Refresh Token missing in environment variables." 
       });
     }
 
-    oauth2Client.setCredentials({ refresh_token: tokenData.refresh_token });
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
 
     const calendar = google.calendar({
       version: "v3",
