@@ -4,6 +4,7 @@ import SectionCard from "@/components/common/SectionCard";
 import LoadingState from "@/components/common/LoadingState";
 import { useTheme } from "@/hooks/useTheme";
 import { getSettings, saveSettings } from "../api/settingsApi";
+import { supabase } from "@/lib/supabase";
 import {
   User,
   Moon,
@@ -14,9 +15,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const DEFAULT_SETTINGS = {
+const INITIAL_SETTINGS = {
   user_name: "",
-  company_name: "BuiltStack",
+  company_name: "",
   email: "",
   phone: "",
   country_code: "91",
@@ -26,27 +27,52 @@ const DEFAULT_SETTINGS = {
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem("crm_local_settings");
-    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
-  });
+  const [settings, setSettings] = useState(INITIAL_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    async function loadSettings() {
+    async function loadUserDataAndSettings() {
       try {
-        const data = await getSettings();
-        if (data) {
-          setSettings((prev) => ({ ...prev, ...data }));
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        let authEmail = "";
+        let authName = "";
+        let authCompany = "";
+        let authPhone = "";
+
+        if (user) {
+          authEmail = user.email || "";
+          // LoginPage ke register function ke mutabiq metadata se data extract kiya
+          authName = user.user_metadata?.full_name || user.user_metadata?.name || "";
+          authCompany = user.user_metadata?.company_name || "";
+          authPhone = user.user_metadata?.phone || "";
         }
+
+        let dbSettings = {};
+        try {
+          dbSettings = await getSettings() || {};
+        } catch (err) {
+          console.warn("Could not fetch custom settings from DB.");
+        }
+
+        setSettings((prev) => ({
+          ...prev,
+          ...dbSettings,
+          email: dbSettings.email || authEmail,
+          user_name: dbSettings.user_name || authName,
+          company_name: dbSettings.company_name || authCompany,
+          phone: dbSettings.phone || authPhone,
+        }));
+
       } catch (error) {
-        console.warn("Supabase settings unavailable, falling back to local storage.");
+        console.error("Error loading user profile:", error);
       } finally {
         setLoading(false);
       }
     }
-    loadSettings();
+
+    loadUserDataAndSettings();
   }, []);
 
   const handleChange = (key, value) => {
@@ -58,14 +84,7 @@ export default function SettingsPage() {
     setSaving(true);
 
     try {
-      localStorage.setItem("crm_local_settings", JSON.stringify(settings));
-      
-      try {
-        await saveSettings(settings);
-      } catch (dbError) {
-        console.warn("Supabase sync skipped, saved locally.");
-      }
-
+      await saveSettings(settings);
       toast.success("Settings saved successfully!");
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -102,7 +121,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
-                placeholder="Full Name"
+                placeholder="Enter your full name"
                 value={settings.user_name || ""}
                 onChange={(e) => handleChange("user_name", e.target.value)}
                 className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
@@ -115,7 +134,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
-                placeholder="Company Name"
+                placeholder="Enter company name"
                 value={settings.company_name || ""}
                 onChange={(e) => handleChange("company_name", e.target.value)}
                 className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"

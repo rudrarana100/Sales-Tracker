@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { Sparkles, Mail, Lock, User, Building2, Phone, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -9,6 +9,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [isRegister, setIsRegister] = useState(false);
   const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -16,6 +18,8 @@ export default function LoginPage() {
   function handleTabSwitch(registerMode) {
     setIsRegister(registerMode);
     setFullName("");
+    setCompanyName("");
+    setPhone("");
     setEmail("");
     setPassword("");
   }
@@ -26,15 +30,19 @@ export default function LoginPage() {
       toast.warning("Please enter your email and password.");
       return;
     }
-    if (isRegister && !fullName.trim()) {
-      toast.warning("Please enter your full name.");
+    if (isRegister && (!fullName.trim() || !companyName.trim() || !phone.trim())) {
+      toast.warning("Please fill in all registration fields (Name, Company, Phone).");
       return;
     }
 
     setSubmitting(true);
     try {
       if (isRegister) {
-        await register(fullName.trim(), email, password);
+        // Agar register function me extra fields bhejne hain (jaise metadata), toh us hisab se pass karein
+        await register(fullName.trim(), email, password, {
+          company_name: companyName.trim(),
+          phone: phone.trim(),
+        });
         toast.success("Account created successfully!");
       } else {
         await login(email, password);
@@ -133,20 +141,52 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {isRegister && (
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Full Name</label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    required={isRegister}
-                    placeholder="Enter full name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+              <>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Full Name</label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      required={isRegister}
+                      placeholder="Enter full name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Company Name</label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      required={isRegister}
+                      placeholder="Enter company name"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      required={isRegister}
+                      placeholder="+91 9876543210"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="space-y-1">
