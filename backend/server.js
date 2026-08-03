@@ -56,16 +56,19 @@ app.post("/api/scrape-maps/start", async (req, res) => {
   return res.json({ success: true, jobId });
 });
 
-// Check Progress Status
+// Check Progress Status with Fallback for expired/restarted memory jobs
 app.get("/api/scrape-maps/status/:jobId", (req, res) => {
   const job = scrapingJobs[req.params.jobId];
   if (!job) {
-    return res.status(404).json({ error: "Job not found." });
+    return res.status(404).json({ 
+      error: "Job session expired due to server restart. Please start scraping again.",
+      expired: true 
+    });
   }
   return res.json(job);
 });
 
-// Fast Scraper Implementation
+// Highly Efficient Scraper Implementation
 async function runBackgroundScraper(jobId, query, location, targetCount) {
   const job = scrapingJobs[jobId];
   let browser;
@@ -94,19 +97,21 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
     const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`;
     
     console.log(`[Job ${jobId}] Opening: ${searchUrl}`);
-    await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+    
+    // 60 seconds timeout to prevent cold start issues
+    await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
 
-    // Wait briefly for main container
-    await page.waitForSelector('div[role="feed"], h1', { timeout: 15000 }).catch(() => null);
+    // Wait for feed container
+    await page.waitForSelector('div[role="feed"], h1', { timeout: 25000 }).catch(() => null);
 
     const collectedLeads = new Map();
     let scrollAttempts = 0;
-    const maxScrolls = 15;
+    const maxScrolls = Math.max(25, Math.ceil(targetCount / 3)); // Dynamic scrolls based on target
 
     while (collectedLeads.size < targetCount && scrollAttempts < maxScrolls) {
       scrollAttempts++;
 
-      // Extract listings directly from current view
+      // Extract listings with resilient fallback selectors
       const rawLeads = await page.evaluate(() => {
         const results = [];
         const items = document.querySelectorAll('div[role="article"], a[href*="/maps/place/"]');
@@ -114,7 +119,6 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
         items.forEach((item) => {
           let name = "";
           let phone = "";
-          let website = "";
           let link = "";
 
           const linkEl = item.tagName === "A" ? item : item.querySelector('a[href*="/maps/place/"]');
@@ -124,11 +128,11 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
           if (ariaLabel) name = ariaLabel;
 
           if (!name) {
-            const h1 = item.querySelector("h1, h2, .fontHeadlineSmall");
+            const h1 = item.querySelector("h1, h2, .fontHeadlineSmall, span.OSrXXb");
             if (h1) name = h1.innerText.trim();
           }
 
-          // Extract text for phone pattern matching
+          // Extract phone number patterns from text block
           const fullText = item.innerText || "";
           const phoneMatch = fullText.match(/(\+?\d{1,4}[\s-]?)?\(?\d{2,5}\)?[\s-]?\d{3,5}[\s-]?\d{3,5}/);
           if (phoneMatch) phone = phoneMatch[0];
@@ -137,7 +141,7 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
             results.push({
               lead_name: name,
               phone: phone || null,
-              website: website || null,
+              website: null,
               google_maps_link: link,
             });
           }
@@ -146,9 +150,8 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
         return results;
       });
 
-      // Add extracted items to memory up to targetCount
       for (const lead of rawLeads) {
-        if (collectedLeads.size >= targetCount) break; // Hard stop at target limit
+        if (collectedLeads.size >= targetCount) break;
 
         if (!collectedLeads.has(lead.google_maps_link)) {
           collectedLeads.set(lead.google_maps_link, {
@@ -161,25 +164,24 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
         }
       }
 
-      // Slice array to guarantee exactly targetCount items
       job.leads = Array.from(collectedLeads.values()).slice(0, targetCount);
       job.progress = job.leads.length;
 
       if (collectedLeads.size >= targetCount) break;
 
-      // Scroll feed container down
+      // Efficient feed container scroll
       const scrolled = await page.evaluate(() => {
         const feed = document.querySelector('div[role="feed"]');
         if (feed) {
-          feed.scrollBy(0, 1000);
+          feed.scrollBy(0, 1500);
           return true;
         }
-        window.scrollBy(0, 1000);
+        window.scrollBy(0, 1500);
         return false;
       });
 
-      if (!scrolled) break;
-      await new Promise((r) => setTimeout(r, 1500));
+      if (!scrolled && scrollAttempts > 5) break;
+      await new Promise((r) => setTimeout(r, 2000)); // Delay to let Google Maps render items smoothly
     }
 
     await browser.close();
