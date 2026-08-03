@@ -376,6 +376,13 @@ function CallSessionPage() {
         return;
       }
       setSaving(true);
+
+      // 1. Open blank tab immediately on user click to bypass popup blockers
+      let whatsappWindow = null;
+      if (currentLead?.phone) {
+        whatsappWindow = window.open("", "_blank");
+      }
+
       const start = new Date(`${meetingDate}T${meetingTime}`);
       const end = new Date(start.getTime() + 30 * 60 * 1000);
 
@@ -417,17 +424,20 @@ function CallSessionPage() {
           const encodedMessage = encodeURIComponent(message);
           const waUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
 
-          // Automatically opens WhatsApp chat window in background and auto-closes it
-          const whatsappWindow = window.open(waUrl, "_blank");
-
+          // Redirect the pre-opened window directly to WhatsApp and auto-close after 4 seconds
           if (whatsappWindow) {
+            whatsappWindow.location.href = waUrl;
             setTimeout(() => {
               whatsappWindow.close();
             }, 4000);
+          } else {
+            window.open(waUrl, "_blank");
           }
 
           toast.success("Meeting booked successfully & WhatsApp dispatched!");
         }
+      } else if (whatsappWindow) {
+        whatsappWindow.close();
       }
 
       setSkippedLeadIds((prev) => [...prev, currentLead.id]);
@@ -741,7 +751,7 @@ function CallSessionPage() {
                     {currentLead.last_contact_date
                       ? new Date(
                           currentLead.last_contact_date
-                        ).toLocaleDateString("en-IN")
+                      ).toLocaleDateString("en-IN")
                       : "--"}
                   </p>
                 </div>
@@ -860,8 +870,8 @@ function CallSessionPage() {
                     )}
                   </button>
                 )}
-              </div>
-            )}
+            </div>
+          )}
           </SectionCard>
         </div>
 
@@ -1143,59 +1153,59 @@ function CallSessionPage() {
                 <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <span>Schedule Follow-up</span>
               </button>
-            </div>
-
-            <button
-              onClick={() => setShowInterestedActions(false)}
-              className="w-full text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 py-1 font-semibold transition-all cursor-pointer"
-            >
-              Cancel
-            </button>
           </div>
+
+          <button
+            onClick={() => setShowInterestedActions(false)}
+            className="w-full text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 py-1 font-semibold transition-all cursor-pointer"
+          >
+            Cancel
+          </button>
         </div>
-      )}
+      </div>
+    )}
 
-      {/* Lazy Loaded WhatsApp Modal */}
-      {showWhatsAppModal && (
-        <Suspense fallback={null}>
-          <WhatsAppModal
-            open={showWhatsAppModal}
-            lead={currentLead}
-            onClose={() => setShowWhatsAppModal(false)}
-            extraParams={{
-              date: formattedMeetingDate,
-              time: formattedMeetingTime,
-              link: currentLead?.meeting_link || "",
-            }}
-          />
-        </Suspense>
-      )}
+    {/* Lazy Loaded WhatsApp Modal */}
+    {showWhatsAppModal && (
+      <Suspense fallback={null}>
+        <WhatsAppModal
+          open={showWhatsAppModal}
+          lead={currentLead}
+          onClose={() => setShowWhatsAppModal(false)}
+          extraParams={{
+            date: formattedMeetingDate,
+            time: formattedMeetingTime,
+            link: currentLead?.meeting_link || "",
+          }}
+        />
+      </Suspense>
+    )}
 
-      {/* Lazy Loaded Follow-up Modal */}
-      {showFollowUpModal && (
-        <Suspense fallback={null}>
-          <ScheduleFollowUpModal
-            open={showFollowUpModal}
-            lead={currentLead}
-            onClose={() => setShowFollowUpModal(false)}
-            onSaved={async () => {
-              await updateLead(currentLead.id, {
-                status: "warm",
-                last_outcome: "interested",
-                last_contact_date: new Date().toISOString().split("T")[0],
-              });
-              await addActivity({
-                lead_id: currentLead.id,
-                activity_type: "status_change",
-                description: "Lead marked as Interested",
-              });
-              setSkippedLeadIds((prev) => [...prev, currentLead.id]);
-              await fetchLeads();
-            }}
-          />
-        </Suspense>
-      )}
-    </div>
+    {/* Lazy Loaded Follow-up Modal */}
+    {showFollowUpModal && (
+      <Suspense fallback={null}>
+        <ScheduleFollowUpModal
+          open={showFollowUpModal}
+          lead={currentLead}
+          onClose={() => setShowFollowUpModal(false)}
+          onSaved={async () => {
+            await updateLead(currentLead.id, {
+              status: "warm",
+              last_outcome: "interested",
+              last_contact_date: new Date().toISOString().split("T")[0],
+            });
+            await addActivity({
+              lead_id: currentLead.id,
+              activity_type: "status_change",
+              description: "Lead marked as Interested",
+            });
+            setSkippedLeadIds((prev) => [...prev, currentLead.id]);
+            await fetchLeads();
+          }}
+        />
+      </Suspense>
+    )}
+  </div>
   );
 }
 

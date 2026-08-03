@@ -337,6 +337,13 @@ export default function FollowUpQueue() {
         return;
       }
       setSaving(true);
+
+      // 1. Open blank tab immediately on user click to bypass popup blockers
+      let whatsappWindow = null;
+      if (lead?.phone) {
+        whatsappWindow = window.open("", "_blank");
+      }
+
       const start = new Date(`${meetingDate}T${meetingTime}`);
       const end = new Date(start.getTime() + 30 * 60 * 1000);
       const meetLink = await createGoogleMeet(
@@ -345,24 +352,57 @@ export default function FollowUpQueue() {
         start.toISOString(),
         end.toISOString()
       );
+
       await updateLead(lead.id, {
         status: "meeting_booked",
         last_outcome: "google_meet_booked",
         last_contact_date: new Date().toISOString().split("T")[0],
         meeting_link: meetLink,
       });
+
       await addActivity({
         lead_id: lead.id,
         activity_type: "meeting",
         description: `Google Meet booked for ${meetingDate} at ${meetingTime}`,
       });
+
+      if (lead?.phone) {
+        let cleanPhone = lead.phone.replace(/\D/g, "");
+        if (cleanPhone.startsWith("0")) {
+          cleanPhone = cleanPhone.slice(1);
+        }
+        if (cleanPhone.length === 10) {
+          cleanPhone = "91" + cleanPhone;
+        }
+
+        if (cleanPhone) {
+          const message = `Hi ${lead.lead_name || "there"}, this is to confirm that your Google Meet session has been successfully scheduled.\n\nDate: ${meetingDate}\nTime: ${meetingTime}\nGoogle Meet Link: ${meetLink}\n\nPlease ensure you join a few minutes prior to the scheduled time so we can make the most of our discussion. If you need to reschedule or have any questions beforehand, feel free to reply directly to this message.\n\nLooking forward to speaking with you.`;
+
+          const encodedMessage = encodeURIComponent(message);
+          const waUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+
+          if (whatsappWindow) {
+            whatsappWindow.location.href = waUrl;
+            setTimeout(() => {
+              whatsappWindow.close();
+            }, 4000);
+          } else {
+            window.open(waUrl, "_blank");
+          }
+
+          toast.success("Meeting booked successfully & WhatsApp dispatched!");
+        }
+      } else if (whatsappWindow) {
+        whatsappWindow.close();
+      }
+
       setShowMeetingForm(false);
-      setShowWhatsAppModal(true);
+      await finishCurrentFollowUp();
     } catch (error) {
       console.error(error);
+      toast.error("Failed to book meeting.");
     } finally {
       setSaving(false);
-      await finishCurrentFollowUp();
     }
   }
 
