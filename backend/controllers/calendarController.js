@@ -58,6 +58,7 @@ export async function createMeeting(req, res) {
   } catch (error) {
     console.error("Error creating user meeting:", error);
 
+    
     return res.status(500).json({
       message: "Failed to create meeting",
       error: error.message,
