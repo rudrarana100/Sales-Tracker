@@ -120,7 +120,7 @@ export default function TasksPage() {
     <div className="space-y-6 animate-in fade-in duration-200">
       <PageHeader
         title="Tasks"
-        description="Organize and execute daily sales tasks and assignments."
+        description="Organize and execute daily sales tasks and assignments for your team."
         action={
           <button
             onClick={() => setShowModal(true)}

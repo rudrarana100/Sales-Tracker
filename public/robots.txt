@@ -1,0 +1,14 @@
+# robots.txt for SalesTracker CRM
+# Production domain: https://YOUR-DOMAIN.com
+# Replace YOUR-DOMAIN.com below after the site is launched.
+
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /settings
+Disallow: /call-session
+Disallow: /followups/queue
+Disallow: /analytics
+
+# Sitemap
+Sitemap: https://YOUR-DOMAIN.com/sitemap.xml

@@ -258,7 +258,7 @@ function PipelinePage() {
     <div className="space-y-6 animate-in fade-in duration-200">
       <PageHeader
         title="Sales Pipeline"
-        description={`Active management for ${pipelineLeads.length} ${pipelineLeads.length === 1 ? "deal" : "deals"} across stages.`}
+        description={`Drag and drop ${pipelineLeads.length} ${pipelineLeads.length === 1 ? "deal" : "deals"} across your sales pipeline stages.`}
         action={
           <button
             onClick={() => navigate("/leads")}

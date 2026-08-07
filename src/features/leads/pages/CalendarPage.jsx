@@ -93,7 +93,7 @@ export default function CalendarPage() {
     <div className="space-y-6 animate-in fade-in duration-200">
       <PageHeader
         title="Calendar"
-        description="View and manage scheduled follow-ups, calls, and Google Meets."
+        description="Plan and manage scheduled follow-ups, calls, and Google Meet bookings in one place."
         action={
           <button
             onClick={() => navigate("/follow-ups")}

@@ -102,7 +102,7 @@ export default function SettingsPage() {
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
       <PageHeader
         title="Settings"
-        description="Manage your profile, CRM calling preferences, and theme."
+        description="Manage your profile, calling preferences, integrations, and theme."
       />
 
       <form onSubmit={handleSaveSettings} className="space-y-6">

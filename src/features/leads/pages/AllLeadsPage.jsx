@@ -192,7 +192,7 @@ function AllLeadsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Leads Directory"
-        description="Manage and organize all your prospects and deals."
+        description="Search, filter, and manage every prospect and deal in your India sales pipeline."
         action={
           <div className="flex flex-wrap items-center gap-2.5">
             {selectedLeadIds.length > 0 && (

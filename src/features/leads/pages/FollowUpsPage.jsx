@@ -287,7 +287,7 @@ function FollowUpsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Follow-ups"
-        description="Manage and track all scheduled follow-ups."
+        description="Track and complete every scheduled follow-up, callback, and meeting."
         action={
           <button
             onClick={() => navigate("/followups/queue")}

@@ -215,7 +215,7 @@ export default function AnalyticsPage() {
     <div className="space-y-6 animate-in fade-in duration-200">
       <PageHeader
         title="Sales Analytics & Performance Dashboard"
-        description="Monitor daily dialing quotas, peak calling hours, personal records, and conversion funnels."
+        description="Monitor call quotas, peak calling hours, conversion funnels, and performance records."
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
