@@ -100,7 +100,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
       : `Manual Import`;
   }, [currentFileName]);
 
-  // Memoize mapped rows transformation
+  // Memoize mapped rows transformation with null conversion for empty values (fixing unique_email constraint)
   const mappedLeads = useMemo(() => {
     return rawRows.map((row) => {
       const lead = {
@@ -109,7 +109,9 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
       };
       TARGET_FIELDS.forEach((field) => {
         const csvHeader = fieldMapping[field.key];
-        lead[field.key] = csvHeader && row[csvHeader] ? String(row[csvHeader]).trim() : "";
+        const val = csvHeader && row[csvHeader] ? String(row[csvHeader]).trim() : "";
+        // Convert empty strings to null so unique constraints (like unique_email) don't fail on duplicates
+        lead[field.key] = val !== "" ? val : null;
       });
       return lead;
     });
