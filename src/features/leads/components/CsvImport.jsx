@@ -14,13 +14,14 @@ import { Download, X, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 const TARGET_FIELDS = [
-  { key: "lead_name", label: "Business / Lead Name", required: true },
-  { key: "phone", label: "Phone Number", required: true },
-  { key: "contact_person", label: "Contact Person" },
-  { key: "email", label: "Email Address" },
-  { key: "business_type", label: "Business Type / Category" },
-  { key: "website", label: "Website URL" },
-  { key: "city", label: "City / Location" },
+  { key: "lead_name", label: "Business / Lead Name", required: true, synonyms: ["name", "business", "company", "lead", "title"] },
+  { key: "phone", label: "Phone Number", required: true, synonyms: ["phone", "mobile", "contact", "tel", "cell", "phonenumber"] },
+  { key: "contact_person", label: "Contact Person", synonyms: ["person", "owner", "manager", "contactperson", "fullname"] },
+  { key: "email", label: "Email Address", synonyms: ["email", "mail", "e-mail", "emailaddress"] },
+  { key: "business_type", label: "Business Type / Category", synonyms: ["type", "category", "industry", "businesstype", "niche"] },
+  { key: "website", label: "Website URL", synonyms: ["website", "site", "url", "web", "link"] },
+  { key: "google_maps_link", label: "Google Maps Link", synonyms: ["map", "maps", "googlemaps", "gmaps", "maplink", "locationlink"] },
+  { key: "city", label: "City / Location", synonyms: ["city", "location", "address", "place", "region", "state"] },
 ];
 
 const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
@@ -57,14 +58,21 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
         setCsvHeaders(headers);
         setRows(results.data);
 
-        // Auto-guess initial mapping based on header names
+        // Smart auto-guess initial mapping using TARGET_FIELDS and synonyms
         const initialMapping = {};
         TARGET_FIELDS.forEach((target) => {
           const matchedHeader = headers.find((h) => {
             const cleanHeader = h.toLowerCase().replace(/[^a-z0-9]/g, "");
             const cleanTarget = target.key.toLowerCase().replace(/[^a-z0-9]/g, "");
             const cleanLabel = target.label.toLowerCase().replace(/[^a-z0-9]/g, "");
-            return cleanHeader.includes(cleanTarget) || cleanHeader.includes(cleanLabel);
+            
+            if (cleanHeader.includes(cleanTarget) || cleanHeader.includes(cleanLabel)) {
+              return true;
+            }
+            if (target.synonyms) {
+              return target.synonyms.some((syn) => cleanHeader.includes(syn));
+            }
+            return false;
           });
           if (matchedHeader) {
             initialMapping[target.key] = matchedHeader;
