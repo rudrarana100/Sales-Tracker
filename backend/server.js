@@ -84,6 +84,7 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
       headless: chromium.headless,
+      timeout: 60000, // <--- Yahin fix kiya hai (30s se badha kar 60s kar diya)
     });
 
     const page = await browser.newPage();
