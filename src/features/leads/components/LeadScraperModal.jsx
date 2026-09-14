@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { startScraperJob, checkScraperStatus, importScrapedLeads } from "../api/scraperApi";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Search, MapPin, Globe, Phone, Mail, Check, Loader2, 
-  Download, ExternalLink, Briefcase, Sparkles, FolderKanban 
+  Download, ExternalLink, Briefcase, FolderKanban 
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -130,7 +130,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
       <DialogContent className="sm:!max-w-3xl w-[90vw] max-h-[85vh] flex flex-col p-6 gap-4 overflow-hidden rounded-2xl">
         <DialogHeader className="space-y-1 border-b pb-3">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-            <Sparkles className="h-5 w-5 text-blue-600" />
+            <Search className="h-5 w-5 text-violet-600" />
             Lead Scraper
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500">
@@ -148,7 +148,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               disabled={loading}
-              className="text-xs h-9.5 pl-10 pr-3 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl font-medium placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500"
+              className="text-xs h-9.5 pl-10 pr-3 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl font-medium placeholder:text-slate-400 focus:ring-1 focus:ring-violet-500"
             />
           </div>
 
@@ -160,7 +160,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               disabled={loading}
-              className="text-xs h-9.5 pl-10 pr-3 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl font-medium placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500"
+              className="text-xs h-9.5 pl-10 pr-3 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl font-medium placeholder:text-slate-400 focus:ring-1 focus:ring-violet-500"
             />
           </div>
 
@@ -182,7 +182,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
           <Button 
             type="submit" 
             disabled={loading} 
-            className="h-9.5 px-5 text-xs font-bold cursor-pointer bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-xs w-full sm:w-auto shrink-0 transition-all active:scale-95"
+            className="h-9.5 px-5 text-xs font-bold cursor-pointer bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-xs w-full sm:w-auto shrink-0 transition-all active:scale-95"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4 mr-1.5" />}
             {loading ? "Searching..." : "Start Scrape"}
@@ -194,14 +194,14 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
           <div className="space-y-1.5 px-1">
             <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
               <span className="flex items-center gap-1.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-600" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-violet-600" />
                 Scraping Google Maps...
               </span>
               <span>{progress} / {targetCount} Leads Collected</span>
             </div>
             <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
               <div
-                className="bg-blue-600 h-full transition-all duration-500"
+                className="bg-violet-600 h-full transition-all duration-500"
                 style={{ width: `${Math.min(100, (progress / targetCount) * 100)}%` }}
               />
             </div>
@@ -212,7 +212,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
         <div className="flex-1 overflow-y-auto border rounded-2xl p-3 bg-slate-50/50 dark:bg-slate-950/40 min-h-[250px] max-h-[380px]">
           {scrapedResults.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center text-slate-400 space-y-2">
-              <MapPin className="h-10 w-10 opacity-40 text-blue-500" />
+              <MapPin className="h-10 w-10 opacity-40 text-violet-500" />
               <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">No leads extracted yet</p>
               <p className="text-xs text-slate-400 max-w-sm">Enter an industry category and location above, then click Start Scrape.</p>
             </div>
@@ -220,13 +220,13 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
             <div className="space-y-3">
               <div className="flex items-center justify-between px-2 pb-2 border-b text-xs font-semibold text-slate-600 dark:text-slate-400">
                 <div className="flex items-center gap-3">
-                  <button type="button" onClick={toggleSelectAll} className="text-blue-600 hover:underline cursor-pointer">
+                  <button type="button" onClick={toggleSelectAll} className="text-violet-600 hover:underline cursor-pointer">
                     {selectedIndices.length === scrapedResults.length ? "Deselect All" : "Select All"}
                   </button>
                   <span>•</span>
                   <span>Total Found: <strong className="text-slate-900 dark:text-white">{scrapedResults.length}</strong></span>
                 </div>
-                <span className="text-blue-600 font-bold bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-900">
+                <span className="text-violet-600 font-bold bg-violet-50 dark:bg-violet-950/60 px-2.5 py-1 rounded-lg border border-violet-200 dark:border-violet-900">
                   {selectedIndices.length} Selected
                 </span>
               </div>
@@ -240,7 +240,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
                       onClick={() => toggleSelect(index)}
                       className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer text-xs gap-3 ${
                         isSelected
-                          ? "border-blue-500 bg-blue-50/60 dark:bg-blue-950/30 shadow-xs"
+                          ? "border-violet-500 bg-violet-50/60 dark:bg-violet-950/30 shadow-xs"
                           : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"
                       }`}
                     >
@@ -280,9 +280,9 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[220px]"
+                              className="flex items-center gap-1 text-violet-600 dark:text-violet-400 hover:underline truncate max-w-[220px]"
                             >
-                              <Globe className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                              <Globe className="h-3.5 w-3.5 text-violet-500 shrink-0" />
                               <span className="truncate">{item.website.replace(/^https?:\/\/(www\.)?/, "")}</span>
                               <ExternalLink className="h-3 w-3 shrink-0 opacity-70" />
                             </a>
@@ -292,7 +292,7 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
 
                       <div className="flex items-center justify-end shrink-0">
                         <div className={`h-6 w-6 rounded-lg border flex items-center justify-center transition-all ${
-                          isSelected ? "bg-blue-600 text-white border-blue-600 shadow-xs scale-105" : "border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                          isSelected ? "bg-primary text-primary-foreground border-primary shadow-xs scale-105" : "border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
                         }`}>
                           {isSelected && <Check className="h-4 w-4" />}
                         </div>
@@ -308,12 +308,12 @@ export default function LeadScraperModal({ open, onClose, onImported }) {
         {/* Clean Bottom Collection Input */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/80 dark:border-slate-800">
           <div className="relative flex items-center gap-2 w-full sm:w-auto flex-1 max-w-md">
-            <FolderKanban className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500 shrink-0 pointer-events-none" />
+            <FolderKanban className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-violet-500 shrink-0 pointer-events-none" />
             <Input
               placeholder="Collection Folder Name"
               value={collectionName}
               onChange={(e) => setCollectionName(e.target.value)}
-              className="text-xs h-9.5 pl-10 pr-3 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl font-semibold placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500"
+              className="text-xs h-9.5 pl-10 pr-3 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl font-semibold placeholder:text-slate-400 focus:ring-1 focus:ring-violet-500"
             />
           </div>
 

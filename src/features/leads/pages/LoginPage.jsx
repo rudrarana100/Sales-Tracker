@@ -1,7 +1,7 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Mail, Lock, User, Building2, Phone, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Building2, Phone, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -67,15 +67,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 text-slate-900 p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-200 text-blue-600 shadow-sm mb-1">
-            <Sparkles className="h-6 w-6" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">SalesTracker CRM</h1>
-          <p className="text-xs text-slate-500">Outbound Sales & Leads Platform</p>
+        <div className="text-center space-y-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Adine</h1>
+          <p className="text-xs text-muted-foreground">Outbound Sales & Leads Platform</p>
         </div>
 
         {/* Auth Card */}
@@ -87,7 +84,7 @@ export default function LoginPage() {
               onClick={() => handleTabSwitch(false)}
               className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 !isRegister
-                  ? "bg-blue-600 text-white shadow-xs"
+                  ? "bg-primary text-primary-foreground shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -98,7 +95,7 @@ export default function LoginPage() {
               onClick={() => handleTabSwitch(true)}
               className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 isRegister
-                  ? "bg-blue-600 text-white shadow-xs"
+                  ? "bg-primary text-primary-foreground shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -152,7 +149,7 @@ export default function LoginPage() {
                       placeholder="Enter full name"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                   </div>
                 </div>
@@ -167,7 +164,7 @@ export default function LoginPage() {
                       placeholder="Enter company name"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                   </div>
                 </div>
@@ -182,7 +179,7 @@ export default function LoginPage() {
                       placeholder="+91 9876543210"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                   </div>
                 </div>
@@ -199,7 +196,7 @@ export default function LoginPage() {
                   placeholder="Enter email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
             </div>
@@ -214,7 +211,7 @@ export default function LoginPage() {
                   placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
             </div>
@@ -222,7 +219,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 mt-3 cursor-pointer"
+              className="w-full h-10 rounded-xl bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 mt-3 cursor-pointer"
             >
               {submitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

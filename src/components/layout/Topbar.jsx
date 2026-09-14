@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Moon, Sun, Menu, LogOut, Settings } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
@@ -94,7 +94,7 @@ export default function Topbar({ onMenuToggle = () => {} }) {
             <button
               type="button"
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white dark:bg-blue-600 font-bold text-xs shadow-xs hover:opacity-90 transition-all active:scale-95 cursor-pointer"
+              className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xs shadow-xs hover:opacity-90 transition-all active:scale-95 cursor-pointer"
             >
               {userInitials}
             </button>

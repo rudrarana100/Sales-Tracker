@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { MessageSquare, Calendar, Send } from "lucide-react";
 import { toast } from "sonner";
 
@@ -59,7 +59,7 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
         <div>
           <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>{lead.lead_name}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-semibold border border-blue-200 dark:border-blue-800 uppercase">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-950 text-violet-600 dark:text-violet-400 font-semibold border border-violet-200 dark:border-violet-800 uppercase">
               {lead.status || "cold"}
             </span>
           </h3>
@@ -87,7 +87,7 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
           onClick={() => setActiveTab("whatsapp")}
           className={`flex items-center gap-1.5 pb-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
             activeTab === "whatsapp"
-              ? "border-blue-600 text-blue-600 dark:text-blue-400"
+              ? "border-primary text-violet-600 dark:text-violet-400"
               : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
           }`}
         >
@@ -135,7 +135,7 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 placeholder="Type your message to send via WhatsApp..."
-                className="w-full flex-1 min-h-[120px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-3 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                className="w-full flex-1 min-h-[120px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-3 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:ring-1 focus:ring-violet-500 resize-none"
               />
             </div>
 
@@ -145,7 +145,7 @@ export default function LeadInteractionPanel({ lead, onUpdate }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => handleActionClick(e, "custom")}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-md shadow-primary/20 cursor-pointer transition-all"
               >
                 <Send className="h-3.5 w-3.5" />
                 <span>Send WhatsApp Message</span>

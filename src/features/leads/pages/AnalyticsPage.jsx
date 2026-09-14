@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { getLeads } from "../api/leadsApi";
 import { getActivities } from "../api/activitiesApi";
 import PageHeader from "@/components/common/PageHeader";
@@ -15,7 +15,6 @@ import {
   PhoneCall,
   Zap,
   Target,
-  Sparkles,
   X,
   Settings2,
   BarChart3,
@@ -222,7 +221,7 @@ export default function AnalyticsPage() {
         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+              <div className="p-2 rounded-xl bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400">
                 <Target className="h-4 w-4" />
               </div>
               <div>
@@ -259,7 +258,7 @@ export default function AnalyticsPage() {
             </div>
             <div className="h-3 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
               <div
-                className="h-full rounded-full bg-blue-600 transition-all duration-500"
+                className="h-full rounded-full bg-violet-600 transition-all duration-500"
                 style={{ width: `${targetProgress}%` }}
               />
             </div>
@@ -363,7 +362,7 @@ export default function AnalyticsPage() {
         <SectionCard
           title={
             <span className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-blue-500" /> Peak Calling Hours Analysis
+              <Clock className="h-4 w-4 text-violet-500" /> Peak Calling Hours Analysis
             </span>
           }
         >
@@ -376,7 +375,7 @@ export default function AnalyticsPage() {
                 <span className="font-semibold text-slate-700 dark:text-slate-300">
                   {slot}
                 </span>
-                <span className="font-bold text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/50">
+                <span className="font-bold text-violet-600 dark:text-violet-400 px-2.5 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/50">
                   {count} calls logged
                 </span>
               </div>
@@ -396,9 +395,9 @@ export default function AnalyticsPage() {
               <span className="font-semibold">Total Leads Ingestion</span>
               <span className="font-bold">{totalLeads}</span>
             </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/40 dark:border-blue-900/40">
-              <span className="font-semibold text-blue-600 dark:text-blue-400">Contacted & Reached</span>
-              <span className="font-bold text-blue-600 dark:text-blue-400">{contactedLeads + warmLeads}</span>
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-violet-50/50 dark:bg-violet-950/20 border border-violet-200/40 dark:border-violet-900/40">
+              <span className="font-semibold text-violet-600 dark:text-violet-400">Contacted & Reached</span>
+              <span className="font-bold text-violet-600 dark:text-violet-400">{contactedLeads + warmLeads}</span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/40 dark:border-purple-900/40">
               <span className="font-semibold text-purple-600 dark:text-purple-400">Discovery Meetings Booked</span>
@@ -440,14 +439,14 @@ export default function AnalyticsPage() {
         <SectionCard
           title={
             <span className="flex items-center gap-2">
-              <PieChart className="h-4 w-4 text-blue-500" /> Pipeline Stage Distribution
+              <PieChart className="h-4 w-4 text-violet-500" /> Pipeline Stage Distribution
             </span>
           }
         >
           <div className="space-y-3.5 py-2">
             {[
               { label: "Cold Leads", count: coldLeads, color: "bg-slate-400" },
-              { label: "Contacted", count: contactedLeads, color: "bg-blue-500" },
+              { label: "Contacted", count: contactedLeads, color: "bg-violet-500" },
               { label: "Warm Prospects", count: warmLeads, color: "bg-amber-500" },
               { label: "Meeting Booked", count: meetingsBooked, color: "bg-purple-500" },
               { label: "Proposals Sent", count: proposalsSent, color: "bg-indigo-500" },
@@ -483,7 +482,7 @@ export default function AnalyticsPage() {
           <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="text-sm font-bold flex items-center gap-2">
-                <Target className="h-4 w-4 text-blue-500" />
+                <Target className="h-4 w-4 text-violet-500" />
                 <span>Set Daily Call Goal</span>
               </h3>
               <button
@@ -504,7 +503,7 @@ export default function AnalyticsPage() {
                   min="1"
                   value={newTargetInput}
                   onChange={(e) => setNewTargetInput(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-sm font-bold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-sm font-bold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
 
@@ -519,7 +518,7 @@ export default function AnalyticsPage() {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer"
+                  className="flex-1 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-md shadow-primary/20 cursor-pointer"
                 >
                   Save Goal
                 </Button>
@@ -533,7 +532,7 @@ export default function AnalyticsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in zoom-in-95 duration-300">
           <div className="relative w-full max-w-md rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900 to-slate-950 text-white shadow-2xl p-8 text-center space-y-6">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/20 animate-bounce">
-              <Sparkles className="h-8 w-8" />
+              <Trophy className="h-8 w-8" />
             </div>
 
             <div className="space-y-2">

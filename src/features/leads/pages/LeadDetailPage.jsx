@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from "react";
+﻿import { useEffect, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getLeadById, updateLead, getDealByLeadId, createDeal } from "../api/leadsApi";
 import ActivityTimeline from "../components/ActivityTimeline";
@@ -136,7 +136,7 @@ function LeadDetailPage() {
       const start = new Date(`${meetingDate}T${meetingTime}`);
       const end = new Date(start.getTime() + 30 * 60 * 1000);
       const meetLink = await createGoogleMeet(
-        `BuiltStack x ${lead.lead_name}`,
+        `Adine x ${lead.lead_name}`,
         `Google Meet with ${lead.lead_name}`,
         start.toISOString(),
         end.toISOString(),
@@ -191,7 +191,7 @@ function LeadDetailPage() {
     const formattedTime = new Date(`2000-01-01T${meetingTime}`).toLocaleTimeString("en-IN", {
       hour: "numeric", minute: "2-digit", hour12: true,
     });
-    const message = `Hi ${lead.contact_person || lead.lead_name},\n\nGreat speaking with you!\n\nOur Google Meet has been scheduled.\n\n📅 Date: ${formattedDate}\n🕒 Time: ${formattedTime}\n\nMeeting Link:\n${meetLink}\n\nLooking forward to speaking with you.\n\n- Rudra\nBuiltStack`;
+    const message = `Hi ${lead.contact_person || lead.lead_name},\n\nGreat speaking with you!\n\nOur Google Meet has been scheduled.\n\n📅 Date: ${formattedDate}\n🕒 Time: ${formattedTime}\n\nMeeting Link:\n${meetLink}\n\nLooking forward to speaking with you.\n\n- Rudra\nAdine`;
     window.open(
       `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
       "_blank",
@@ -219,7 +219,7 @@ function LeadDetailPage() {
     if (!lead.phone) return;
     let phone = lead.phone.replace(/\D/g, "");
     if (phone.length === 10) phone = "91" + phone;
-    const message = `Hi ${lead.contact_person || lead.lead_name},\n\nGreat speaking with you!\n\nI'd love to show you how BuiltStack can help your business grow.\n\nLet me know a suitable time for a quick Google Meet.`;
+    const message = `Hi ${lead.contact_person || lead.lead_name},\n\nGreat speaking with you!\n\nI'd love to show you how Adine can help your business grow.\n\nLet me know a suitable time for a quick Google Meet.`;
     window.open(
       `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
       "_blank",

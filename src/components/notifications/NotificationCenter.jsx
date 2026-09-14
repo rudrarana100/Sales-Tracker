@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Bell, Calendar, Phone, CheckCircle2, AlertTriangle, X } from "lucide-react";
 import { getFollowUps } from "@/features/leads/api/followUpsApi";
 
@@ -72,7 +72,7 @@ export default function NotificationCenter() {
         <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xl z-50 animate-scale-in">
           <div className="flex items-center justify-between px-2 pb-2 border-b border-slate-100 dark:border-slate-800">
             <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100">Notifications</h4>
-            <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-md">
+            <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/50 px-2 py-0.5 rounded-md">
               {unreadCount} New
             </span>
           </div>
@@ -96,7 +96,7 @@ export default function NotificationCenter() {
                     {n.type === "urgent" ? (
                       <AlertTriangle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
                     ) : (
-                      <Calendar className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                      <Calendar className="h-4 w-4 text-violet-500 shrink-0 mt-0.5" />
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="font-bold truncate">{n.title}</p>

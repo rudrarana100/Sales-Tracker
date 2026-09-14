@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { processMeetingOutcome, MEETING_OUTCOME_MAPPINGS} from "@/utils/meetingOutcomes";
 import { X, CheckCircle, UserX, Clock, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ export default function PostMeetingOutcomeModal({ lead, open, onClose, onUpdated
 
   const styles = {
     closed: "border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300",
-    follow_up: "border-blue-200 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-800 dark:text-blue-300",
+    follow_up: "border-violet-200 dark:border-violet-900/40 bg-violet-50/50 dark:bg-violet-950/20 hover:bg-violet-100 dark:hover:bg-violet-900/40 text-violet-800 dark:text-violet-300",
     ghosted: "border-rose-200 dark:border-rose-900/40 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-800 dark:text-rose-300",
     rescheduled: "border-amber-200 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-800 dark:text-amber-300"
   };
@@ -52,7 +52,7 @@ export default function PostMeetingOutcomeModal({ lead, open, onClose, onUpdated
 
         {saving ? (
           <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-violet-600" />
             <p className="text-xs text-slate-400">Updating lead record...</p>
           </div>
         ) : (

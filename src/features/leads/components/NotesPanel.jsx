@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { addNote, getNotes, deleteNote } from "../api/notesApi";
 import { addActivity } from "../api/activitiesApi";
 import { Button } from "@/components/ui/button";
@@ -86,7 +86,7 @@ function NotesPanel({ leadId, onNoteAdded }) {
           onChange={(e) => setNewNote(e.target.value)}
           className="min-h-0 flex-1 resize-none text-xs rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-3"
         />
-        <Button size="sm" onClick={handleAddNote} className="self-start shrink-0 cursor-pointer rounded-xl bg-slate-900 text-white dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-500 text-xs font-bold h-9 px-4" disabled={adding}>
+        <Button size="sm" onClick={handleAddNote} className="self-start shrink-0 cursor-pointer rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold h-9 px-4" disabled={adding}>
           {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           <span>Add</span>
         </Button>

@@ -1,4 +1,4 @@
-import PageHeader from "@/components/common/PageHeader";
+﻿import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
 import LoadingState from "@/components/common/LoadingState";
 import { useNavigate } from "react-router-dom";
@@ -33,12 +33,12 @@ const ScheduleFollowUpModal = lazy(() => import("../components/followups/Schedul
 
 const statusStyles = {
   cold: "bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
-  contacted: "bg-blue-50 text-blue-700 border border-blue-200/70 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900",
-  warm: "bg-amber-50 text-amber-700 border border-amber-200/70 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900",
-  meeting_booked: "bg-purple-50 text-purple-700 border border-purple-200/70 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900",
+  contacted: "bg-[#e7ecff] text-[#3a4bbf] border border-[#d3d9ff] dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-900",
+  warm: "bg-[#ffe7cc] text-[#8a4a00] border border-[#ffd4a3] dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900",
+  meeting_booked: "bg-[#d6f7ff] text-[#0b7f99] border border-[#aee9f7] dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-900",
   proposal_sent: "bg-indigo-50 text-indigo-700 border border-indigo-200/70 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-900",
-  closed_won: "bg-emerald-50 text-emerald-700 border border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900",
-  closed_lost: "bg-rose-50 text-rose-700 border border-rose-200/70 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 line-through",
+  closed_won: "bg-[#d9f8c2] text-[#2f6a10] border border-[#b8ef8e] dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900",
+  closed_lost: "bg-[#fce0f7] text-[#96308a] border border-[#f6c5ee] dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 line-through",
 };
 
 // Reusable Collapsible List Container
@@ -165,7 +165,7 @@ function FollowUpsPage() {
           <div className="space-y-1.5 min-w-0 flex-1">
             <div className="flex items-center gap-2.5">
               <h3
-                className="text-sm font-bold text-slate-800 dark:text-slate-100 hover:text-blue-500 transition-colors cursor-pointer truncate"
+                className="text-sm font-bold text-slate-800 dark:text-slate-100 hover:text-violet-500 transition-colors cursor-pointer truncate"
                 onClick={() => navigate(`/leads/${lead?.id}`)}
               >
                 {lead?.lead_name}
@@ -188,7 +188,7 @@ function FollowUpsPage() {
                 <Phone className="h-3.5 w-3.5 text-slate-400" />
                 {lead?.phone || "--"}
               </span>
-              <span className="flex items-center gap-1.5 font-medium text-blue-600 dark:text-blue-400">
+              <span className="flex items-center gap-1.5 font-medium text-violet-600 dark:text-violet-400">
                 <Clock className="h-3.5 w-3.5" />
                 {followUp.scheduled_time || "--:--"}
               </span>
@@ -255,9 +255,9 @@ function FollowUpsPage() {
           <div className="flex items-center gap-1.5 ml-auto">
             <button
               onClick={() => handleComplete(followUp)}
-              className="flex items-center gap-1 rounded-xl bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-500 text-white px-3 py-1.5 text-xs font-bold shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 text-xs font-bold shadow-xs transition-all cursor-pointer"
             >
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 dark:text-blue-200" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 dark:text-violet-200" />
               <span>Complete</span>
             </button>
             <button
@@ -291,9 +291,9 @@ function FollowUpsPage() {
         action={
           <button
             onClick={() => navigate("/followups/queue")}
-            className="flex items-center gap-1.5 rounded-xl bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-500 text-white px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
-            <CalendarDays className="h-4 w-4 text-purple-400 dark:text-blue-200" />
+            <CalendarDays className="h-4 w-4 text-purple-400 dark:text-violet-200" />
             <span>Start Today's Follow-ups</span>
           </button>
         }
@@ -304,7 +304,7 @@ function FollowUpsPage() {
         {[
           { label: "Overdue", count: overdue.length, icon: AlertTriangle, color: "text-rose-500 bg-rose-50 dark:bg-rose-950/40" },
           { label: "Today", count: todayFollowUps.length, icon: CalendarDays, color: "text-purple-500 bg-purple-50 dark:bg-purple-950/40" },
-          { label: "Tomorrow", count: tomorrowFollowUps.length, icon: Clock, color: "text-blue-500 bg-blue-50 dark:bg-blue-950/40" },
+          { label: "Tomorrow", count: tomorrowFollowUps.length, icon: Clock, color: "text-violet-500 bg-violet-50 dark:bg-violet-950/40" },
           { label: "Upcoming", count: upcoming.length, icon: Calendar, color: "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800" },
         ].map((s) => (
           <div key={s.label} className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
@@ -345,7 +345,7 @@ function FollowUpsPage() {
 
           {/* Tomorrow Section */}
           {tomorrowFollowUps.length > 0 && (
-            <SectionCard title={<span className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100"><Clock className="h-4 w-4 text-blue-500" /> Tomorrow ({tomorrowFollowUps.length})</span>}>
+            <SectionCard title={<span className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100"><Clock className="h-4 w-4 text-violet-500" /> Tomorrow ({tomorrowFollowUps.length})</span>}>
               <CollapsibleSection items={tomorrowFollowUps} renderItem={renderLeadCard} initialCount={3} />
             </SectionCard>
           )}

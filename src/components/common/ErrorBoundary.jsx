@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export default class ErrorBoundary extends React.Component {
@@ -33,7 +33,7 @@ export default class ErrorBoundary extends React.Component {
           </p>
           <button
             onClick={this.handleReload}
-            className="mt-5 flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-4 py-2 text-xs font-bold shadow-xs transition-all"
+            className="mt-5 flex items-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 text-xs font-bold shadow-xs transition-all"
           >
             <RefreshCw className="h-4 w-4" />
             <span>Reload Page</span>

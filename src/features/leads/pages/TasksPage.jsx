@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
 import LoadingState from "@/components/common/LoadingState";
@@ -124,7 +124,7 @@ export default function TasksPage() {
         action={
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Create New Task</span>
@@ -146,7 +146,7 @@ export default function TasksPage() {
             onClick={() => setFilter(f.id)}
             className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all border cursor-pointer ${
               filter === f.id
-                ? "bg-slate-900 text-white dark:bg-blue-600 dark:text-white border-transparent shadow-xs"
+                ? "bg-primary text-primary-foreground border-transparent shadow-xs"
                 : "bg-white dark:bg-slate-900 border-slate-200/70 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
             }`}
           >
@@ -159,7 +159,7 @@ export default function TasksPage() {
       <SectionCard
         title={
           <span className="flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-blue-500" /> Tasks List (
+            <CheckSquare className="h-4 w-4 text-violet-500" /> Tasks List (
             {filteredTasks.length})
           </span>
         }
@@ -188,7 +188,7 @@ export default function TasksPage() {
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   <button
                     onClick={() => toggleTask(t)}
-                    className="mt-0.5 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
+                    className="mt-0.5 text-slate-400 hover:text-violet-600 transition-colors cursor-pointer"
                   >
                     {t.status === "completed" ? (
                       <CheckSquare className="h-4.5 w-4.5 text-emerald-500" />
@@ -269,7 +269,7 @@ export default function TasksPage() {
                   placeholder="Task title..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
 
@@ -310,7 +310,7 @@ export default function TasksPage() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 text-xs font-bold shadow-xs cursor-pointer"
+                  className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 text-xs font-bold shadow-xs cursor-pointer"
                 >
                   Create Task
                 </button>

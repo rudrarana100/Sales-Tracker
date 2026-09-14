@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+﻿import { useRef, useState } from "react";
 import { createLead, leadExists } from "../api/leadsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -186,9 +186,9 @@ function LeadForm({ onLeadAdded }) {
         <button
           type="submit"
           disabled={submitting}
-          className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-6 py-2.5 text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+          className="flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
         >
-          {submitting && <Loader2 className="h-4 w-4 animate-spin text-blue-400" />}
+          {submitting && <Loader2 className="h-4 w-4 animate-spin text-violet-400" />}
           <span>{submitting ? "Adding..." : "Add Lead"}</span>
         </button>
       </div>

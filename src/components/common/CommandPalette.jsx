@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getLeads } from "@/features/leads/api/leadsApi";
 import {
@@ -174,7 +174,7 @@ const navigationActions = [
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`h-4 w-4 shrink-0 ${isSelected ? "text-blue-500" : "text-slate-400"}`} />
+                    <Icon className={`h-4 w-4 shrink-0 ${isSelected ? "text-violet-500" : "text-slate-400"}`} />
                     <div className="flex flex-col text-left truncate">
                       <span className="font-semibold truncate">{item.title}</span>
                       {item.subtitle && (
@@ -187,7 +187,7 @@ const navigationActions = [
                     <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-600">
                       {item.category}
                     </span>
-                    {isSelected && <ArrowRight className="h-3.5 w-3.5 text-blue-500" />}
+                    {isSelected && <ArrowRight className="h-3.5 w-3.5 text-violet-500" />}
                   </div>
                 </button>
               );

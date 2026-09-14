@@ -1,4 +1,4 @@
-import PageHeader from "@/components/common/PageHeader";
+﻿import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
 import LoadingState from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,7 @@ const statusBadge = {
   },
   contacted: {
     label: "Contacted",
-    class: "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
+    class: "bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800",
   },
   warm: {
     label: "Warm",
@@ -348,7 +348,7 @@ export default function FollowUpQueue() {
       const end = new Date(start.getTime() + 30 * 60 * 1000);
       const meetLink = await createGoogleMeet(
         `Meeting with ${lead.lead_name}`,
-        "BuiltStack Discovery Call",
+        "Adine Discovery Call",
         start.toISOString(),
         end.toISOString()
       );
@@ -614,7 +614,7 @@ export default function FollowUpQueue() {
               onClick={btn.onClick}
               className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer active:scale-95 ${
                 btn.primary
-                  ? "bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/25 border border-transparent font-bold"
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 border border-transparent font-bold"
                   : "border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
               }`}
             >
@@ -631,7 +631,7 @@ export default function FollowUpQueue() {
             <SectionCard
               title={
                 <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                  <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" /> Previous Interaction
+                  <Clock className="h-4 w-4 text-violet-500 dark:text-violet-400" /> Previous Interaction
                 </span>
               }
             >
@@ -745,7 +745,7 @@ export default function FollowUpQueue() {
                       key={a.id}
                       className="relative flex items-start gap-3 text-xs"
                     >
-                      <div className="absolute -left-4 top-1 h-3 w-3 rounded-full border-2 border-white dark:border-slate-900 bg-blue-500 shrink-0" />
+                      <div className="absolute -left-4 top-1 h-3 w-3 rounded-full border-2 border-white dark:border-slate-900 bg-violet-500 shrink-0" />
                       <div className="space-y-0.5 min-w-0">
                         <p className="font-bold text-slate-800 dark:text-slate-200">
                           {a.description}
@@ -761,7 +761,7 @@ export default function FollowUpQueue() {
                 {activities.length > 2 && (
                   <button
                     onClick={() => setShowAllActivities(!showAllActivities)}
-                    className="w-full flex items-center justify-center gap-1 pt-2 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors border-t border-slate-100 dark:border-slate-800/80 cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1 pt-2 text-[11px] font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-500 transition-colors border-t border-slate-100 dark:border-slate-800/80 cursor-pointer"
                   >
                     <span>
                       {showAllActivities
@@ -784,7 +784,7 @@ export default function FollowUpQueue() {
           <SectionCard
             title={
               <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                <Phone className="h-4 w-4 text-blue-500 dark:text-blue-400" /> Log Call Outcome
+                <Phone className="h-4 w-4 text-violet-500 dark:text-violet-400" /> Log Call Outcome
               </span>
             }
           >
@@ -865,7 +865,7 @@ export default function FollowUpQueue() {
           <div className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <CalendarCheck className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                <CalendarCheck className="h-4 w-4 text-violet-500 dark:text-violet-400" />
                 <span>
                   {callbackReason === "gatekeeper"
                     ? "Gatekeeper Follow-up"
@@ -889,7 +889,7 @@ export default function FollowUpQueue() {
                   type="date"
                   value={callbackDate}
                   onChange={(e) => setCallbackDate(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
               <div>
@@ -900,7 +900,7 @@ export default function FollowUpQueue() {
                   type="time"
                   value={callbackTime}
                   onChange={(e) => setCallbackTime(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
               <div>
@@ -911,7 +911,7 @@ export default function FollowUpQueue() {
                   placeholder="Add context or notes..."
                   value={callbackNote}
                   onChange={(e) => setCallbackNote(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
             </div>
@@ -926,7 +926,7 @@ export default function FollowUpQueue() {
               <button
                 onClick={saveCallbackFollowUp}
                 disabled={saving}
-                className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white py-2 text-xs font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+                className="flex-1 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground py-2 text-xs font-bold transition-all shadow-md shadow-primary/20 cursor-pointer"
               >
                 {saving ? "Saving..." : "Save Callback"}
               </button>
@@ -960,7 +960,7 @@ export default function FollowUpQueue() {
                   type="date"
                   value={meetingDate}
                   onChange={(e) => setMeetingDate(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
               <div>
@@ -971,7 +971,7 @@ export default function FollowUpQueue() {
                   type="time"
                   value={meetingTime}
                   onChange={(e) => setMeetingTime(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
             </div>
@@ -1042,7 +1042,7 @@ export default function FollowUpQueue() {
                 }}
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <Calendar className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                 <span>Schedule Follow-up</span>
               </button>
             </div>

@@ -8,7 +8,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   CheckSquare,
   Calendar,
   BarChart3,
@@ -38,17 +37,14 @@ export default function Sidebar({ collapsed, onToggle, onItemClick }) {
     >
       {/* App Header */}
       <div className="flex h-16 items-center justify-between border-b border-slate-100 dark:border-slate-800/80 px-4">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white font-bold shadow-xs">
-            <Sparkles className="h-4.5 w-4.5 text-blue-400" />
-          </div>
+        <div className="flex items-center overflow-hidden">
           <div
-            className={`transition-all duration-200 ${collapsed ? "opacity-0 invisible w-0" : "opacity-100 visible"}`}
+            className={`transition-all duration-200 leading-none ${collapsed ? "opacity-0 invisible w-0" : "opacity-100 visible"}`}
           >
-            <h1 className="text-sm font-bold leading-tight text-slate-900 dark:text-white">
-              SalesTracker
+            <h1 className="text-lg font-extrabold tracking-tight text-foreground leading-none">
+              Adine
             </h1>
-            <p className="text-[10px] font-medium text-slate-400 leading-tight">
+            <p className="mt-1 text-[11px] font-medium text-muted-foreground leading-none">
               Outbound CRM
             </p>
           </div>
@@ -88,7 +84,7 @@ export default function Sidebar({ collapsed, onToggle, onItemClick }) {
               type="search"
               enterKeyHint="search"
               placeholder="Search leads..."
-              className="h-8.5 w-full rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 pl-8 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 transition-all"
+              className="h-8.5 w-full rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 pl-8 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary transition-all"
             />
           </form>
         </div>
@@ -116,7 +112,7 @@ export default function Sidebar({ collapsed, onToggle, onItemClick }) {
                     ? "justify-center px-0 mx-auto w-9.5"
                     : "gap-3 px-3",
                   isActive
-                    ? "bg-slate-900 text-white dark:bg-blue-600 dark:text-white shadow-xs"
+                    ? "bg-primary text-white dark:bg-primary dark:text-white shadow-xs"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white",
                 ].join(" ")
               }

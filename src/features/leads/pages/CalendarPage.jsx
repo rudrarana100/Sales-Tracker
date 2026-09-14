@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import { getFollowUps, completeFollowUp } from "@/features/leads/api/followUpsApi";
 import {
@@ -41,12 +41,12 @@ export default function CalendarPage() {
 
   const statusColors = {
     cold: "bg-slate-400",
-    contacted: "bg-blue-500",
-    warm: "bg-amber-500",
-    meeting_booked: "bg-purple-500",
-    proposal_sent: "bg-indigo-500",
-    closed_won: "bg-emerald-500",
-    closed_lost: "bg-rose-500",
+    contacted: "bg-[#c3cbff]",
+    warm: "bg-amber-400",
+    meeting_booked: "bg-[#7dd3fc]",
+    proposal_sent: "bg-indigo-400",
+    closed_won: "bg-[#a5ea7e]",
+    closed_lost: "bg-[#f0a5e6]",
   };
 
   const firstDayIndex = new Date(year, month, 1).getDay();
@@ -97,7 +97,7 @@ export default function CalendarPage() {
         action={
           <button
             onClick={() => navigate("/follow-ups")}
-            className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
             <CalendarIcon className="h-4 w-4 text-purple-400" />
             <span>Manage Follow-ups</span>
@@ -108,7 +108,7 @@ export default function CalendarPage() {
       {/* Controls Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-bold">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 font-bold">
             <CalendarIcon className="h-4.5 w-4.5" />
           </div>
           <h2 className="text-base font-bold text-slate-900 dark:text-white">
@@ -177,10 +177,10 @@ export default function CalendarPage() {
                     className={`min-h-[60px] sm:min-h-[95px] rounded-xl border p-1.5 sm:p-2 flex flex-col justify-between transition-all cursor-pointer ${
                       dayNum
                         ? isSelected
-                          ? "border-blue-600 bg-blue-50 dark:bg-blue-950/40 ring-2 ring-blue-500/20"
+                          ? "border-primary bg-violet-50 dark:bg-violet-950/40 ring-2 ring-violet-500/20"
                           : isToday
-                          ? "bg-blue-50/50 dark:bg-slate-800 border-blue-400"
-                          : "bg-slate-50/40 dark:bg-slate-950/40 border-slate-200/70 dark:border-slate-800/80 hover:border-blue-400"
+                          ? "bg-violet-50/50 dark:bg-slate-800 border-violet-400"
+                          : "bg-slate-50/40 dark:bg-slate-950/40 border-slate-200/70 dark:border-slate-800/80 hover:border-violet-400"
                         : "border-transparent bg-transparent pointer-events-none"
                     }`}
                   >
@@ -190,9 +190,9 @@ export default function CalendarPage() {
                           <span
                             className={`flex h-5 w-5 items-center justify-center rounded-lg text-xs font-bold ${
                               isSelected
-                                ? "bg-blue-600 text-white"
+                                ? "bg-primary text-primary-foreground"
                                 : isToday
-                                ? "bg-blue-500 text-white"
+                                ? "bg-violet-500 text-white"
                                 : "text-slate-800 dark:text-slate-200"
                             }`}
                           >
@@ -200,7 +200,7 @@ export default function CalendarPage() {
                           </span>
 
                           {events.length > 0 && (
-                            <span className="text-[9px] font-extrabold text-blue-600 bg-blue-100 dark:bg-blue-950/80 px-1.5 py-0.5 rounded-full">
+                            <span className="text-[9px] font-extrabold text-violet-600 bg-violet-100 dark:bg-violet-950/80 px-1.5 py-0.5 rounded-full">
                               {events.length}
                             </span>
                           )}
@@ -215,7 +215,7 @@ export default function CalendarPage() {
                                 e.stopPropagation();
                                 navigate(`/leads/${ev.lead_id || ev.leads?.id}`);
                               }}
-                              className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2 py-1 hover:border-blue-500 transition-all cursor-pointer"
+                              className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2 py-1 hover:border-violet-500 transition-all cursor-pointer"
                             >
                               <div className="flex items-center gap-1.5">
                                 <span
@@ -240,7 +240,7 @@ export default function CalendarPage() {
                         {/* Mobile indicator dots */}
                         <div className="sm:hidden flex items-center justify-center gap-0.5 mt-1">
                           {events.slice(0, 3).map((_, idx) => (
-                            <span key={idx} className="h-1 w-1 rounded-full bg-blue-500" />
+                            <span key={idx} className="h-1 w-1 rounded-full bg-violet-500" />
                           ))}
                         </div>
                       </>
@@ -280,7 +280,7 @@ export default function CalendarPage() {
                 selectedEvents.map((ev) => (
                   <div
                     key={ev.id}
-                    className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 space-y-3 hover:border-blue-500 transition-all"
+                    className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 space-y-3 hover:border-violet-500 transition-all"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -293,7 +293,7 @@ export default function CalendarPage() {
                           {ev.leads?.lead_name || ev.title}
                         </h4>
                       </div>
-                      <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950 px-2 py-0.5 rounded-md">
                         {ev.scheduled_time ? ev.scheduled_time.slice(0, 5) : "All Day"}
                       </span>
                     </div>
@@ -320,7 +320,7 @@ export default function CalendarPage() {
 
                     <button
                       onClick={() => navigate(`/leads/${ev.lead_id || ev.leads?.id}`)}
-                      className="w-full flex items-center justify-center gap-1 rounded-xl bg-slate-900 dark:bg-blue-600 text-white py-2 text-xs font-bold hover:bg-slate-800 dark:hover:bg-blue-500 transition-all cursor-pointer"
+                      className="w-full flex items-center justify-center gap-1 rounded-xl bg-primary text-primary-foreground py-2 text-xs font-bold hover:bg-primary/90 transition-all cursor-pointer"
                     >
                       <span>Open Lead Details</span>
                       <ExternalLink className="h-3 w-3" />
@@ -368,7 +368,7 @@ export default function CalendarPage() {
                       <h4 className="font-bold text-xs text-slate-900 dark:text-white">
                         {ev.leads?.lead_name || ev.title}
                       </h4>
-                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] font-bold text-violet-600 bg-violet-50 dark:bg-violet-950 px-2 py-0.5 rounded-md">
                         {ev.scheduled_time ? ev.scheduled_time.slice(0, 5) : "All Day"}
                       </span>
                     </div>
@@ -383,7 +383,7 @@ export default function CalendarPage() {
                         setShowMobileModal(false);
                         navigate(`/leads/${ev.lead_id || ev.leads?.id}`);
                       }}
-                      className="w-full rounded-xl bg-blue-600 text-white py-2 text-xs font-bold"
+                      className="w-full rounded-xl bg-primary text-primary-foreground py-2 text-xs font-bold"
                     >
                       Open Lead
                     </button>

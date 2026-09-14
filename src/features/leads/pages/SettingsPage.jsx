@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import SectionCard from "@/components/common/SectionCard";
 import LoadingState from "@/components/common/LoadingState";
@@ -110,7 +110,7 @@ export default function SettingsPage() {
         <SectionCard
           title={
             <span className="flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-500" /> Account Profile
+              <User className="h-4 w-4 text-violet-500" /> Account Profile
             </span>
           }
         >
@@ -124,7 +124,7 @@ export default function SettingsPage() {
                 placeholder="Enter your full name"
                 value={settings.user_name || ""}
                 onChange={(e) => handleChange("user_name", e.target.value)}
-                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
               />
             </div>
 
@@ -137,7 +137,7 @@ export default function SettingsPage() {
                 placeholder="Enter company name"
                 value={settings.company_name || ""}
                 onChange={(e) => handleChange("company_name", e.target.value)}
-                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
               />
             </div>
 
@@ -150,7 +150,7 @@ export default function SettingsPage() {
                 placeholder="name@company.com"
                 value={settings.email || ""}
                 onChange={(e) => handleChange("email", e.target.value)}
-                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
               />
             </div>
 
@@ -163,7 +163,7 @@ export default function SettingsPage() {
                 placeholder="+91 9876543210"
                 value={settings.phone || ""}
                 onChange={(e) => handleChange("phone", e.target.value)}
-                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
               />
             </div>
           </div>
@@ -186,7 +186,7 @@ export default function SettingsPage() {
                 type="text"
                 value={settings.country_code || "91"}
                 onChange={(e) => handleChange("country_code", e.target.value)}
-                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
               />
             </div>
 
@@ -197,7 +197,7 @@ export default function SettingsPage() {
               <select
                 value={settings.meet_duration || "30"}
                 onChange={(e) => handleChange("meet_duration", e.target.value)}
-                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
               >
                 <option value="15">15 Minutes</option>
                 <option value="30">30 Minutes</option>
@@ -213,7 +213,7 @@ export default function SettingsPage() {
               <select
                 value={settings.follow_up_delay || "1"}
                 onChange={(e) => handleChange("follow_up_delay", e.target.value)}
-                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
               >
                 <option value="1">Next Day (+1 Day)</option>
                 <option value="2">In 2 Days (+2 Days)</option>
@@ -247,7 +247,7 @@ export default function SettingsPage() {
             >
               {theme === "dark" ? (
                 <>
-                  <Moon className="h-4 w-4 text-blue-400" />
+                  <Moon className="h-4 w-4 text-violet-400" />
                   <span>Dark Mode</span>
                 </>
               ) : (
@@ -265,7 +265,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 px-5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
+            className="flex items-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
             {saving ? (
               <CheckCircle2 className="h-4 w-4 animate-spin" />

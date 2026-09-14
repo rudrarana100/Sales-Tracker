@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import RecentActivity from "./RecentActivity";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
@@ -12,7 +12,6 @@ import {
   Users,
   Clock,
   AlertTriangle,
-  Sparkles,
   ExternalLink,
   Target,
 } from "lucide-react";
@@ -128,9 +127,9 @@ function Dashboard({
         action={
           <button
             onClick={onStartCalling}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+            className="flex items-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 text-xs font-bold shadow-md shadow-primary/20 transition-all cursor-pointer"
           >
-            <Sparkles className="h-4 w-4 text-blue-200" />
+            <Phone className="h-4 w-4 text-violet-200" />
             <span>Resume Calling</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </button>
@@ -138,15 +137,15 @@ function Dashboard({
       />
 
       {/* Daily Progress Mini-Banner */}
-      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-violet-50/50 via-white to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 shrink-0">
+          <div className="p-2.5 rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20 shrink-0">
             <Target className="h-5 w-5" />
           </div>
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <span>Today's Outbound Goal</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-black">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 font-black">
                 {todayCalls} / {dailyTarget} Calls
               </span>
             </h4>
@@ -161,13 +160,13 @@ function Dashboard({
               <span>{targetProgress}%</span>
             </div>
             <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-              <div className="h-full rounded-full bg-blue-600 transition-all duration-500" style={{ width: `${targetProgress}%` }} />
+              <div className="h-full rounded-full bg-violet-600 transition-all duration-500" style={{ width: `${targetProgress}%` }} />
             </div>
           </div>
 
           <button
             onClick={() => navigate("/analytics")}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 text-white dark:text-slate-200 hover:bg-blue-600 dark:hover:bg-blue-600 text-xs font-semibold transition-all cursor-pointer shadow-xs shrink-0"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition-all cursor-pointer shadow-xs shrink-0"
           >
             <span>Full Analytics</span>
             <ArrowRight className="h-3.5 w-3.5" />
@@ -187,7 +186,7 @@ function Dashboard({
         <StatCard
           title="Cold Calls"
           value={coldCallsRemaining}
-          icon={<Phone className="h-4 w-4 text-blue-500" />}
+          icon={<Phone className="h-4 w-4 text-violet-500" />}
         />
         <StatCard
           title="Follow-ups Today"
@@ -212,9 +211,9 @@ function Dashboard({
           {/* Primary Action Button */}
           <button
             onClick={onStartCalling}
-            className="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 text-xs font-semibold shadow-md shadow-primary/20 transition-all cursor-pointer"
           >
-            <Phone className="h-3.5 w-3.5 text-blue-100" />
+            <Phone className="h-3.5 w-3.5 text-violet-100" />
             <span>Start Calling</span>
           </button>
 
@@ -260,7 +259,7 @@ function Dashboard({
                   onClick={onStartCalling}
                   className="mt-4 flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 text-[11px] font-semibold transition-all cursor-pointer"
                 >
-                  <Phone className="h-3 w-3 text-blue-500" />
+                  <Phone className="h-3 w-3 text-violet-500" />
                   <span>Start Call Session</span>
                 </button>
               </div>
@@ -299,7 +298,7 @@ function Dashboard({
             action={
               <button
                 onClick={() => navigate("/follow-ups")}
-                className="text-[11px] font-semibold text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1 cursor-pointer"
+                className="text-[11px] font-semibold text-violet-500 hover:text-violet-400 transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <span>View All</span>
                 <ArrowRight className="h-3 w-3" />

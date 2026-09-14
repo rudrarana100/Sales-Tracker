@@ -1,4 +1,4 @@
-import { useState, useRef, forwardRef, useImperativeHandle, useMemo } from "react";
+﻿import { useState, useRef, forwardRef, useImperativeHandle, useMemo } from "react";
 import Papa from "papaparse";
 import { importLeads, getExistingPhones } from "../api/leadsApi";
 import { Button } from "@/components/ui/button";
@@ -211,7 +211,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>Import Leads Workspace</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-semibold border border-blue-200 dark:border-blue-800">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-950 text-violet-600 dark:text-violet-400 font-semibold border border-violet-200 dark:border-violet-800">
                     Step {step} of 2
                   </span>
                 </h3>
@@ -262,7 +262,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
                             onChange={(e) =>
                               handleMappingChange(field.key, e.target.value)
                             }
-                            className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                            className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
                           >
                             <option value="--ignore--">-- Ignore field --</option>
                             {csvHeaders.map((header) => (
@@ -350,7 +350,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
                     <Button
                       size="sm"
                       onClick={handleProceedToPreview}
-                      className="rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-md shadow-blue-500/20 cursor-pointer"
+                      className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md shadow-primary/20 cursor-pointer"
                     >
                       <span>Preview Mapped Data</span>
                       <ArrowRight className="h-4 w-4 ml-1" />
@@ -373,7 +373,7 @@ const CsvImport = forwardRef(function CsvImport({ onImport }, ref) {
                       size="sm"
                       onClick={handleImport}
                       disabled={loading}
-                      className="rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-md shadow-blue-500/20 cursor-pointer"
+                      className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md shadow-primary/20 cursor-pointer"
                     >
                       <Download className="h-4 w-4 mr-1" />
                       <span>{loading ? "Importing..." : `Import ${rawRows.length} Leads`}</span>

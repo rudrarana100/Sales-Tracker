@@ -1,4 +1,4 @@
-import { deleteLead } from "../api/leadsApi";
+﻿import { deleteLead } from "../api/leadsApi";
 import { useNavigate } from "react-router-dom";
 import {
   ExternalLink,
@@ -24,12 +24,12 @@ import {
 
 const statusStyles = {
   cold: "bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
-  contacted: "bg-blue-50 text-blue-700 border border-blue-200/70 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900",
-  warm: "bg-amber-50 text-amber-700 border border-amber-200/70 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900",
-  meeting_booked: "bg-purple-50 text-purple-700 border border-purple-200/70 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900",
+  contacted: "bg-[#e7ecff] text-[#3a4bbf] border border-[#d3d9ff] dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-900",
+  warm: "bg-[#ffe7cc] text-[#8a4a00] border border-[#ffd4a3] dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900",
+  meeting_booked: "bg-[#d6f7ff] text-[#0b7f99] border border-[#aee9f7] dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-900",
   proposal_sent: "bg-indigo-50 text-indigo-700 border border-indigo-200/70 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-900",
-  closed_won: "bg-emerald-50 text-emerald-700 border border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900",
-  closed_lost: "bg-rose-50 text-rose-700 border border-rose-200/70 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 line-through",
+  closed_won: "bg-[#d9f8c2] text-[#2f6a10] border border-[#b8ef8e] dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900",
+  closed_lost: "bg-[#fce0f7] text-[#96308a] border border-[#f6c5ee] dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 line-through",
 };
 
 function LeadsList({ leads = [], onStatusChange }) {
@@ -73,7 +73,7 @@ function LeadsList({ leads = [], onStatusChange }) {
             <div className="flex items-center gap-2.5">
               <h3
                 onClick={() => navigate(`/leads/${lead.id}`)}
-                className="cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-100 transition-colors hover:text-blue-600 dark:hover:text-blue-400 truncate"
+                className="cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-100 transition-colors hover:text-violet-600 dark:hover:text-violet-400 truncate"
               >
                 {lead.lead_name}
               </h3>

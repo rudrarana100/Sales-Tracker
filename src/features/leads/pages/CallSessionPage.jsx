@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from "react";
+﻿import { useEffect, useState, lazy, Suspense } from "react";
 import { getLeads, updateLead, getImportBatches } from "../api/leadsApi";
 import { getActivities, addActivity } from "../api/activitiesApi";
 import { createGoogleMeet } from "../../../utils/meetingUtils";
@@ -48,7 +48,7 @@ const statusBadge = {
   contacted: {
     label: "Contacted",
     class:
-      "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
+      "bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800",
   },
   warm: {
     label: "Warm",
@@ -388,7 +388,7 @@ function CallSessionPage() {
 
       const meetLink = await createGoogleMeet(
         `Meeting with ${currentLead.lead_name}`,
-        "BuiltStack Discovery Call",
+        "Adine Discovery Call",
         start.toISOString(),
         end.toISOString()
       );
@@ -463,7 +463,7 @@ function CallSessionPage() {
           description="All caught up for today."
           action={
             <div className="relative flex items-center">
-              <FolderKanban className="absolute left-3 h-4 w-4 text-blue-500 pointer-events-none" />
+              <FolderKanban className="absolute left-3 h-4 w-4 text-violet-500 pointer-events-none" />
               <select
                 value={selectedCollection}
                 onChange={(e) => setSelectedCollection(e.target.value)}
@@ -481,7 +481,7 @@ function CallSessionPage() {
         />
         <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-12 text-center flex flex-col items-center justify-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400">
-            <PhoneCall className="h-6 w-6 text-blue-500" />
+            <PhoneCall className="h-6 w-6 text-violet-500" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
             Session Complete
@@ -524,14 +524,14 @@ function CallSessionPage() {
         description={`Lead ${currentIndex} of ${totalColdForSelectedCollection}`}
         action={
           <div className="relative flex items-center">
-            <FolderKanban className="absolute left-3 h-4 w-4 text-blue-500 pointer-events-none" />
+            <FolderKanban className="absolute left-3 h-4 w-4 text-violet-500 pointer-events-none" />
             <select
               value={selectedCollection}
               onChange={(e) => {
                 setSelectedCollection(e.target.value);
                 setSkippedLeadIds([]);
               }}
-              className="h-9.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-4 text-xs font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer shadow-xs"
+              className="h-9.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-4 text-xs font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer shadow-xs"
             >
               <option value="all">
                 📁 All Collections ({leads.filter((l) => l.status === "cold").length} Cold)
@@ -702,7 +702,7 @@ function CallSessionPage() {
               onClick={btn.onClick}
               className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer active:scale-95 ${
                 btn.primary
-                  ? "bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/25 border border-transparent font-bold"
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 border border-transparent font-bold"
                   : "border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
               }`}
             >
@@ -719,7 +719,7 @@ function CallSessionPage() {
             <SectionCard
               title={
                 <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                  <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" />{" "}
+                  <Clock className="h-4 w-4 text-violet-500 dark:text-violet-400" />{" "}
                   Previous Interaction
                 </span>
               }
@@ -840,7 +840,7 @@ function CallSessionPage() {
                       key={a.id}
                       className="relative flex items-start gap-3 text-xs"
                     >
-                      <div className="absolute -left-4 top-1 h-3 w-3 rounded-full border-2 border-white dark:border-slate-900 bg-blue-500 shrink-0" />
+                      <div className="absolute -left-4 top-1 h-3 w-3 rounded-full border-2 border-white dark:border-slate-900 bg-violet-500 shrink-0" />
                       <div className="space-y-0.5 min-w-0">
                         <p className="font-bold text-slate-800 dark:text-slate-200">
                           {a.description}
@@ -856,7 +856,7 @@ function CallSessionPage() {
                 {activities.length > 2 && (
                   <button
                     onClick={() => setShowAllActivities(!showAllActivities)}
-                    className="w-full flex items-center justify-center gap-1 pt-2 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors border-t border-slate-100 dark:border-slate-800/80 cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1 pt-2 text-[11px] font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-500 transition-colors border-t border-slate-100 dark:border-slate-800/80 cursor-pointer"
                   >
                     <span>
                       {showAllActivities
@@ -879,7 +879,7 @@ function CallSessionPage() {
           <SectionCard
             title={
               <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                <Phone className="h-4 w-4 text-blue-500 dark:text-blue-400" />{" "}
+                <Phone className="h-4 w-4 text-violet-500 dark:text-violet-400" />{" "}
                 Log Call Outcome
               </span>
             }
@@ -977,7 +977,7 @@ function CallSessionPage() {
           <div className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <CalendarCheck className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                <CalendarCheck className="h-4 w-4 text-violet-500 dark:text-violet-400" />
                 <span>
                   {callbackReason === "gatekeeper"
                     ? "Gatekeeper Follow-up"
@@ -1001,7 +1001,7 @@ function CallSessionPage() {
                   type="date"
                   value={callbackDate}
                   onChange={(e) => setCallbackDate(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
               <div>
@@ -1012,7 +1012,7 @@ function CallSessionPage() {
                   type="time"
                   value={callbackTime}
                   onChange={(e) => setCallbackTime(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
               <div>
@@ -1023,7 +1023,7 @@ function CallSessionPage() {
                   placeholder="Add context or notes..."
                   value={callbackNote}
                   onChange={(e) => setCallbackNote(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
             </div>
@@ -1038,7 +1038,7 @@ function CallSessionPage() {
               <button
                 onClick={saveCallback}
                 disabled={saving}
-                className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white py-2 text-xs font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+                className="flex-1 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground py-2 text-xs font-bold transition-all shadow-md shadow-primary/20 cursor-pointer"
               >
                 {saving ? "Saving..." : "Save Callback"}
               </button>
@@ -1072,7 +1072,7 @@ function CallSessionPage() {
                   type="date"
                   value={meetingDate}
                   onChange={(e) => setMeetingDate(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
               <div>
@@ -1083,7 +1083,7 @@ function CallSessionPage() {
                   type="time"
                   value={meetingTime}
                   onChange={(e) => setMeetingTime(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-violet-500"
                 />
               </div>
             </div>
@@ -1150,7 +1150,7 @@ function CallSessionPage() {
                 onClick={markInterested}
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <Calendar className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                 <span>Schedule Follow-up</span>
               </button>
           </div>
