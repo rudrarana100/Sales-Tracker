@@ -26,14 +26,12 @@ app.use(express.json());
 
 const scrapingJobs = {};
 
-// Health Checks
 app.get("/", (req, res) => res.send("Backend Running 🚀"));
 app.get("/api/test", (req, res) => res.json({ message: "Backend connected successfully!" }));
 
 app.use("/auth", authRoutes);
 app.use("/calendar", calendarRoutes);
 
-// Start Scraper Job
 app.post("/api/scrape-maps/start", async (req, res) => {
   const { query, location, targetCount = 20 } = req.body;
 
@@ -56,7 +54,6 @@ app.post("/api/scrape-maps/start", async (req, res) => {
   return res.json({ success: true, jobId });
 });
 
-// Check Progress Status with Fallback for expired/restarted memory jobs
 app.get("/api/scrape-maps/status/:jobId", (req, res) => {
   const job = scrapingJobs[req.params.jobId];
   if (!job) {
@@ -68,7 +65,6 @@ app.get("/api/scrape-maps/status/:jobId", (req, res) => {
   return res.json(job);
 });
 
-// Highly Efficient Scraper Implementation
 async function runBackgroundScraper(jobId, query, location, targetCount) {
   const job = scrapingJobs[jobId];
   let browser;
@@ -84,12 +80,11 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
       headless: chromium.headless,
-      timeout: 60000, // <--- Yahin fix kiya hai (30s se badha kar 60s kar diya)
+      timeout: 60000, 
     });
 
     const page = await browser.newPage();
     
-    // Set user agent to avoid Google Maps bot blocking
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
     );
@@ -99,50 +94,84 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
     
     console.log(`[Job ${jobId}] Opening: ${searchUrl}`);
     
-    // 60 seconds timeout to prevent cold start issues
     await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
 
-    // Wait for feed container
     await page.waitForSelector('div[role="feed"], h1', { timeout: 25000 }).catch(() => null);
 
     const collectedLeads = new Map();
     let scrollAttempts = 0;
-    const maxScrolls = Math.max(25, Math.ceil(targetCount / 3)); // Dynamic scrolls based on target
+    const maxScrolls = Math.max(25, Math.ceil(targetCount / 3));
 
     while (collectedLeads.size < targetCount && scrollAttempts < maxScrolls) {
       scrollAttempts++;
 
-      // Extract listings with resilient fallback selectors
       const rawLeads = await page.evaluate(() => {
         const results = [];
-        const items = document.querySelectorAll('div[role="article"], a[href*="/maps/place/"]');
+        const items = document.querySelectorAll('div[role="article"]');
 
         items.forEach((item) => {
           let name = "";
           let phone = "";
           let link = "";
+          let website = "";
 
-          const linkEl = item.tagName === "A" ? item : item.querySelector('a[href*="/maps/place/"]');
+          const linkEl = item.querySelector('a');
           if (linkEl) link = linkEl.href;
 
-          const ariaLabel = item.getAttribute("aria-label") || linkEl?.getAttribute("aria-label");
-          if (ariaLabel) name = ariaLabel;
-
+          name = item.getAttribute("aria-label");
           if (!name) {
-            const h1 = item.querySelector("h1, h2, .fontHeadlineSmall, span.OSrXXb");
+            const h1 = item.querySelector(".fontHeadlineSmall, h1, h2");
             if (h1) name = h1.innerText.trim();
           }
 
-          // Extract phone number patterns from text block
           const fullText = item.innerText || "";
-          const phoneMatch = fullText.match(/(\+?\d{1,4}[\s-]?)?\(?\d{2,5}\)?[\s-]?\d{3,5}[\s-]?\d{3,5}/);
-          if (phoneMatch) phone = phoneMatch[0];
+
+          const buttons = Array.from(item.querySelectorAll('button'));
+          const phoneBtn = buttons.find(btn => {
+            const aria = (btn.getAttribute('aria-label') || "").toLowerCase();
+            const tooltip = (btn.getAttribute('data-tooltip') || "").toLowerCase();
+            return aria.includes('phone') || tooltip.includes('phone') || aria.includes('+');
+          });
+          
+          if (phoneBtn) {
+            phone = (phoneBtn.getAttribute('aria-label') || "").replace(/phone:?\s*/i, '').trim();
+          }
+
+          if (!phone) {
+            const phoneRegex = /(?:\+?\d{1,3}[\-\s]?)?\(?\d{2,4}\)?[\-\s]?\d{3,4}[\-\s]?\d{3,4}/g;
+            const phoneMatches = fullText.match(phoneRegex);
+            
+            if (phoneMatches) {
+              const validPhones = phoneMatches.filter(m => m.replace(/\D/g, '').length >= 8);
+              if (validPhones.length > 0) phone = validPhones[validPhones.length - 1].trim();
+            }
+          }
+
+          if (phone) phone = phone.replace(/[^\d+]/g, '');
+
+          const allLinks = Array.from(item.querySelectorAll('a'));
+          const webLink = allLinks.find(a => 
+            a.getAttribute('data-value') === 'Website' || 
+            (a.href && !a.href.includes('google.com') && a.innerText.toLowerCase().includes('website'))
+          );
+          
+          if (webLink) {
+            website = webLink.href;
+          } else {
+             const webMatch = fullText.match(/[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?/);
+             if (webMatch) {
+               const domain = webMatch[0].toLowerCase();
+               if (!domain.includes('google') && !domain.includes('review') && !domain.includes('justdial')) {
+                 website = domain.startsWith('http') ? domain : `https://${domain}`;
+               }
+             }
+          }
 
           if (name && link) {
             results.push({
               lead_name: name,
               phone: phone || null,
-              website: null,
+              website: website || null,
               google_maps_link: link,
             });
           }
@@ -170,7 +199,6 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
 
       if (collectedLeads.size >= targetCount) break;
 
-      // Efficient feed container scroll
       const scrolled = await page.evaluate(() => {
         const feed = document.querySelector('div[role="feed"]');
         if (feed) {
@@ -182,7 +210,7 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
       });
 
       if (!scrolled && scrollAttempts > 5) break;
-      await new Promise((r) => setTimeout(r, 2000)); // Delay to let Google Maps render items smoothly
+      await new Promise((r) => setTimeout(r, 2000));
     }
 
     await browser.close();
