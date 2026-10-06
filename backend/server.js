@@ -17,7 +17,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
+    origin: true, 
     credentials: true,
   })
 );
@@ -92,28 +92,25 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
     const searchQuery = `${query} in ${location}`;
     const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`;
     
-    console.log(`[Job ${jobId}] Opening: ${searchUrl}`);
+    console.log(`[Job ${jobId}] Phase 1: Scraping basic lists from ${searchUrl}`);
     
     await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
-
     await page.waitForSelector('div[role="feed"], h1', { timeout: 25000 }).catch(() => null);
 
-    const collectedLeads = new Map();
+    const collectedLinks = new Map();
     let scrollAttempts = 0;
-    const maxScrolls = Math.max(25, Math.ceil(targetCount / 3));
+    const maxScrolls = Math.max(30, Math.ceil(targetCount / 3));
 
-    while (collectedLeads.size < targetCount && scrollAttempts < maxScrolls) {
+    while (collectedLinks.size < targetCount && scrollAttempts < maxScrolls) {
       scrollAttempts++;
 
-      const rawLeads = await page.evaluate(() => {
+      const rawLinks = await page.evaluate(() => {
         const results = [];
         const items = document.querySelectorAll('div[role="article"]');
 
         items.forEach((item) => {
           let name = "";
-          let phone = "";
           let link = "";
-          let website = "";
 
           const linkEl = item.querySelector('a');
           if (linkEl) link = linkEl.href;
@@ -124,80 +121,19 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
             if (h1) name = h1.innerText.trim();
           }
 
-          const fullText = item.innerText || "";
-
-          const buttons = Array.from(item.querySelectorAll('button'));
-          const phoneBtn = buttons.find(btn => {
-            const aria = (btn.getAttribute('aria-label') || "").toLowerCase();
-            const tooltip = (btn.getAttribute('data-tooltip') || "").toLowerCase();
-            return aria.includes('phone') || tooltip.includes('phone') || aria.includes('+');
-          });
-          
-          if (phoneBtn) {
-            phone = (phoneBtn.getAttribute('aria-label') || "").replace(/phone:?\s*/i, '').trim();
-          }
-
-          if (!phone) {
-            const phoneRegex = /(?:\+?\d{1,3}[\-\s]?)?\(?\d{2,4}\)?[\-\s]?\d{3,4}[\-\s]?\d{3,4}/g;
-            const phoneMatches = fullText.match(phoneRegex);
-            
-            if (phoneMatches) {
-              const validPhones = phoneMatches.filter(m => m.replace(/\D/g, '').length >= 8);
-              if (validPhones.length > 0) phone = validPhones[validPhones.length - 1].trim();
-            }
-          }
-
-          if (phone) phone = phone.replace(/[^\d+]/g, '');
-
-          const allLinks = Array.from(item.querySelectorAll('a'));
-          const webLink = allLinks.find(a => 
-            a.getAttribute('data-value') === 'Website' || 
-            (a.href && !a.href.includes('google.com') && a.innerText.toLowerCase().includes('website'))
-          );
-          
-          if (webLink) {
-            website = webLink.href;
-          } else {
-             const webMatch = fullText.match(/[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?/);
-             if (webMatch) {
-               const domain = webMatch[0].toLowerCase();
-               if (!domain.includes('google') && !domain.includes('review') && !domain.includes('justdial')) {
-                 website = domain.startsWith('http') ? domain : `https://${domain}`;
-               }
-             }
-          }
-
           if (name && link) {
-            results.push({
-              lead_name: name,
-              phone: phone || null,
-              website: website || null,
-              google_maps_link: link,
-            });
+            results.push({ lead_name: name, google_maps_link: link });
           }
         });
-
         return results;
       });
 
-      for (const lead of rawLeads) {
-        if (collectedLeads.size >= targetCount) break;
-
-        if (!collectedLeads.has(lead.google_maps_link)) {
-          collectedLeads.set(lead.google_maps_link, {
-            ...lead,
-            business_type: query,
-            email: null,
-            status: "cold",
-            last_outcome: "scraped_from_maps",
-          });
+      for (const lead of rawLinks) {
+        if (collectedLinks.size >= targetCount) break;
+        if (!collectedLinks.has(lead.google_maps_link)) {
+          collectedLinks.set(lead.google_maps_link, lead);
         }
       }
-
-      job.leads = Array.from(collectedLeads.values()).slice(0, targetCount);
-      job.progress = job.leads.length;
-
-      if (collectedLeads.size >= targetCount) break;
 
       const scrolled = await page.evaluate(() => {
         const feed = document.querySelector('div[role="feed"]');
@@ -210,7 +146,113 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
       });
 
       if (!scrolled && scrollAttempts > 5) break;
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+
+    const leadsToEnrich = Array.from(collectedLinks.values()).slice(0, targetCount);
+    console.log(`[Job ${jobId}] Phase 2: Deep Extraction for ${leadsToEnrich.length} leads...`);
+    
+    const detailPage = await browser.newPage();
+    
+    await detailPage.setRequestInterception(true);
+    detailPage.on('request', (req) => {
+       const type = req.resourceType();
+       if (['image', 'stylesheet', 'font', 'media'].includes(type)) {
+           req.abort();
+       } else {
+           req.continue();
+       }
+    });
+
+    job.leads = [];
+    job.progress = 0;
+
+    for (const basicLead of leadsToEnrich) {
+       try {
+           await detailPage.goto(basicLead.google_maps_link, { waitUntil: 'domcontentloaded', timeout: 30000 });
+           
+           // CRITICAL FIX: Wait for the business details to actually load
+           await detailPage.waitForSelector('h1', { timeout: 10000 }).catch(() => null);
+           await new Promise((r) => setTimeout(r, 1500)); // Buffer for dynamic scripts
+
+           const enrichedData = await detailPage.evaluate(() => {
+               let phone = null;
+               let website = null;
+               
+               // 1. Aggressive Element Scan
+               const allElements = document.querySelectorAll('button, a, div');
+               
+               for (const el of allElements) {
+                   const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
+                   const href = el.getAttribute('href') || '';
+                   const dataItemId = (el.getAttribute('data-item-id') || '').toLowerCase();
+                   
+                   // Find Phone
+                   if (!phone) {
+                       if (dataItemId.includes('phone:tel:')) {
+                           phone = dataItemId.replace('phone:tel:', '');
+                       } else if (ariaLabel.includes('phone:') || ariaLabel.includes('call ')) {
+                           phone = ariaLabel.replace(/phone:?\s*/i, '').replace(/call\s*/i, '').trim();
+                       } else if (href.startsWith('tel:')) {
+                           phone = href.replace('tel:', '');
+                       }
+                   }
+
+                   // Find Website
+                   if (!website) {
+                       if (dataItemId === 'authority') {
+                           website = href;
+                       } else if (ariaLabel.includes('website:') || ariaLabel.includes('open website')) {
+                           website = href;
+                       }
+                   }
+                   
+                   if (phone && website) break;
+               }
+
+               // 2. Fallback: Full Page Regex Scan if elements are hidden
+               const fullText = document.body.innerText || "";
+               
+               if (!phone) {
+                   const phoneRegex = /(?:\+?\d{1,3}[\-\s]?)?\(?\d{2,4}\)?[\-\s]?\d{3,4}[\-\s]?\d{3,4}/g;
+                   const matches = fullText.match(phoneRegex);
+                   if (matches) {
+                       const valid = matches.filter(m => m.replace(/\D/g, '').length >= 8);
+                       if (valid.length > 0) phone = valid[valid.length - 1]; // Pick most likely candidate
+                   }
+               }
+
+               return { phone, website };
+           });
+           
+           let finalPhone = enrichedData.phone;
+           if (finalPhone) finalPhone = finalPhone.replace(/[^\d+]/g, '');
+
+           job.leads.push({
+               lead_name: basicLead.lead_name,
+               phone: finalPhone || null,
+               website: enrichedData.website || null,
+               google_maps_link: basicLead.google_maps_link,
+               business_type: query, 
+               email: null,
+               status: "cold",
+               last_outcome: "scraped_from_maps"
+           });
+           
+           job.progress = job.leads.length; 
+
+       } catch (err) {
+           console.error("Detail Extraction Error:", err.message);
+           job.leads.push({
+               ...basicLead,
+               phone: null,
+               website: null,
+               business_type: query,
+               status: "cold",
+               last_outcome: "scraped_from_maps"
+           });
+           job.progress = job.leads.length;
+       }
     }
 
     await browser.close();
