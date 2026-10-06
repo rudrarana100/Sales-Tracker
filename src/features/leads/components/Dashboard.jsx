@@ -3,6 +3,7 @@ import RecentActivity from "./RecentActivity";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
 import SectionCard from "@/components/common/SectionCard";
+import CollapsibleList from "@/components/common/CollapsibleList";
 import {
   Phone,
   Calendar as CalendarIcon,
@@ -264,8 +265,10 @@ function Dashboard({
                 </button>
               </div>
             ) : (
-              <div className="space-y-2">
-                {todayTasks.map((followUp) => {
+              <CollapsibleList
+                items={todayTasks}
+                initialCount={5}
+                renderItem={(followUp) => {
                   const lead = followUp.leads;
                   return (
                     <div
@@ -285,8 +288,8 @@ function Dashboard({
                       </span>
                     </div>
                   );
-                })}
-              </div>
+                }}
+              />
             )}
           </SectionCard>
         </div>
@@ -319,8 +322,10 @@ function Dashboard({
                 </p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {overdueFollowUps.map((followUp) => {
+              <CollapsibleList
+                items={overdueFollowUps}
+                initialCount={5}
+                renderItem={(followUp) => {
                   const lead = followUp.leads;
                   const relativeDate = getRelativeDueDate(
                     followUp.scheduled_date
@@ -362,8 +367,8 @@ function Dashboard({
                       </div>
                     </div>
                   );
-                })}
-              </div>
+                }}
+              />
             )}
           </SectionCard>
         </div>

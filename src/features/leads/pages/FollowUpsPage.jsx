@@ -3,6 +3,7 @@ import SectionCard from "@/components/common/SectionCard";
 import LoadingState from "@/components/common/LoadingState";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
+import CollapsibleList from "@/components/common/CollapsibleList";
 import {
   getFollowUps,
   completeFollowUp,
@@ -23,8 +24,6 @@ import {
   CheckCircle2,
   RotateCcw,
   SkipForward,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,32 +39,6 @@ const statusStyles = {
   closed_won: "bg-[#d9f8c2] text-[#2f6a10] border border-[#b8ef8e] dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900",
   closed_lost: "bg-[#fce0f7] text-[#96308a] border border-[#f6c5ee] dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 line-through",
 };
-
-// Reusable Collapsible List Container
-function CollapsibleSection({ items, renderItem, initialCount = 3 }) {
-  const [expanded, setExpanded] = useState(false);
-
-  const visibleItems = expanded ? items : items.slice(0, initialCount);
-  const remainingCount = items.length - initialCount;
-
-  return (
-    <div className="space-y-3">
-      <div className="space-y-3">
-        {visibleItems.map(renderItem)}
-      </div>
-
-      {items.length > initialCount && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-900/40 hover:bg-slate-200 dark:hover:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 transition-all cursor-pointer mt-2"
-        >
-          <span>{expanded ? "Show Less" : `Show More (${remainingCount} more)`}</span>
-          {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-        </button>
-      )}
-    </div>
-  );
-}
 
 function FollowUpsPage() {
   const navigate = useNavigate();
@@ -332,28 +305,28 @@ function FollowUpsPage() {
           {/* Overdue Section */}
           {overdue.length > 0 && (
             <SectionCard title={<span className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold"><AlertTriangle className="h-4 w-4" /> Overdue ({overdue.length})</span>}>
-              <CollapsibleSection items={overdue} renderItem={renderLeadCard} initialCount={3} />
+              <CollapsibleList items={overdue} renderItem={renderLeadCard} initialCount={3} spacing="space-y-3" />
             </SectionCard>
           )}
 
           {/* Today Section */}
           {todayFollowUps.length > 0 && (
             <SectionCard title={<span className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100"><CalendarDays className="h-4 w-4 text-purple-500" /> Today ({todayFollowUps.length})</span>}>
-              <CollapsibleSection items={todayFollowUps} renderItem={renderLeadCard} initialCount={3} />
+              <CollapsibleList items={todayFollowUps} renderItem={renderLeadCard} initialCount={3} spacing="space-y-3" />
             </SectionCard>
           )}
 
           {/* Tomorrow Section */}
           {tomorrowFollowUps.length > 0 && (
             <SectionCard title={<span className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100"><Clock className="h-4 w-4 text-violet-500" /> Tomorrow ({tomorrowFollowUps.length})</span>}>
-              <CollapsibleSection items={tomorrowFollowUps} renderItem={renderLeadCard} initialCount={3} />
+              <CollapsibleList items={tomorrowFollowUps} renderItem={renderLeadCard} initialCount={3} spacing="space-y-3" />
             </SectionCard>
           )}
 
           {/* Upcoming Section */}
           {upcoming.length > 0 && (
             <SectionCard title={<span className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100"><Calendar className="h-4 w-4 text-slate-400" /> Upcoming ({upcoming.length})</span>}>
-              <CollapsibleSection items={upcoming} renderItem={renderLeadCard} initialCount={3} />
+              <CollapsibleList items={upcoming} renderItem={renderLeadCard} initialCount={3} spacing="space-y-3" />
             </SectionCard>
           )}
         </div>
