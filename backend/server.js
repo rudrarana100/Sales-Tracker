@@ -78,8 +78,7 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
         "--window-size=1280,800",
       ],
       defaultViewport: null,
-      // VISUAL DEBUG MODE FOR LOCALHOST: False means the browser will physically open
-      headless: false, 
+      headless: false, // Keep false while testing on localhost
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || await chromium.executablePath(),
       timeout: 60000, 
     });
@@ -159,65 +158,44 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
        try {
            await detailPage.goto(basicLead.google_maps_link + "&hl=en", { waitUntil: 'domcontentloaded', timeout: 35000 });
            
-           // LOCALHOST FIX: Wait explicitly for the sidebar containing info to load
+           // Ensure the side panel is fully loaded
            await detailPage.waitForSelector('h1', { timeout: 10000 }).catch(() => null);
-           await new Promise((r) => setTimeout(r, 2000)); // Let the phone/website icons fully render
+           await new Promise((r) => setTimeout(r, 2000)); 
 
            const enrichedData = await detailPage.evaluate(() => {
                let phone = null;
                let website = null;
                
-               // --- 1. PHONE EXTRACTION (Hotel/Cafe proof) ---
-               
-               // Attempt A: Direct 'tel:' links
+               // 1. Standard Extraction (Fastest if available)
                const telLink = document.querySelector('a[href^="tel:"]');
-               if (telLink) {
-                   phone = telLink.getAttribute('href').replace('tel:', '');
-               }
+               if (telLink) phone = telLink.getAttribute('href').replace('tel:', '');
+               
+               const webLink = document.querySelector('a[data-item-id="authority"]');
+               if (webLink) website = webLink.href;
 
-               // Attempt B: ARIA labels on buttons (Google hides numbers here for Hotels)
-               if (!phone) {
-                   const elements = document.querySelectorAll('button, a, div[role="button"]');
-                   for (const el of elements) {
-                       const aria = (el.getAttribute('aria-label') || '').toLowerCase();
-                       if (aria.includes('phone:') || aria.startsWith('call ')) {
-                           phone = aria.replace(/phone:?\s*/i, '').replace(/call\s*/i, '').trim();
-                           break;
+               // 2. Visual Line-By-Line Scanning (Defeats the Hotel/Cafe layout)
+               const visibleTextLines = document.body.innerText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+               
+               for (const line of visibleTextLines) {
+                   // Match standalone websites (e.g., "hotelswarnpalace.com")
+                   if (!website && /^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?$/.test(line)) {
+                       const lowerLine = line.toLowerCase();
+                       if (!lowerLine.includes('google') && !lowerLine.includes('justdial') && !lowerLine.includes('agoda') && !lowerLine.includes('makemytrip')) {
+                           website = line;
                        }
                    }
-               }
 
-               // Attempt C: Brute-force Regex over the whole sidebar
-               if (!phone) {
-                   const bodyText = document.body.innerText || "";
-                   const phoneRegex = /(?:\+?91[\-\s]?)?(?:0\d{2,4}[\-\s]?)?\d{3,5}[\-\s]?\d{3,5}/g;
-                   const matches = bodyText.match(phoneRegex);
-                   if (matches) {
-                       const valid = matches.filter(m => {
-                           const digits = m.replace(/\D/g, '');
-                           return digits.length >= 8 && digits.length <= 15;
-                       });
-                       // Usually the most accurate contact is towards the bottom/middle of the layout
-                       if (valid.length > 0) phone = valid[valid.length - 1]; 
-                   }
-               }
-
-               // --- 2. WEBSITE EXTRACTION ---
-               const webLinks = document.querySelectorAll('a[data-item-id="authority"], a[data-tooltip="Open website"], a[aria-label^="Website:"]');
-               if (webLinks.length > 0) {
-                   website = webLinks[0].href;
-               }
-
-               if (!website) {
-                   const allLinks = document.querySelectorAll('a');
-                   for (const a of allLinks) {
-                       const linkText = (a.innerText || '').toLowerCase();
-                       const href = a.href || '';
-                       if ((linkText.includes('.com') || linkText.includes('.in') || linkText.includes('website')) && href.startsWith('http') && !href.includes('google.com')) {
-                           website = href;
-                           break;
+                   // Match standalone phone numbers (e.g., "076177 66602")
+                   if (!phone) {
+                       const isPhoneFormat = /^[+\d\s\-\(\)]+$/.test(line);
+                       const digitsOnly = line.replace(/\D/g, '');
+                       
+                       if (isPhoneFormat && digitsOnly.length >= 8 && digitsOnly.length <= 15) {
+                           phone = line;
                        }
                    }
+
+                   if (phone && website) break; // Exit early if both are found
                }
 
                return { phone, website };
@@ -225,9 +203,7 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
            
            let finalPhone = enrichedData.phone;
            if (finalPhone) {
-               // Keep only numbers and '+'
                finalPhone = finalPhone.replace(/[^\d+]/g, '');
-               // Filter out junk short numbers (like prices that regex might have caught)
                if (finalPhone.length < 8) finalPhone = null;
            }
 
