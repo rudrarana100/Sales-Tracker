@@ -160,37 +160,62 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
            await detailPage.goto(basicLead.google_maps_link + "&hl=en", { waitUntil: 'domcontentloaded', timeout: 35000 });
            
            // LOCALHOST FIX: Wait explicitly for the sidebar containing info to load
-           await detailPage.waitForSelector('div[role="main"]', { timeout: 10000 }).catch(() => null);
-           await new Promise((r) => setTimeout(r, 2000)); // Let the phone/website icons render
+           await detailPage.waitForSelector('h1', { timeout: 10000 }).catch(() => null);
+           await new Promise((r) => setTimeout(r, 2000)); // Let the phone/website icons fully render
 
            const enrichedData = await detailPage.evaluate(() => {
                let phone = null;
                let website = null;
                
-               // Target the specific class Google uses for info items (phone, address, web)
-               const infoItems = document.querySelectorAll('.rogA2c, [data-item-id]');
+               // --- 1. PHONE EXTRACTION (Hotel/Cafe proof) ---
                
-               for (const item of infoItems) {
-                   const text = item.innerText || '';
-                   const dataId = item.getAttribute('data-item-id') || '';
-                   
-                   // Find Phone
-                   if (!phone) {
-                       if (dataId.includes('phone:tel:')) {
-                           phone = dataId.replace('phone:tel:', '');
-                       } else if (text.match(/(?:\+?91[\-\s]?)?[0-9]{3,5}[\-\s]?[0-9]{3,5}[\-\s]?[0-9]{0,5}/)) {
-                           // If the text inside the icon block looks like a number
-                           phone = text;
+               // Attempt A: Direct 'tel:' links
+               const telLink = document.querySelector('a[href^="tel:"]');
+               if (telLink) {
+                   phone = telLink.getAttribute('href').replace('tel:', '');
+               }
+
+               // Attempt B: ARIA labels on buttons (Google hides numbers here for Hotels)
+               if (!phone) {
+                   const elements = document.querySelectorAll('button, a, div[role="button"]');
+                   for (const el of elements) {
+                       const aria = (el.getAttribute('aria-label') || '').toLowerCase();
+                       if (aria.includes('phone:') || aria.startsWith('call ')) {
+                           phone = aria.replace(/phone:?\s*/i, '').replace(/call\s*/i, '').trim();
+                           break;
                        }
                    }
+               }
 
-                   // Find Website
-                   if (!website) {
-                       if (dataId === 'authority') {
-                           const aTag = item.closest('a') || item.querySelector('a');
-                           if (aTag) website = aTag.href;
-                       } else if (text.toLowerCase().includes('.com') || text.toLowerCase().includes('.in')) {
-                           website = text;
+               // Attempt C: Brute-force Regex over the whole sidebar
+               if (!phone) {
+                   const bodyText = document.body.innerText || "";
+                   const phoneRegex = /(?:\+?91[\-\s]?)?(?:0\d{2,4}[\-\s]?)?\d{3,5}[\-\s]?\d{3,5}/g;
+                   const matches = bodyText.match(phoneRegex);
+                   if (matches) {
+                       const valid = matches.filter(m => {
+                           const digits = m.replace(/\D/g, '');
+                           return digits.length >= 8 && digits.length <= 15;
+                       });
+                       // Usually the most accurate contact is towards the bottom/middle of the layout
+                       if (valid.length > 0) phone = valid[valid.length - 1]; 
+                   }
+               }
+
+               // --- 2. WEBSITE EXTRACTION ---
+               const webLinks = document.querySelectorAll('a[data-item-id="authority"], a[data-tooltip="Open website"], a[aria-label^="Website:"]');
+               if (webLinks.length > 0) {
+                   website = webLinks[0].href;
+               }
+
+               if (!website) {
+                   const allLinks = document.querySelectorAll('a');
+                   for (const a of allLinks) {
+                       const linkText = (a.innerText || '').toLowerCase();
+                       const href = a.href || '';
+                       if ((linkText.includes('.com') || linkText.includes('.in') || linkText.includes('website')) && href.startsWith('http') && !href.includes('google.com')) {
+                           website = href;
+                           break;
                        }
                    }
                }
@@ -202,7 +227,7 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
            if (finalPhone) {
                // Keep only numbers and '+'
                finalPhone = finalPhone.replace(/[^\d+]/g, '');
-               // Filter out junk short numbers
+               // Filter out junk short numbers (like prices that regex might have caught)
                if (finalPhone.length < 8) finalPhone = null;
            }
 
