@@ -58,7 +58,7 @@ app.get("/api/scrape-maps/status/:jobId", (req, res) => {
   const job = scrapingJobs[req.params.jobId];
   if (!job) {
     return res.status(404).json({ 
-      error: "Job session expired due to server restart. Please start scraping again.",
+      error: "Job session expired due to server restart.",
       expired: true 
     });
   }
@@ -72,29 +72,27 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
   try {
     browser = await puppeteer.launch({
       args: [
-        ...chromium.args,
         "--disable-blink-features=AutomationControlled",
         "--no-sandbox",
         "--disable-setuid-sandbox",
+        "--window-size=1280,800",
       ],
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+      defaultViewport: null,
+      // VISUAL DEBUG MODE FOR LOCALHOST: False means the browser will physically open
+      headless: false, 
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || await chromium.executablePath(),
       timeout: 60000, 
     });
 
     const page = await browser.newPage();
-    
-    await page.setUserAgent(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
-    );
+    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
 
     const searchQuery = `${query} in ${location}`;
-    const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`;
+    const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}?hl=en`;
     
-    console.log(`[Job ${jobId}] Phase 1: Scraping basic lists from ${searchUrl}`);
-    
+    console.log(`[Job ${jobId}] Phase 1: Basic lists from ${searchUrl}`);
     await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+    
     await page.waitForSelector('div[role="feed"], h1', { timeout: 25000 }).catch(() => null);
 
     const collectedLinks = new Map();
@@ -141,11 +139,10 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
           feed.scrollBy(0, 1500);
           return true;
         }
-        window.scrollBy(0, 1500);
         return false;
       });
 
-      if (!scrolled && scrollAttempts > 5) break;
+      if (!scrolled) break;
       await new Promise((r) => setTimeout(r, 1500));
     }
 
@@ -153,72 +150,48 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
     console.log(`[Job ${jobId}] Phase 2: Deep Extraction for ${leadsToEnrich.length} leads...`);
     
     const detailPage = await browser.newPage();
-    
-    await detailPage.setRequestInterception(true);
-    detailPage.on('request', (req) => {
-       const type = req.resourceType();
-       if (['image', 'stylesheet', 'font', 'media'].includes(type)) {
-           req.abort();
-       } else {
-           req.continue();
-       }
-    });
+    await detailPage.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
 
     job.leads = [];
     job.progress = 0;
 
     for (const basicLead of leadsToEnrich) {
        try {
-           await detailPage.goto(basicLead.google_maps_link, { waitUntil: 'domcontentloaded', timeout: 30000 });
+           await detailPage.goto(basicLead.google_maps_link + "&hl=en", { waitUntil: 'domcontentloaded', timeout: 35000 });
            
-           // CRITICAL FIX: Wait for the business details to actually load
-           await detailPage.waitForSelector('h1', { timeout: 10000 }).catch(() => null);
-           await new Promise((r) => setTimeout(r, 1500)); // Buffer for dynamic scripts
+           // LOCALHOST FIX: Wait explicitly for the sidebar containing info to load
+           await detailPage.waitForSelector('div[role="main"]', { timeout: 10000 }).catch(() => null);
+           await new Promise((r) => setTimeout(r, 2000)); // Let the phone/website icons render
 
            const enrichedData = await detailPage.evaluate(() => {
                let phone = null;
                let website = null;
                
-               // 1. Aggressive Element Scan
-               const allElements = document.querySelectorAll('button, a, div');
+               // Target the specific class Google uses for info items (phone, address, web)
+               const infoItems = document.querySelectorAll('.rogA2c, [data-item-id]');
                
-               for (const el of allElements) {
-                   const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
-                   const href = el.getAttribute('href') || '';
-                   const dataItemId = (el.getAttribute('data-item-id') || '').toLowerCase();
+               for (const item of infoItems) {
+                   const text = item.innerText || '';
+                   const dataId = item.getAttribute('data-item-id') || '';
                    
                    // Find Phone
                    if (!phone) {
-                       if (dataItemId.includes('phone:tel:')) {
-                           phone = dataItemId.replace('phone:tel:', '');
-                       } else if (ariaLabel.includes('phone:') || ariaLabel.includes('call ')) {
-                           phone = ariaLabel.replace(/phone:?\s*/i, '').replace(/call\s*/i, '').trim();
-                       } else if (href.startsWith('tel:')) {
-                           phone = href.replace('tel:', '');
+                       if (dataId.includes('phone:tel:')) {
+                           phone = dataId.replace('phone:tel:', '');
+                       } else if (text.match(/(?:\+?91[\-\s]?)?[0-9]{3,5}[\-\s]?[0-9]{3,5}[\-\s]?[0-9]{0,5}/)) {
+                           // If the text inside the icon block looks like a number
+                           phone = text;
                        }
                    }
 
                    // Find Website
                    if (!website) {
-                       if (dataItemId === 'authority') {
-                           website = href;
-                       } else if (ariaLabel.includes('website:') || ariaLabel.includes('open website')) {
-                           website = href;
+                       if (dataId === 'authority') {
+                           const aTag = item.closest('a') || item.querySelector('a');
+                           if (aTag) website = aTag.href;
+                       } else if (text.toLowerCase().includes('.com') || text.toLowerCase().includes('.in')) {
+                           website = text;
                        }
-                   }
-                   
-                   if (phone && website) break;
-               }
-
-               // 2. Fallback: Full Page Regex Scan if elements are hidden
-               const fullText = document.body.innerText || "";
-               
-               if (!phone) {
-                   const phoneRegex = /(?:\+?\d{1,3}[\-\s]?)?\(?\d{2,4}\)?[\-\s]?\d{3,4}[\-\s]?\d{3,4}/g;
-                   const matches = fullText.match(phoneRegex);
-                   if (matches) {
-                       const valid = matches.filter(m => m.replace(/\D/g, '').length >= 8);
-                       if (valid.length > 0) phone = valid[valid.length - 1]; // Pick most likely candidate
                    }
                }
 
@@ -226,30 +199,35 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
            });
            
            let finalPhone = enrichedData.phone;
-           if (finalPhone) finalPhone = finalPhone.replace(/[^\d+]/g, '');
+           if (finalPhone) {
+               // Keep only numbers and '+'
+               finalPhone = finalPhone.replace(/[^\d+]/g, '');
+               // Filter out junk short numbers
+               if (finalPhone.length < 8) finalPhone = null;
+           }
+
+           let finalWeb = enrichedData.website;
+           if (finalWeb && !finalWeb.startsWith('http')) finalWeb = `https://${finalWeb}`;
 
            job.leads.push({
                lead_name: basicLead.lead_name,
                phone: finalPhone || null,
-               website: enrichedData.website || null,
+               website: finalWeb || null,
                google_maps_link: basicLead.google_maps_link,
                business_type: query, 
-               email: null,
                status: "cold",
-               last_outcome: "scraped_from_maps"
            });
            
            job.progress = job.leads.length; 
 
        } catch (err) {
-           console.error("Detail Extraction Error:", err.message);
+           console.error(`Detail Extraction Error for ${basicLead.lead_name}:`, err.message);
            job.leads.push({
                ...basicLead,
                phone: null,
                website: null,
                business_type: query,
                status: "cold",
-               last_outcome: "scraped_from_maps"
            });
            job.progress = job.leads.length;
        }
