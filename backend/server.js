@@ -6,11 +6,17 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import chromium from "@sparticuz/chromium";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
+import { createClient } from "@supabase/supabase-js"; // Added Supabase client
 
 import authRoutes from "./routes/authRoutes.js";
 import calendarRoutes from "./routes/calendarRoutes.js";
 
 dotenv.config();
+
+// Initialize Supabase (Make sure SUPABASE_URL and SUPABASE_ANON_KEY are in your .env)
+const supabaseUrl = process.env.SUPABASE_URL || "YOUR_SUPABASE_URL";
+const supabaseKey = process.env.SUPABASE_ANON_KEY || "YOUR_SUPABASE_KEY";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 puppeteer.use(StealthPlugin());
 
@@ -51,6 +57,26 @@ app.get("/api/test", (req, res) => res.json({ message: "Backend connected succes
 app.use("/auth", authRoutes);
 app.use("/calendar", calendarRoutes);
 
+// --- NEW COLLECTION DELETE ROUTE ---
+app.delete("/api/collections/:name", async (req, res) => {
+  const collectionName = req.params.name;
+  try {
+    // Deletes all leads where the import_batch matches the collection name
+    const { error } = await supabase
+      .from("leads")
+      .delete()
+      .eq("import_batch", collectionName);
+
+    if (error) throw error;
+
+    res.json({ success: true, message: `Deleted collection: ${collectionName}` });
+  } catch (error) {
+    console.error("Delete Collection Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+// ------------------------------------
+
 app.post("/api/scrape-maps/start", async (req, res) => {
   const { query, location, targetCount = 20 } = req.body;
 
@@ -90,7 +116,6 @@ app.get("/api/scrape-maps/status/:jobId", (req, res) => {
 
 /**
  * Normalize phone numbers to a consistent Indian format (+91XXXXXXXXXX).
- * Handles: "076177 66602", "+91 76177 66602", "0761-7766602", "91 7617766602"
  */
 function normalizePhone(raw) {
   if (!raw) return null;
@@ -153,10 +178,6 @@ function normalizeWebsite(raw) {
 
 /**
  * Runs inside the Google Maps place page and pulls phone + website.
- * Works for both the "flat" layout (CAs, real estate, offices) and the
- * "rich" layout (hotels, cafes, restaurants) by:
- *   1. reading stable data-item-id / aria-label attributes first
- *   2. falling back to scanning ONLY the detail panel (not the whole page)
  */
 async function extractPlaceDetails(page) {
   return page.evaluate(() => {
@@ -164,7 +185,6 @@ async function extractPlaceDetails(page) {
     let website = null;
 
     // ---- 1. Phone ---------------------------------------------------------
-    // Standard layout: <button data-item-id="phone:tel:076177 66602">
     const phoneBtn = document.querySelector('button[data-item-id^="phone:tel:"], a[data-item-id^="phone:tel:"]');
     if (phoneBtn) {
       phone = (phoneBtn.getAttribute("data-item-id") || "").replace("phone:tel:", "");
@@ -244,7 +264,6 @@ async function extractPlaceDetails(page) {
 
 /**
  * Opens a place page, waits for the real detail panel, extracts data.
- * Retries once with a reload if nothing was found (hotels / cafes load slowly).
  */
 async function scrapePlaceDetails(detailPage, link) {
   await detailPage.goto(`${link}&hl=en`, {
@@ -252,7 +271,6 @@ async function scrapePlaceDetails(detailPage, link) {
     timeout: 35000,
   });
 
-  // Wait for actual detail-panel content, not just any <h1>
   await detailPage
     .waitForSelector('button[data-item-id], a[data-item-id], div[role="main"] h1', {
       timeout: 12000,
@@ -262,7 +280,6 @@ async function scrapePlaceDetails(detailPage, link) {
 
   let data = await extractPlaceDetails(detailPage);
 
-  // Retry once: reload and give the panel more time to render
   if (!data.phone && !data.website) {
     await detailPage.reload({ waitUntil: "domcontentloaded", timeout: 35000 }).catch(() => null);
     await detailPage
@@ -272,7 +289,6 @@ async function scrapePlaceDetails(detailPage, link) {
     data = await extractPlaceDetails(detailPage);
   }
 
-  // Debug: if still empty, show where we actually ended up
   if (!data.phone && !data.website) {
     const title = await detailPage.title().catch(() => "");
     console.log(`[debug] EMPTY RESULT -> title: "${title}" | url: ${detailPage.url().slice(0, 150)}`);
@@ -300,7 +316,6 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
         "--disable-setuid-sandbox",
         "--window-size=1280,800",
       ],
-      // Hidden by default. To watch the browser while debugging, set SHOW_BROWSER=true in backend/.env
       defaultViewport: isProd || process.env.SHOW_BROWSER !== "true" ? { width: 1280, height: 800 } : null,
       headless: isProd ? chromium.headless ?? "new" : process.env.SHOW_BROWSER === "true" ? false : "new",
       executablePath: isProd
@@ -335,7 +350,6 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
           let name = "";
           let link = "";
 
-          // Hotels/cafes cards can contain booking or ad links - always prefer the real place link
           const linkEl = item.querySelector('a[href*="/maps/place/"]') || item.querySelector("a");
           if (linkEl) link = linkEl.href;
 
@@ -377,7 +391,6 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
 
     const detailPage = await browser.newPage();
     await detailPage.setUserAgent(USER_AGENT);
-    // A background tab renders slowly, so keep this tab in front
     await detailPage.bringToFront();
 
     job.leads = [];
