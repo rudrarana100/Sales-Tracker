@@ -284,6 +284,25 @@ function AllLeadsPage() {
             selectedCollection={selectedCollection}
             onSelectCollection={setSelectedCollection}
             leads={leads}
+            onDeleteCollection={async (collectionName) => {
+              try {
+                const res = await fetch(`http://localhost:5000/api/collections/${encodeURIComponent(collectionName)}`, {
+                  method: 'DELETE'
+                });
+                
+                if (!res.ok) throw new Error("Failed to delete");
+                
+                toast.success(`Deleted collection: ${collectionName}`);
+                
+                if (selectedCollection === collectionName) {
+                  setSelectedCollection("all");
+                }
+                
+                fetchLeads(); 
+              } catch (err) {
+                toast.error("Failed to delete collection");
+              }
+            }}
           />
         </Suspense>
       )}

@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FolderKanban, Plus, Folder, Check, Layers } from "lucide-react";
+import { FolderKanban, Plus, Folder, Check, Layers, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CollectionManagerModal({
@@ -12,6 +12,7 @@ export default function CollectionManagerModal({
   selectedCollection,
   onSelectCollection,
   leads = [],
+  onDeleteCollection // <-- Added this new prop
 }) {
   const [newFolderInput, setNewFolderInput] = useState("");
 
@@ -23,6 +24,20 @@ export default function CollectionManagerModal({
     toast.success(`Switched to new collection: "${folderName}"`);
     setNewFolderInput("");
     onClose();
+  }
+
+  // --- NEW DELETE HANDLER ---
+  async function handleDelete(e, collectionName) {
+    e.stopPropagation(); // Prevents the folder from being selected when you click the trash icon
+    if (!window.confirm(`Are you sure you want to delete "${collectionName}"? This removes all leads inside it.`)) return;
+
+    try {
+      if (onDeleteCollection) {
+        await onDeleteCollection(collectionName);
+      }
+    } catch (error) {
+      toast.error("Failed to delete collection");
+    }
   }
 
   return (
@@ -90,7 +105,8 @@ export default function CollectionManagerModal({
                   onSelectCollection(col);
                   onClose();
                 }}
-                className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer text-xs ${
+                // Added group class here to handle hover states for the trash button
+                className={`group flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer text-xs ${
                   isSelected
                     ? "border-violet-500 bg-violet-50/60 dark:bg-violet-950/40 font-bold text-violet-600 dark:text-violet-400"
                     : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300"
@@ -98,12 +114,23 @@ export default function CollectionManagerModal({
               >
                 <div className="flex items-center gap-2.5">
                   <FolderKanban className={`h-4 w-4 ${isSelected ? "text-violet-600" : "text-violet-500"}`} />
-                  <span className="truncate max-w-[200px]">{col}</span>
+                  <span className="truncate max-w-[180px]">{col}</span>
                 </div>
+                
                 <div className="flex items-center gap-2">
                   <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md text-[11px] text-slate-500">
                     {count}
                   </span>
+                  
+                  {/* --- NEW TRASH BUTTON --- */}
+                  <button
+                    onClick={(e) => handleDelete(e, col)}
+                    className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-all"
+                    title="Delete Collection"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+
                   {isSelected && <Check className="h-4 w-4 text-violet-600" />}
                 </div>
               </div>
