@@ -5,6 +5,7 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import chromium from "@sparticuz/chromium";
 import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
 
 import authRoutes from "./routes/authRoutes.js";
 import calendarRoutes from "./routes/calendarRoutes.js";
@@ -17,7 +18,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: true, 
+    origin: true,
     credentials: true,
   })
 );
@@ -25,6 +26,24 @@ app.use(
 app.use(express.json());
 
 const scrapingJobs = {};
+
+const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Finds Chrome/Edge installed on this computer (used when running locally on Windows/Mac)
+function findLocalChrome() {
+  const candidates = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/usr/bin/google-chrome",
+  ].filter(Boolean);
+  return candidates.find((p) => fs.existsSync(p)) || null;
+}
 
 app.get("/", (req, res) => res.send("Backend Running 🚀"));
 app.get("/api/test", (req, res) => res.json({ message: "Backend connected successfully!" }));
@@ -57,41 +76,248 @@ app.post("/api/scrape-maps/start", async (req, res) => {
 app.get("/api/scrape-maps/status/:jobId", (req, res) => {
   const job = scrapingJobs[req.params.jobId];
   if (!job) {
-    return res.status(404).json({ 
+    return res.status(404).json({
       error: "Job session expired due to server restart.",
-      expired: true 
+      expired: true,
     });
   }
   return res.json(job);
 });
 
+/* -------------------------------------------------------------------------- */
+/*  Helpers                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Normalize phone numbers to a consistent Indian format (+91XXXXXXXXXX).
+ * Handles: "076177 66602", "+91 76177 66602", "0761-7766602", "91 7617766602"
+ */
+function normalizePhone(raw) {
+  if (!raw) return null;
+
+  const hasPlus = raw.trim().startsWith("+");
+  let digits = raw.replace(/\D/g, "");
+  if (!digits) return null;
+
+  // +91 / 91 prefix
+  if (digits.length === 12 && digits.startsWith("91")) {
+    return `+${digits}`;
+  }
+  // leading 0 (STD / trunk prefix) + 10 digits
+  if (digits.length === 11 && digits.startsWith("0")) {
+    return `+91${digits.slice(1)}`;
+  }
+  // plain 10 digits
+  if (digits.length === 10) {
+    return `+91${digits}`;
+  }
+  // other international numbers: keep as is if they came with a +
+  if (hasPlus && digits.length >= 8 && digits.length <= 15) {
+    return `+${digits}`;
+  }
+  // landline-ish leftovers (8-9 digits without STD code): keep digits
+  if (digits.length >= 8 && digits.length <= 15) {
+    return digits;
+  }
+  return null;
+}
+
+function normalizeWebsite(raw) {
+  if (!raw) return null;
+  let site = raw.trim();
+  if (!site) return null;
+  if (!/^https?:\/\//i.test(site)) site = `https://${site}`;
+
+  // Skip aggregator / google links - they are not the business's own site
+  const blocked = [
+    "google.",
+    "justdial",
+    "agoda",
+    "makemytrip",
+    "booking.com",
+    "tripadvisor",
+    "goibibo",
+    "zomato",
+    "swiggy",
+    "mmt.",
+    "cleartrip",
+    "expedia",
+    "facebook.com",
+    "instagram.com",
+  ];
+  const lower = site.toLowerCase();
+  if (blocked.some((b) => lower.includes(b))) return null;
+
+  return site;
+}
+
+/**
+ * Runs inside the Google Maps place page and pulls phone + website.
+ * Works for both the "flat" layout (CAs, real estate, offices) and the
+ * "rich" layout (hotels, cafes, restaurants) by:
+ *   1. reading stable data-item-id / aria-label attributes first
+ *   2. falling back to scanning ONLY the detail panel (not the whole page)
+ */
+async function extractPlaceDetails(page) {
+  return page.evaluate(() => {
+    let phone = null;
+    let website = null;
+
+    // ---- 1. Phone ---------------------------------------------------------
+    // Standard layout: <button data-item-id="phone:tel:076177 66602">
+    const phoneBtn = document.querySelector('button[data-item-id^="phone:tel:"], a[data-item-id^="phone:tel:"]');
+    if (phoneBtn) {
+      phone = (phoneBtn.getAttribute("data-item-id") || "").replace("phone:tel:", "");
+      if (!phone) {
+        phone = (phoneBtn.getAttribute("aria-label") || "").replace(/^Phone:\s*/i, "");
+      }
+    }
+    // Legacy tel: anchors
+    if (!phone) {
+      const tel = document.querySelector('a[href^="tel:"]');
+      if (tel) phone = tel.getAttribute("href").replace("tel:", "");
+    }
+
+    // ---- 2. Website -------------------------------------------------------
+    const webEl = document.querySelector('a[data-item-id="authority"], button[data-item-id="authority"]');
+    if (webEl) {
+      website = webEl.href || (webEl.getAttribute("aria-label") || "").replace(/^Website:\s*/i, "");
+    }
+
+    // ---- 3. Fallback: aria-labels inside the detail panel ----------------
+    if (!phone || !website) {
+      const panel =
+        document.querySelector('div[role="main"][aria-label]') ||
+        document.querySelector('div[role="main"]');
+      const scope = panel || document.body;
+
+      const labelled = scope.querySelectorAll("[aria-label]");
+      for (const el of labelled) {
+        const label = el.getAttribute("aria-label") || "";
+        if (!phone && /^Phone:/i.test(label)) phone = label.replace(/^Phone:\s*/i, "");
+        if (!website && /^Website:/i.test(label)) website = label.replace(/^Website:\s*/i, "");
+        if (phone && website) break;
+      }
+
+      // ---- 4. Last resort: visible text lines in the panel only ----------
+      if (!phone || !website) {
+        const lines = scope.innerText
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean);
+
+        const blocked = [
+          "google",
+          "justdial",
+          "agoda",
+          "makemytrip",
+          "booking.com",
+          "tripadvisor",
+          "goibibo",
+          "zomato",
+          "swiggy",
+        ];
+
+        for (const line of lines) {
+          if (
+            !website &&
+            /^(https?:\/\/)?[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}(\/\S*)?$/i.test(line) &&
+            !blocked.some((b) => line.toLowerCase().includes(b))
+          ) {
+            website = line;
+          }
+
+          if (!phone && /^[+\d][\d\s\-()]{7,18}$/.test(line)) {
+            const d = line.replace(/\D/g, "");
+            // 10-13 digits avoids matching prices, pin codes, review counts
+            if (d.length >= 10 && d.length <= 13) phone = line;
+          }
+
+          if (phone && website) break;
+        }
+      }
+    }
+
+    return { phone, website };
+  });
+}
+
+/**
+ * Opens a place page, waits for the real detail panel, extracts data.
+ * Retries once with a reload if nothing was found (hotels / cafes load slowly).
+ */
+async function scrapePlaceDetails(detailPage, link) {
+  await detailPage.goto(`${link}&hl=en`, {
+    waitUntil: "domcontentloaded",
+    timeout: 35000,
+  });
+
+  // Wait for actual detail-panel content, not just any <h1>
+  await detailPage
+    .waitForSelector('button[data-item-id], a[data-item-id], div[role="main"] h1', {
+      timeout: 12000,
+    })
+    .catch(() => null);
+  await sleep(2500);
+
+  let data = await extractPlaceDetails(detailPage);
+
+  // Retry once: reload and give the panel more time to render
+  if (!data.phone && !data.website) {
+    await detailPage.reload({ waitUntil: "domcontentloaded", timeout: 35000 }).catch(() => null);
+    await detailPage
+      .waitForSelector('button[data-item-id], a[data-item-id]', { timeout: 12000 })
+      .catch(() => null);
+    await sleep(3500);
+    data = await extractPlaceDetails(detailPage);
+  }
+
+  // Debug: if still empty, show where we actually ended up
+  if (!data.phone && !data.website) {
+    const title = await detailPage.title().catch(() => "");
+    console.log(`[debug] EMPTY RESULT -> title: "${title}" | url: ${detailPage.url().slice(0, 150)}`);
+  }
+
+  return data;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Scraper                                                                   */
+/* -------------------------------------------------------------------------- */
+
 async function runBackgroundScraper(jobId, query, location, targetCount) {
   const job = scrapingJobs[jobId];
   let browser;
 
+  const isProd = process.env.NODE_ENV === "production";
+
   try {
     browser = await puppeteer.launch({
       args: [
+        ...(isProd ? chromium.args : []),
         "--disable-blink-features=AutomationControlled",
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--window-size=1280,800",
       ],
-      defaultViewport: null,
-      headless: false, // Keep false while testing on localhost
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || await chromium.executablePath(),
-      timeout: 60000, 
+      // Hidden by default. To watch the browser while debugging, set SHOW_BROWSER=true in backend/.env
+      defaultViewport: isProd || process.env.SHOW_BROWSER !== "true" ? { width: 1280, height: 800 } : null,
+      headless: isProd ? chromium.headless ?? "new" : process.env.SHOW_BROWSER === "true" ? false : "new",
+      executablePath: isProd
+        ? process.env.PUPPETEER_EXECUTABLE_PATH || (await chromium.executablePath())
+        : findLocalChrome() || (await chromium.executablePath()),
+      timeout: 60000,
     });
 
     const page = await browser.newPage();
-    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
+    await page.setUserAgent(USER_AGENT);
 
     const searchQuery = `${query} in ${location}`;
     const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}?hl=en`;
-    
+
     console.log(`[Job ${jobId}] Phase 1: Basic lists from ${searchUrl}`);
     await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
-    
+
     await page.waitForSelector('div[role="feed"], h1', { timeout: 25000 }).catch(() => null);
 
     const collectedLinks = new Map();
@@ -109,7 +335,8 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
           let name = "";
           let link = "";
 
-          const linkEl = item.querySelector('a');
+          // Hotels/cafes cards can contain booking or ad links - always prefer the real place link
+          const linkEl = item.querySelector('a[href*="/maps/place/"]') || item.querySelector("a");
           if (linkEl) link = linkEl.href;
 
           name = item.getAttribute("aria-label");
@@ -142,102 +369,64 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
       });
 
       if (!scrolled) break;
-      await new Promise((r) => setTimeout(r, 1500));
+      await sleep(1500);
     }
 
     const leadsToEnrich = Array.from(collectedLinks.values()).slice(0, targetCount);
     console.log(`[Job ${jobId}] Phase 2: Deep Extraction for ${leadsToEnrich.length} leads...`);
-    
+
     const detailPage = await browser.newPage();
-    await detailPage.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
+    await detailPage.setUserAgent(USER_AGENT);
+    // A background tab renders slowly, so keep this tab in front
+    await detailPage.bringToFront();
 
     job.leads = [];
     job.progress = 0;
 
     for (const basicLead of leadsToEnrich) {
-       try {
-           await detailPage.goto(basicLead.google_maps_link + "&hl=en", { waitUntil: 'domcontentloaded', timeout: 35000 });
-           
-           // Ensure the side panel is fully loaded
-           await detailPage.waitForSelector('h1', { timeout: 10000 }).catch(() => null);
-           await new Promise((r) => setTimeout(r, 2000)); 
+      try {
+        const enrichedData = await scrapePlaceDetails(detailPage, basicLead.google_maps_link);
 
-           const enrichedData = await detailPage.evaluate(() => {
-               let phone = null;
-               let website = null;
-               
-               // 1. Standard Extraction (Fastest if available)
-               const telLink = document.querySelector('a[href^="tel:"]');
-               if (telLink) phone = telLink.getAttribute('href').replace('tel:', '');
-               
-               const webLink = document.querySelector('a[data-item-id="authority"]');
-               if (webLink) website = webLink.href;
+        const finalPhone = normalizePhone(enrichedData.phone);
+        const finalWeb = normalizeWebsite(enrichedData.website);
 
-               // 2. Visual Line-By-Line Scanning (Defeats the Hotel/Cafe layout)
-               const visibleTextLines = document.body.innerText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-               
-               for (const line of visibleTextLines) {
-                   // Match standalone websites (e.g., "hotelswarnpalace.com")
-                   if (!website && /^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?$/.test(line)) {
-                       const lowerLine = line.toLowerCase();
-                       if (!lowerLine.includes('google') && !lowerLine.includes('justdial') && !lowerLine.includes('agoda') && !lowerLine.includes('makemytrip')) {
-                           website = line;
-                       }
-                   }
+        if (!finalPhone) {
+          console.log(`[Job ${jobId}] No phone found for "${basicLead.lead_name}"`);
+        }
 
-                   // Match standalone phone numbers (e.g., "076177 66602")
-                   if (!phone) {
-                       const isPhoneFormat = /^[+\d\s\-\(\)]+$/.test(line);
-                       const digitsOnly = line.replace(/\D/g, '');
-                       
-                       if (isPhoneFormat && digitsOnly.length >= 8 && digitsOnly.length <= 15) {
-                           phone = line;
-                       }
-                   }
+        job.leads.push({
+          lead_name: basicLead.lead_name,
+          phone: finalPhone || null,
+          website: finalWeb || null,
+          google_maps_link: basicLead.google_maps_link,
+          business_type: query,
+          status: "cold",
+        });
 
-                   if (phone && website) break; // Exit early if both are found
-               }
-
-               return { phone, website };
-           });
-           
-           let finalPhone = enrichedData.phone;
-           if (finalPhone) {
-               finalPhone = finalPhone.replace(/[^\d+]/g, '');
-               if (finalPhone.length < 8) finalPhone = null;
-           }
-
-           let finalWeb = enrichedData.website;
-           if (finalWeb && !finalWeb.startsWith('http')) finalWeb = `https://${finalWeb}`;
-
-           job.leads.push({
-               lead_name: basicLead.lead_name,
-               phone: finalPhone || null,
-               website: finalWeb || null,
-               google_maps_link: basicLead.google_maps_link,
-               business_type: query, 
-               status: "cold",
-           });
-           
-           job.progress = job.leads.length; 
-
-       } catch (err) {
-           console.error(`Detail Extraction Error for ${basicLead.lead_name}:`, err.message);
-           job.leads.push({
-               ...basicLead,
-               phone: null,
-               website: null,
-               business_type: query,
-               status: "cold",
-           });
-           job.progress = job.leads.length;
-       }
+        job.progress = job.leads.length;
+      } catch (err) {
+        console.error(`Detail Extraction Error for ${basicLead.lead_name}:`, err.message);
+        job.leads.push({
+          ...basicLead,
+          phone: null,
+          website: null,
+          business_type: query,
+          status: "cold",
+        });
+        job.progress = job.leads.length;
+      }
     }
 
     await browser.close();
     job.status = "completed";
+
+    console.log(`\n[Job ${jobId}] DONE. Results (${job.leads.length} leads):`);
+    for (const l of job.leads) {
+      console.log(`  - ${l.lead_name} | phone: ${l.phone} | website: ${l.website}`);
+    }
+    console.log("");
   } catch (error) {
-    if (browser) await browser.close();
+    if (browser) await browser.close().catch(() => null);
     console.error("Job Scraping Error:", error);
     job.status = "failed";
     job.error = error.message;
@@ -246,5 +435,5 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT} (process id ${process.pid})`);
 });
