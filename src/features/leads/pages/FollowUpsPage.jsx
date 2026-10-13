@@ -10,6 +10,7 @@ import {
   skipFollowUp,
 } from "../api/followUpsApi";
 import { addActivity } from "../api/activitiesApi";
+import { updateLead } from "../api/leadsApi"; // Added this import
 import {
   Globe,
   MapPin,
@@ -78,14 +79,26 @@ function FollowUpsPage() {
     }
   }
 
+  // --- UPDATED SKIP LOGIC ---
   async function handleSkip(followUp) {
     try {
+      // 1. Skip the task in the database
       await skipFollowUp(followUp.id);
+      
+      // 2. Update the Lead's outcome so it displays "skipped" in their details
+      if (followUp.lead_id) {
+        await updateLead(followUp.lead_id, {
+          last_outcome: "skipped"
+        });
+      }
+
+      // 3. Log the activity in the timeline
       await addActivity({
         lead_id: followUp.lead_id,
         activity_type: "follow_up_skipped",
         description: `Skipped follow-up: ${followUp.title}`,
       });
+      
       toast.success("Follow-up skipped");
       await fetchFollowUps();
     } catch (error) {
@@ -93,6 +106,7 @@ function FollowUpsPage() {
       toast.error("Failed to skip follow-up.");
     }
   }
+  // --------------------------
 
   if (loading) {
     return <LoadingState message="Loading follow-up tasks..." />;
