@@ -152,9 +152,34 @@ function CallSessionPage() {
     }
   }, [currentLead]);
 
-  function skipLead() {
-    if (currentLead) setSkippedLeadIds((p) => [...p, currentLead.id]);
+  // --- UPDATED SKIP LEAD FUNCTION ---
+  async function skipLead() {
+    if (!currentLead) return;
+
+    try {
+      // Update the database to reflect it was skipped, without changing the 'cold' status
+      await updateLead(currentLead.id, {
+        last_outcome: "skipped",
+      });
+
+      // Log the skip in the interaction timeline
+      await addActivity({
+        lead_id: currentLead.id,
+        activity_type: "call_outcome",
+        description: "Lead skipped during call session",
+      });
+
+      // Remove from current queue view
+      setSkippedLeadIds((prev) => [...prev, currentLead.id]);
+      
+      // Fetch fresh data in the background so the timeline is updated if they view it later
+      fetchLeads();
+    } catch (error) {
+      console.error("Error skipping lead:", error);
+      toast.error("Failed to log skipped outcome.");
+    }
   }
+  // -----------------------------------
 
   // Keyboard Shortcuts Listener for Call Session
   useEffect(() => {
@@ -751,7 +776,7 @@ function CallSessionPage() {
                     {currentLead.last_contact_date
                       ? new Date(
                           currentLead.last_contact_date
-                      ).toLocaleDateString("en-IN")
+                        ).toLocaleDateString("en-IN")
                       : "--"}
                   </p>
                 </div>
@@ -870,8 +895,8 @@ function CallSessionPage() {
                     )}
                   </button>
                 )}
-            </div>
-          )}
+              </div>
+            )}
           </SectionCard>
         </div>
 
