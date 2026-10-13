@@ -7,13 +7,12 @@ import chromium from "@sparticuz/chromium";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import { createClient } from "@supabase/supabase-js";
-
+import cron from "node-cron";
 import authRoutes from "./routes/authRoutes.js";
 import calendarRoutes from "./routes/calendarRoutes.js";
 
 dotenv.config();
 
-// Initialize Supabase using your exact VITE_ variables
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABSE_ANON_KEY;
 
@@ -406,9 +405,24 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
     job.status = "completed";
 
     console.log(`\n[Job ${jobId}] DONE. Results (${job.leads.length} leads):`);
-    for (const l of job.leads) {
-      console.log(`  - ${l.lead_name} | phone: ${l.phone} | website: ${l.website}`);
+    
+    if (job.leads.length > 0) {
+      const formattedLeads = job.leads.map(lead => ({
+        ...lead,
+        import_batch: `${query} - ${location}`.toLowerCase()
+      }));
+
+      const { error: dbError } = await supabase
+        .from("leads")
+        .insert(formattedLeads);
+
+      if (dbError) {
+        console.error("Failed to save cron leads to database:", dbError);
+      } else {
+        console.log(`Successfully saved ${formattedLeads.length} leads to Supabase!`);
+      }
     }
+
     console.log("");
   } catch (error) {
     if (browser) await browser.close().catch(() => null);
@@ -417,6 +431,34 @@ async function runBackgroundScraper(jobId, query, location, targetCount) {
     job.error = error.message;
   }
 }
+
+cron.schedule("0 2 * * *", async () => {
+  console.log("⏰ Cron Job Triggered: Starting nightly lead scraping...");
+  
+  const queries = [
+    { query: "hotels", location: "Noida", targetCount: 50 },
+    { query: "chartered accountants", location: "Gurgaon", targetCount: 50 }
+  ];
+
+  for (const task of queries) {
+    const jobId = uuidv4();
+    
+    scrapingJobs[jobId] = {
+      id: jobId,
+      status: "processing",
+      progress: 0,
+      target: task.targetCount,
+      leads: [],
+      error: null,
+    };
+
+    console.log(`Starting automated scrape for ${task.query} in ${task.location}...`);
+    
+    await runBackgroundScraper(jobId, task.query, task.location, task.targetCount);
+  }
+  
+  console.log("✅ Nightly cron jobs completed.");
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
