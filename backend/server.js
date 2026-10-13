@@ -6,16 +6,21 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import chromium from "@sparticuz/chromium";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
-import { createClient } from "@supabase/supabase-js"; // Added Supabase client
+import { createClient } from "@supabase/supabase-js";
 
 import authRoutes from "./routes/authRoutes.js";
 import calendarRoutes from "./routes/calendarRoutes.js";
 
 dotenv.config();
 
-// Initialize Supabase (Make sure SUPABASE_URL and SUPABASE_ANON_KEY are in your .env)
-const supabaseUrl = process.env.SUPABASE_URL || "YOUR_SUPABASE_URL";
-const supabaseKey = process.env.SUPABASE_ANON_KEY || "YOUR_SUPABASE_KEY";
+// Initialize Supabase using your exact VITE_ variables
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABSE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.warn("⚠️ Warning: Supabase credentials missing in .env!");
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 puppeteer.use(StealthPlugin());
@@ -38,7 +43,6 @@ const USER_AGENT =
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Finds Chrome/Edge installed on this computer (used when running locally on Windows/Mac)
 function findLocalChrome() {
   const candidates = [
     process.env.PUPPETEER_EXECUTABLE_PATH,
@@ -57,11 +61,9 @@ app.get("/api/test", (req, res) => res.json({ message: "Backend connected succes
 app.use("/auth", authRoutes);
 app.use("/calendar", calendarRoutes);
 
-// --- NEW COLLECTION DELETE ROUTE ---
 app.delete("/api/collections/:name", async (req, res) => {
   const collectionName = req.params.name;
   try {
-    // Deletes all leads where the import_batch matches the collection name
     const { error } = await supabase
       .from("leads")
       .delete()
@@ -75,7 +77,6 @@ app.delete("/api/collections/:name", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-// ------------------------------------
 
 app.post("/api/scrape-maps/start", async (req, res) => {
   const { query, location, targetCount = 20 } = req.body;
@@ -110,13 +111,6 @@ app.get("/api/scrape-maps/status/:jobId", (req, res) => {
   return res.json(job);
 });
 
-/* -------------------------------------------------------------------------- */
-/*  Helpers                                                                   */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Normalize phone numbers to a consistent Indian format (+91XXXXXXXXXX).
- */
 function normalizePhone(raw) {
   if (!raw) return null;
 
@@ -124,23 +118,18 @@ function normalizePhone(raw) {
   let digits = raw.replace(/\D/g, "");
   if (!digits) return null;
 
-  // +91 / 91 prefix
   if (digits.length === 12 && digits.startsWith("91")) {
     return `+${digits}`;
   }
-  // leading 0 (STD / trunk prefix) + 10 digits
   if (digits.length === 11 && digits.startsWith("0")) {
     return `+91${digits.slice(1)}`;
   }
-  // plain 10 digits
   if (digits.length === 10) {
     return `+91${digits}`;
   }
-  // other international numbers: keep as is if they came with a +
   if (hasPlus && digits.length >= 8 && digits.length <= 15) {
     return `+${digits}`;
   }
-  // landline-ish leftovers (8-9 digits without STD code): keep digits
   if (digits.length >= 8 && digits.length <= 15) {
     return digits;
   }
@@ -153,7 +142,6 @@ function normalizeWebsite(raw) {
   if (!site) return null;
   if (!/^https?:\/\//i.test(site)) site = `https://${site}`;
 
-  // Skip aggregator / google links - they are not the business's own site
   const blocked = [
     "google.",
     "justdial",
@@ -176,15 +164,11 @@ function normalizeWebsite(raw) {
   return site;
 }
 
-/**
- * Runs inside the Google Maps place page and pulls phone + website.
- */
 async function extractPlaceDetails(page) {
   return page.evaluate(() => {
     let phone = null;
     let website = null;
 
-    // ---- 1. Phone ---------------------------------------------------------
     const phoneBtn = document.querySelector('button[data-item-id^="phone:tel:"], a[data-item-id^="phone:tel:"]');
     if (phoneBtn) {
       phone = (phoneBtn.getAttribute("data-item-id") || "").replace("phone:tel:", "");
@@ -192,19 +176,16 @@ async function extractPlaceDetails(page) {
         phone = (phoneBtn.getAttribute("aria-label") || "").replace(/^Phone:\s*/i, "");
       }
     }
-    // Legacy tel: anchors
     if (!phone) {
       const tel = document.querySelector('a[href^="tel:"]');
       if (tel) phone = tel.getAttribute("href").replace("tel:", "");
     }
 
-    // ---- 2. Website -------------------------------------------------------
     const webEl = document.querySelector('a[data-item-id="authority"], button[data-item-id="authority"]');
     if (webEl) {
       website = webEl.href || (webEl.getAttribute("aria-label") || "").replace(/^Website:\s*/i, "");
     }
 
-    // ---- 3. Fallback: aria-labels inside the detail panel ----------------
     if (!phone || !website) {
       const panel =
         document.querySelector('div[role="main"][aria-label]') ||
@@ -219,7 +200,6 @@ async function extractPlaceDetails(page) {
         if (phone && website) break;
       }
 
-      // ---- 4. Last resort: visible text lines in the panel only ----------
       if (!phone || !website) {
         const lines = scope.innerText
           .split("\n")
@@ -249,7 +229,6 @@ async function extractPlaceDetails(page) {
 
           if (!phone && /^[+\d][\d\s\-()]{7,18}$/.test(line)) {
             const d = line.replace(/\D/g, "");
-            // 10-13 digits avoids matching prices, pin codes, review counts
             if (d.length >= 10 && d.length <= 13) phone = line;
           }
 
@@ -262,9 +241,6 @@ async function extractPlaceDetails(page) {
   });
 }
 
-/**
- * Opens a place page, waits for the real detail panel, extracts data.
- */
 async function scrapePlaceDetails(detailPage, link) {
   await detailPage.goto(`${link}&hl=en`, {
     waitUntil: "domcontentloaded",
@@ -296,10 +272,6 @@ async function scrapePlaceDetails(detailPage, link) {
 
   return data;
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Scraper                                                                   */
-/* -------------------------------------------------------------------------- */
 
 async function runBackgroundScraper(jobId, query, location, targetCount) {
   const job = scrapingJobs[jobId];
